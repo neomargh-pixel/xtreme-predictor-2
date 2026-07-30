@@ -1,24 +1,42 @@
-document.getElementById("pronostico").innerHTML = `
-<div style="padding:20px;text-align:center;">
-<h2>🔥 Pronóstico del Día</h2>
-<h1>🐎 CABALLO</h1>
-<p>Confianza del algoritmo: <b>92%</b></p>
-</div>
-`;
-
 const animales = [
 "🐎 Caballo",
-"🐓 Gallo",
-"🦁 León",
 "🐅 Tigre",
-"🐕 Perro",
+"🦁 León",
+"🐊 Caimán",
+"🐍 Serpiente",
+"🐒 Mono",
+"🐓 Gallo",
 "🦅 Águila",
-"🐴 Burro",
 "🐘 Elefante",
-"🐊 Cocodrilo",
+"🐂 Toro",
+"🐕 Perro",
+"🐈 Gato",
+"🐖 Cerdo",
+"🐄 Vaca",
+"🐐 Cabra",
+"🦌 Venado",
+"🐇 Conejo",
+"🦆 Pato",
+"🦉 Búho",
+"🦜 Loro",
+"🐢 Tortuga",
+"🐬 Delfín",
+"🦈 Tiburón",
+"🐳 Ballena",
+"🦀 Cangrejo",
+"🦂 Escorpión",
+"🕷 Araña",
+"🐝 Abeja",
 "🦋 Mariposa",
-"🦃 Pavo",
-"🐄 Vaca"
+"🐞 Mariquita",
+"🐿 Ardilla",
+"🦝 Mapache",
+"🦓 Cebra",
+"🦍 Gorila",
+"🦏 Rinoceronte",
+"🦛 Hipopótamo",
+"🐪 Camello",
+"🦒 Jirafa"
 ];
 
 let html = "";
@@ -26,16 +44,7 @@ let html = "";
 animales.forEach((animal,i)=>{
 
 html += `
-<div style="
-display:inline-block;
-width:120px;
-margin:8px;
-padding:12px;
-text-align:center;
-background:#12251b;
-border:1px solid #19ff67;
-border-radius:12px;
-">
+<div class="animal">
 <h3>${i+1}</h3>
 <p>${animal}</p>
 </div>
@@ -45,20 +54,36 @@ border-radius:12px;
 
 document.getElementById("animales").innerHTML = html;
 
-let tabla="";
+let tabla = "";
 
-for(let i=1;i<=10;i++){
+for(let i=0;i<10;i++){
+
+let salidas = Math.floor(Math.random()*15)+1;
+let dias = Math.floor(Math.random()*30)+1;
+let indice = Math.floor(Math.random()*25)+75;
 
 tabla += `
 <tr>
-<td>${i}</td>
-<td>${animales[i-1]}</td>
-<td>${1200-i*50}</td>
-<td>⬆</td>
-<td>${95-i}%</td>
+<td>${i+1}</td>
+<td>${animales[i]}</td>
+<td>${salidas}</td>
+<td>${dias}</td>
+<td>${indice}%</td>
 </tr>
 `;
 
 }
 
-document.getElementById("top10").innerHTML=tabla;
+document.getElementById("top10").innerHTML = tabla;
+
+document.getElementById("estadistica").innerHTML = `
+<b>Animales analizados:</b> ${animales.length}<br>
+<b>Sorteos:</b> 250<br>
+<b>Algoritmo:</b> XTREME CORE 2.0
+`;
+
+document.getElementById("actualizar").onclick = function(){
+
+alert("Actualización simulada correctamente.");
+
+};
