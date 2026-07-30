@@ -1,52 +1,90 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>XTREME Predictor 2.0</title>
 
 <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-<header id="banner">
-    <h1>🚀 XTREME Predictor</h1>
-    <p>El poder del algoritmo a tu favor</p>
+<header>
+
+<h1>🚀 XTREME Predictor</h1>
+
+<p>El poder del algoritmo a tu favor</p>
+
 </header>
 
-<section id="loteria">
-    <h2>🎯 Lotería</h2>
+<div class="container">
 
-    <select id="selectorLoteria">
-        <option>Guácharo Activo</option>
-        <option>La Granjita</option>
-        <option>Selva Plus</option>
-        <option>Granja Millonaria</option>
-    </select>
-</section>
+<section>
 
-<section id="pronostico">
-</section>
+<h2>🎯 Seleccionar Lotería</h2>
 
-<section id="animales">
+<select id="selectorLoteria">
+
+<option>Guácharo Activo</option>
+<option>La Granjita</option>
+<option>Selva Plus</option>
+<option>Granja Millonaria</option>
+
+</select>
+
 </section>
 
 <section>
 
-<h2>🏆 TOP 10 DEL ALGORITMO</h2>
+<h2>🔥 Pronóstico del Día</h2>
+
+<div id="pronostico">
+
+<h1>🐎 Caballo</h1>
+
+<p>Confianza XTREME: 92%</p>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>🐾 Animalitos</h2>
+
+<div id="animales" class="animales">
+
+</div>
+
+</section>
+
+<section>
+
+<h2>🏆 TOP 10 XTREME</h2>
 
 <table>
 
 <thead>
+
 <tr>
+
 <th>#</th>
+
 <th>Animal</th>
-<th>Puntos</th>
-<th>Tendencia</th>
-<th>Confianza</th>
+
+<th>Salidas</th>
+
+<th>Días</th>
+
+<th>Índice</th>
+
 </tr>
+
 </thead>
 
 <tbody id="top10">
@@ -57,11 +95,36 @@
 
 </section>
 
+<section>
+
+<h2>📊 Estadísticas</h2>
+
+<div id="estadistica">
+
+Analizando resultados...
+
+</div>
+
+</section>
+
 <button id="actualizar">
+
 🔄 ACTUALIZAR RESULTADOS
+
 </button>
 
+</div>
+
+<footer>
+
+XTREME Predictor © 2026
+
+</footer>
+
+<script src="animales.js"></script>
+<script src="algoritmo.js"></script>
 <script src="script.js"></script>
 
 </body>
+
 </html>
