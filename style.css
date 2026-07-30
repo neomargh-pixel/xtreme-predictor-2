@@ -1,43 +1,94 @@
-body{
+*{
     margin:0;
     padding:0;
-    background:#07140d;
-    color:white;
+    box-sizing:border-box;
+}
+
+body{
     font-family:Arial,Helvetica,sans-serif;
+    color:#fff;
+    background:#08120a url("https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600") center/cover fixed;
 }
 
-#banner{
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    z-index:-1;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+header{
     text-align:center;
-    padding:30px;
-    background:linear-gradient(180deg,#0b2d18,#07140d);
-    border-bottom:2px solid #19ff67;
+    padding:25px;
+    margin-bottom:20px;
 }
 
-#banner h1{
-    font-size:42px;
+header h1{
+    font-size:48px;
     color:#39ff14;
-    margin:0;
+    text-shadow:0 0 20px #39ff14;
 }
 
-#banner p{
-    color:#9cff9c;
+header p{
+    color:#d6ffd6;
+    margin-top:10px;
 }
 
 section{
-    background:#0d1b14;
-    margin:15px;
-    padding:15px;
-    border-radius:15px;
-    border:1px solid #19ff67;
+    background:#0d1d12;
+    border:2px solid #2dff6b;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 0 25px rgba(0,255,100,.25);
+}
+
+h2{
+    margin-bottom:15px;
+    color:#39ff14;
 }
 
 select{
     width:100%;
-    padding:12px;
+    padding:14px;
+    background:#111;
+    color:#fff;
+    border:2px solid #39ff14;
     border-radius:10px;
-    background:#12251b;
-    color:white;
-    border:1px solid #19ff67;
+}
+
+#pronostico{
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:#39ff14;
+}
+
+.animales{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:15px;
+}
+
+.animal{
+    background:#16251b;
+    border:2px solid #39ff14;
+    border-radius:15px;
+    padding:15px;
+    text-align:center;
+    transition:.3s;
+}
+
+.animal:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 20px #39ff14;
 }
 
 table{
@@ -46,25 +97,57 @@ table{
 }
 
 th{
-    background:#19ff67;
-    color:black;
-    padding:10px;
+    background:#28ff57;
+    color:#000;
+    padding:12px;
 }
 
 td{
-    padding:10px;
-    border-bottom:1px solid #1f3d2d;
+    padding:12px;
+    border-bottom:1px solid #333;
+    text-align:center;
 }
 
-#actualizar{
-    width:95%;
-    margin:20px auto;
-    display:block;
+tr:hover{
+    background:#1c2b20;
+}
+
+button{
+    width:100%;
     padding:18px;
+    background:linear-gradient(90deg,#19ff57,#67ff00);
+    color:#000;
+    font-size:22px;
+    font-weight:bold;
     border:none;
     border-radius:15px;
-    background:#19ff67;
-    color:black;
-    font-size:20px;
-    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 0 20px #39ff14;
+}
+
+button:hover{
+    transform:scale(1.02);
+}
+
+footer{
+    text-align:center;
+    margin-top:30px;
+    padding:20px;
+    color:#bbb;
+}
+
+@media(max-width:768px){
+
+header h1{
+font-size:34px;
+}
+
+table{
+font-size:13px;
+}
+
+button{
+font-size:18px;
+}
+
 }
