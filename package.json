@@ -1,1 +1,8 @@
-
+{
+  "name": "xtreme-predictor",
+  "version": "2.0.0",
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
