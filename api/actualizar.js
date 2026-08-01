@@ -1,40 +1,55 @@
 import * as cheerio from "cheerio";
 
+const animalesValidos = [
+"BALLENA","DELFÍN","TORO","CIEMPIÉS","ALACRÁN","LEÓN","RANA","PERICO","RATÓN","ÁGUILA",
+"TIGRE","GATO","CABALLO","MONO","PALOMA","ZORRO","OSO","PAVO","BURRO","CABRA",
+"GALLO","IGUANA","CEBRA","GALLINA","VACA","COCHINO","ZAMURO","ELEFANTE","CAIMÁN","ARDILLA",
+"PESCADO","VENADO","JIRAFA","CULEBRA","TORTUGA","BÚHO","TUCÁN","GARZA","JAGUAR","CONEJO",
+"AVESTRUZ","CUERVO"
+];
+
 export default async function handler(req, res) {
 
-  try {
+try {
 
-    const respuesta = await fetch("https://www.tuazar.com/loteria/animalitos/resultados/");
-    const html = await respuesta.text();
+const respuesta = await fetch("https://www.tuazar.com/loteria/animalitos/resultados/");
+const html = await respuesta.text();
 
-    const $ = cheerio.load(html);
+const $ = cheerio.load(html);
 
-    const texto = $.text();
+const texto = $.text().toUpperCase();
 
-    const resultados = [];
+const regex = /(\d+)\s*-\s*([A-ZÁÉÍÓÚÑ]+)/g;
 
-    const regex = /(\d+)\s*-\s*([A-ZÁÉÍÓÚÑ]+)/g;
+let resultados = [];
 
-    let m;
+let m;
 
-    while ((m = regex.exec(texto)) !== null) {
+while ((m = regex.exec(texto)) !== null) {
 
-      resultados.push({
-        numero: parseInt(m[1]),
-        animal: m[2]
-      });
+const numero = parseInt(m[1]);
+const animal = m[2];
 
-    }
+if (animalesValidos.includes(animal)) {
 
-    res.status(200).json(resultados);
+resultados.push({
+numero,
+animal
+});
 
-  } catch (error) {
+}
 
-    res.status(500).json({
-      ok: false,
-      error: error.message
-    });
+}
 
-  }
+res.status(200).json(resultados);
+
+} catch (error) {
+
+res.status(500).json({
+ok:false,
+error:error.message
+});
+
+}
 
 }
