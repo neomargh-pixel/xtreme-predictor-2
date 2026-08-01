@@ -19,15 +19,23 @@ texto: $(el).text().trim()
 
 });
 
+
+const texto = pagina.data;
+
+const resultados = [];
+
+const regex = /(\d+)\s*-\s*([A-ZÁÉÍÓÚÑ]+)/g;
+
+let m;
+
+while ((m = regex.exec(texto)) !== null) {
+  resultados.push({
+    numero: parseInt(m[1]),
+    animal: m[2]
+  });
+}
+
 res.status(200).json(resultados);
-
-} catch(error){
-
-res.status(500).json({
-ok:false,
-error:error.message
-});
-
 }
 
 }
