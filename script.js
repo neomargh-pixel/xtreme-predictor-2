@@ -1,6 +1,6 @@
 async function cargarResultados() {
   try {
-    const respuesta = await fetch("/api/actualizar");
+    const respuesta = await fetch("resultados.json");
     const resultados = await respuesta.json();
 
     if (!Array.isArray(resultados) || resultados.length === 0) {
