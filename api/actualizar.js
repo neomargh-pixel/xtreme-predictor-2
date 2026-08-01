@@ -2,40 +2,39 @@ import * as cheerio from "cheerio";
 
 export default async function handler(req, res) {
 
-try {
+  try {
 
-const respuesta = await fetch("https://www.tuazar.com/loteria/animalitos/resultados/");
-const html = await respuesta.text();
+    const respuesta = await fetch("https://www.tuazar.com/loteria/animalitos/resultados/");
+    const html = await respuesta.text();
 
-const $ = cheerio.load(html);
+    const $ = cheerio.load(html);
 
-let resultados = [];
+    const texto = $.text();
 
-$(".resultado, .result, .item").each((i, el) => {
+    const resultados = [];
 
-resultados.push({
-texto: $(el).text().trim()
-});
+    const regex = /(\d+)\s*-\s*([A-ZÁÉÍÓÚÑ]+)/g;
 
-});
+    let m;
 
+    while ((m = regex.exec(texto)) !== null) {
 
-const texto = pagina.data;
+      resultados.push({
+        numero: parseInt(m[1]),
+        animal: m[2]
+      });
 
-const resultados = [];
+    }
 
-const regex = /(\d+)\s*-\s*([A-ZÁÉÍÓÚÑ]+)/g;
+    res.status(200).json(resultados);
 
-let m;
+  } catch (error) {
 
-while ((m = regex.exec(texto)) !== null) {
-  resultados.push({
-    numero: parseInt(m[1]),
-    animal: m[2]
-  });
-}
+    res.status(500).json({
+      ok: false,
+      error: error.message
+    });
 
-res.status(200).json(resultados);
-}
+  }
 
 }
