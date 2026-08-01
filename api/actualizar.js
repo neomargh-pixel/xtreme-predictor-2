@@ -1,15 +1,14 @@
-const axios = require("axios");
-
 export default async function handler(req, res) {
 
 try {
 
-const pagina = await axios.get("https://www.tuazar.com/loteria/animalitos/resultados/");
+const respuesta = await fetch("https://www.tuazar.com/loteria/animalitos/resultados/");
+
+const html = await respuesta.text();
 
 res.status(200).json({
 ok:true,
-mensaje:"Conexión realizada correctamente.",
-tamano: pagina.data.length
+tamano: html.length
 });
 
 } catch(error){
