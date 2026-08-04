@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 
 const animalesValidos = [
+"BALLENA",
 "DELFÍN",
 "CARNERO",
 "TORO",
