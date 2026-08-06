@@ -1,36 +1,27 @@
-import supabase from "../lib/supabase.js";
+import * as cheerio from "cheerio";
 
 export default async function handler(req, res) {
-
   try {
+    const respuesta = await fetch(
+      "https://www.tuazar.com/loteria/animalitos/resultados/"
+    );
 
-    const { data, error } = await supabase
-      .from("historial")
-      .select("*")
-      .limit(1);
+    const html = await respuesta.text();
 
-    if (error) {
-      return res.status(500).json({
-        ok: false,
-        paso: "Supabase",
-        error: error.message
-      });
-    }
+    const $ = cheerio.load(html);
 
     return res.status(200).json({
       ok: true,
-      mensaje: "Conexión con Supabase correcta.",
-      filas: data.length
+      titulo: $("title").text(),
+      caracteres: html.length
     });
 
   } catch (error) {
 
     return res.status(500).json({
       ok: false,
-      paso: "Catch",
       error: error.message
     });
 
   }
-
 }
