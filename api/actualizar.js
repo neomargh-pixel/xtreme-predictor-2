@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
 import guardarResultados from "../lib/guardarResultados.js";
+import analizarResultados from "../lib/analizarResultados.js";
+import supabase from "../lib/supabase.js";
 
 const animalesValidos = [
 "BALLENA","DELFÍN","CARNERO","TORO","CIEMPIÉS","ALACRÁN","LEÓN","RANA","PERICO","RATÓN",
@@ -16,7 +18,10 @@ export default async function handler(req, res) {
 
   try {
 
-    const respuesta = await fetch("https://www.tuazar.com/loteria/animalitos/resultados/");
+    const respuesta = await fetch(
+      "https://www.tuazar.com/loteria/animalitos/resultados/"
+    );
+
     const html = await respuesta.text();
 
     const $ = cheerio.load(html);
@@ -24,7 +29,7 @@ export default async function handler(req, res) {
 
     const regex = /(\d+)\s*-\s*([A-ZÁÉÍÓÚÑ ]+)/g;
 
-    const resultados = [];
+    let resultados = [];
     let m;
 
     while ((m = regex.exec(texto)) !== null) {
@@ -33,22 +38,34 @@ export default async function handler(req, res) {
       const animal = m[2].trim();
 
       if (animalesValidos.includes(animal)) {
+
         resultados.push({
-          numero,
           animal,
+          numero,
           fecha: new Date().toISOString()
         });
+
       }
 
     }
 
     await guardarResultados(resultados);
 
+    const { data: historial, error } = await supabase
+      .from("historial")
+      .select("*");
+
+    if (error) {
+      throw error;
+    }
+
+    const analisis = analizarResultados(historial);
+
     return res.status(200).json({
       ok: true,
-      encontrados: resultados.length,
-      guardados: resultados.length,
-      primeros: resultados.slice(0,10)
+      historial: historial.length,
+      pronostico: analisis[0] || null,
+      top10: analisis.slice(0, 10)
     });
 
   } catch (error) {
