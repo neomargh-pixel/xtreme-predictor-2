@@ -139,3 +139,24 @@ font-size:12px;
 }
 
 }
+
+.caliente{
+background:#c62828;
+border:2px solid #ff5252;
+color:#fff;
+box-shadow:0 0 15px rgba(255,0,0,.6);
+}
+
+.medio{
+background:#b28704;
+border:2px solid #ffd54f;
+color:#fff;
+box-shadow:0 0 15px rgba(255,193,7,.5);
+}
+
+.frio{
+background:#1565c0;
+border:2px solid #64b5f6;
+color:#fff;
+box-shadow:0 0 15px rgba(33,150,243,.5);
+  }
