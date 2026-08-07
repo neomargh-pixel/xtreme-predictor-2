@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import guardarResultados from "../lib/guardarResultados.js";
 
 const animalesValidos = [
 "BALLENA","DELFÍN","CARNERO","TORO","CIEMPIÉS","ALACRÁN","LEÓN","RANA","PERICO","RATÓN",
@@ -12,7 +13,9 @@ const animalesValidos = [
 ];
 
 export default async function handler(req, res) {
+
   try {
+
     const respuesta = await fetch("https://www.tuazar.com/loteria/animalitos/resultados/");
     const html = await respuesta.text();
 
@@ -25,24 +28,36 @@ export default async function handler(req, res) {
     let m;
 
     while ((m = regex.exec(texto)) !== null) {
+
       const numero = parseInt(m[1]);
       const animal = m[2].trim();
 
       if (animalesValidos.includes(animal)) {
-        resultados.push({ numero, animal });
+        resultados.push({
+          numero,
+          animal,
+          fecha: new Date().toISOString()
+        });
       }
+
     }
+
+    await guardarResultados(resultados);
 
     return res.status(200).json({
       ok: true,
       encontrados: resultados.length,
-      primeros: resultados.slice(0, 10)
+      guardados: resultados.length,
+      primeros: resultados.slice(0,10)
     });
 
   } catch (error) {
+
     return res.status(500).json({
       ok: false,
       error: error.message
     });
+
   }
+
 }
