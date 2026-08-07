@@ -1,79 +1,53 @@
 async function cargarResultados() {
 
-  try {
+  const respuesta = await fetch("/api/analizar");
+  const datos = await respuesta.json();
 
-    const respuesta = await fetch("/api/analizar");
-    const datos = await respuesta.json();
+  if (!datos.ok) return;
 
-    if (!datos.ok) {
-      document.getElementById("estadistica").innerHTML = "Error analizando.";
-      return;
-    }
+  document.getElementById("pronostico").innerHTML = `
+    <h1>🔥 ${datos.pronostico.animal}</h1>
+    <p>Índice XTREME: ${Math.min(datos.pronostico.indice,100)}%</p>
+    <p>Salidas: ${datos.pronostico.salidas}</p>
+    <p>Días sin salir: ${datos.pronostico.diasSinSalir}</p>
+  `;
 
-    const pronostico = datos.pronostico;
-    const top10 = datos.top10;
-
-    document.getElementById("pronostico").innerHTML = `
-      <h1>🔥 ${pronostico.animal}</h1>
-      <p>Índice XTREME: ${pronostico.indice}%</p>
-      <p>Salidas: ${pronostico.salidas}</p>
-      <p>Días sin salir: ${pronostico.diasSinSalir}</p>
-    `;
-
-    let tabla = "";
-
-    top10.forEach((a,i)=>{
-
-      tabla += `
+  document.getElementById("top10").innerHTML =
+    datos.top10.map((a,i)=>`
       <tr>
         <td>${i+1}</td>
         <td>${a.animal}</td>
         <td>${a.salidas}</td>
         <td>${a.diasSinSalir}</td>
-        <td>${a.indice}%</td>
+        <td>${Math.min(a.indice,100)}%</td>
       </tr>
-      `;
+    `).join("");
 
-    });
+  let html = "";
 
-    document.getElementById("top10").innerHTML = tabla;
+  animales.forEach(a=>{
 
-    let html = "";
+    const dato = datos.top10.find(x=>x.animal===a.animal);
 
-    animales.forEach(a=>{
+    let clase="frio";
 
-      const dato = top10.find(x=>x.animal===a.animal);
+    if(dato){
+      if(dato.indice>=50) clase="caliente";
+      else if(dato.indice>=30) clase="medio";
+    }
 
-      let clase = "frio";
-
-      if(dato){
-        if(dato.indice>=50){
-          clase="caliente";
-        }else if(dato.indice>=30){
-          clase="medio";
-        }
-      }
-
-      html += `
+    html+=`
       <div class="animal ${clase}">
         <strong>${a.numero}</strong><br>
         ${a.animal}
       </div>
-      `;
+    `;
+  });
 
-    });
+  document.getElementById("animales").innerHTML=html;
 
-    document.getElementById("animales").innerHTML = html;
-
-    document.getElementById("estadistica").innerHTML =
-      `Historial almacenado: ${datos.historial}<br>Top 10 generado correctamente.`;
-
-  } catch(e){
-
-    document.getElementById("estadistica").innerHTML="Error cargando datos.";
-
-  }
-
+  document.getElementById("estadistica").innerHTML=
+    `Historial: ${datos.historial} registros`;
 }
 
 document.getElementById("actualizar").onclick=cargarResultados;
