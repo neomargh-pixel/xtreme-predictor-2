@@ -14,18 +14,45 @@ export default async function handler(req, res) {
 
     const analisis = analizarResultados(historial);
 
+    // TOP 10 DE TENDENCIA
+    const top10 = analisis
+      .slice()
+      .sort((a, b) => b.indice - a.indice)
+      .slice(0, 10);
+
+    // ANIMALES MÁS ATRASADOS
+    const atrasados = analisis
+      .slice()
+      .sort((a, b) => {
+
+        if (b.diasSinSalir !== a.diasSinSalir) {
+          return b.diasSinSalir - a.diasSinSalir;
+        }
+
+        return b.salidas - a.salidas;
+
+      })
+      .slice(0, 10);
+
     return res.status(200).json({
+
       ok: true,
+
       historial: historial.length,
-      pronostico: analisis[0],
-      top10: analisis.slice(0,10)
+
+      pronostico: top10[0] || null,
+
+      top10: top10,
+
+      atrasados: atrasados
+
     });
 
   } catch (error) {
 
     return res.status(500).json({
-      ok:false,
-      error:error.message
+      ok: false,
+      error: error.message
     });
 
   }
