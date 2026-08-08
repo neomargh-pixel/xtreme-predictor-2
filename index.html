@@ -39,19 +39,21 @@
 
 </section>
 
+
 <section>
 
 <h2>🔥 Pronóstico del Día</h2>
 
 <div id="pronostico">
 
-<h1>🐎 Caballo</h1>
+<h1>Analizando...</h1>
 
-<p>Confianza XTREME: 92%</p>
+<p>Calculando pronóstico XTREME</p>
 
 </div>
 
 </section>
+
 
 <section>
 
@@ -62,6 +64,7 @@
 </div>
 
 </section>
+
 
 <section>
 
@@ -74,13 +77,9 @@
 <tr>
 
 <th>#</th>
-
 <th>Animal</th>
-
 <th>Salidas</th>
-
 <th>Días</th>
-
 <th>Índice</th>
 
 </tr>
@@ -95,6 +94,36 @@
 
 </section>
 
+
+<section>
+
+<h2>⏳ ANIMALES MÁS ATRASADOS</h2>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>#</th>
+<th>Animal</th>
+<th>Salidas</th>
+<th>Días sin salir</th>
+<th>Índice</th>
+
+</tr>
+
+</thead>
+
+<tbody id="atrasados">
+
+</tbody>
+
+</table>
+
+</section>
+
+
 <section>
 
 <h2>📊 Estadísticas</h2>
@@ -107,6 +136,7 @@ Analizando resultados...
 
 </section>
 
+
 <button id="actualizar">
 
 🔄 ACTUALIZAR RESULTADOS
@@ -115,15 +145,200 @@ Analizando resultados...
 
 </div>
 
+
 <footer>
 
 XTREME Predictor © 2026
 
 </footer>
 
+
 <script src="animales.js"></script>
 <script src="algoritmo.js"></script>
 <script src="script.js"></script>
+
+
+<script>
+
+async function cargarAnalisis() {
+
+  try {
+
+    const respuesta = await fetch("/api/analizar");
+
+    const datos = await respuesta.json();
+
+    if (!datos.ok) {
+      throw new Error(datos.error || "Error en el análisis");
+    }
+
+
+    /* =========================
+       PRONÓSTICO
+    ========================= */
+
+    const p = datos.pronostico;
+
+    const pronostico = document.getElementById("pronostico");
+
+    if (p) {
+
+      pronostico.innerHTML = `
+        <h1>🔥 ${p.animal}</h1>
+
+        <p>
+          Salidas: <strong>${p.salidas}</strong>
+        </p>
+
+        <p>
+          Días sin salir:
+          <strong>${p.diasSinSalir}</strong>
+        </p>
+
+        <p>
+          Índice XTREME:
+          <strong>${p.indice}</strong>
+        </p>
+      `;
+
+    }
+
+
+    /* =========================
+       TOP 10
+    ========================= */
+
+    const tablaTop = document.getElementById("top10");
+
+    tablaTop.innerHTML = "";
+
+    datos.top10.forEach((animal, index) => {
+
+      tablaTop.innerHTML += `
+
+        <tr>
+
+          <td>${index + 1}</td>
+
+          <td><strong>${animal.animal}</strong></td>
+
+          <td>${animal.salidas}</td>
+
+          <td>${animal.diasSinSalir}</td>
+
+          <td>${animal.indice}</td>
+
+        </tr>
+
+      `;
+
+    });
+
+
+    /* =========================
+       ATRASADOS
+    ========================= */
+
+    const tablaAtrasados =
+      document.getElementById("atrasados");
+
+    tablaAtrasados.innerHTML = "";
+
+    datos.atrasados.forEach((animal, index) => {
+
+      tablaAtrasados.innerHTML += `
+
+        <tr>
+
+          <td>${index + 1}</td>
+
+          <td><strong>${animal.animal}</strong></td>
+
+          <td>${animal.salidas}</td>
+
+          <td>${animal.diasSinSalir}</td>
+
+          <td>${animal.indice}</td>
+
+        </tr>
+
+      `;
+
+    });
+
+
+    /* =========================
+       ESTADÍSTICAS
+    ========================= */
+
+    document.getElementById("estadistica").innerHTML = `
+
+      <p>
+        📚 Resultados analizados:
+        <strong>${datos.historial}</strong>
+      </p>
+
+      <p>
+        🔥 Mayor tendencia:
+        <strong>${p ? p.animal : "N/A"}</strong>
+      </p>
+
+      <p>
+        ⏳ Mayor atraso:
+        <strong>
+          ${
+            datos.atrasados && datos.atrasados.length
+              ? datos.atrasados[0].animal
+              : "N/A"
+          }
+        </strong>
+      </p>
+
+      <p>
+        📅 Días de atraso:
+        <strong>
+          ${
+            datos.atrasados && datos.atrasados.length
+              ? datos.atrasados[0].diasSinSalir
+              : 0
+          }
+        </strong>
+      </p>
+
+    `;
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById("pronostico").innerHTML = `
+
+      <h2>⚠️ Error</h2>
+
+      <p>${error.message}</p>
+
+    `;
+
+  }
+
+}
+
+
+/* =========================
+   BOTÓN ACTUALIZAR
+========================= */
+
+document
+  .getElementById("actualizar")
+  .addEventListener("click", cargarAnalisis);
+
+
+/* Cargar automáticamente */
+
+cargarAnalisis();
+
+</script>
 
 </body>
 
