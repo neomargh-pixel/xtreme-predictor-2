@@ -86,6 +86,10 @@
 
 <tbody id="top10">
 
+<tr>
+<td colspan="5">Cargando...</td>
+</tr>
+
 </tbody>
 
 </table>
@@ -163,17 +167,26 @@ async function cargarAnalisis() {
   try {
 
     const respuesta = await fetch(
-      "/api/analizar?t=" + Date.now(),
+      "/api/analizar?_=" + Date.now(),
       {
+        method: "GET",
         cache: "no-store"
       }
     );
+
+    if (!respuesta.ok) {
+      throw new Error(
+        "API respondió con error " +
+        respuesta.status
+      );
+    }
 
     const datos = await respuesta.json();
 
     if (!datos.ok) {
       throw new Error(
-        datos.error || "Error en el análisis"
+        datos.error ||
+        "Error en el análisis"
       );
     }
 
@@ -184,12 +197,14 @@ async function cargarAnalisis() {
 
     const p = datos.pronostico;
 
-    const pronostico =
-      document.getElementById("pronostico");
+    const bloquePronostico =
+      document.getElementById(
+        "pronostico"
+      );
 
     if (p) {
 
-      pronostico.innerHTML = `
+      bloquePronostico.innerHTML = `
 
         <h1>🔥 ${p.animal}</h1>
 
@@ -210,12 +225,16 @@ async function cargarAnalisis() {
 
         <p>
           Tendencia:
-          <strong>${p.tendencia || "N/A"}</strong>
+          <strong>
+            ${p.tendencia || "N/A"}
+          </strong>
         </p>
 
         <p>
           Categoría:
-          <strong>${p.categoria || "N/A"}</strong>
+          <strong>
+            ${p.categoria || "N/A"}
+          </strong>
         </p>
 
       `;
@@ -228,7 +247,9 @@ async function cargarAnalisis() {
     ========================= */
 
     const tablaTop =
-      document.getElementById("top10");
+      document.getElementById(
+        "top10"
+      );
 
     tablaTop.innerHTML = "";
 
@@ -240,66 +261,10 @@ async function cargarAnalisis() {
       datos.top10.forEach(
         (animal, index) => {
 
-          tablaTop.innerHTML += `
-
-            <tr>
-
-              <td>${index + 1}</td>
-
-              <td>
-                <strong>
-                  ${animal.animal}
-                </strong>
-              </td>
-
-              <td>
-                ${animal.salidas}
-              </td>
-
-              <td>
-                ${animal.diasSinSalir}
-              </td>
-
-              <td>
-                ${Math.min(
-                  animal.indice,
-                  100
-                )}%
-              </td>
-
-            </tr>
-
-          `;
-
-        }
-      );
-
-    }
-
-
-    /* =========================
-       ATRASADOS
-    ========================= */
-
-    const tablaAtrasados =
-      document.getElementById(
-        "atrasados"
-      );
-
-    tablaAtrasados.innerHTML = "";
-
-    const listaAtrasados =
-      Array.isArray(datos.atrasados)
-        ? datos.atrasados
-        : [];
-
-    if (listaAtrasados.length > 0) {
-
-      listaAtrasados.forEach(
-        (animal, index) => {
-
           const fila =
-            document.createElement("tr");
+            document.createElement(
+              "tr"
+            );
 
           fila.innerHTML = `
 
@@ -323,7 +288,86 @@ async function cargarAnalisis() {
 
             <td>
               ${Math.min(
-                animal.indice,
+                Number(animal.indice) || 0,
+                100
+              )}%
+            </td>
+
+          `;
+
+          tablaTop.appendChild(
+            fila
+          );
+
+        }
+      );
+
+    } else {
+
+      tablaTop.innerHTML = `
+
+        <tr>
+          <td colspan="5">
+            No hay datos.
+          </td>
+        </tr>
+
+      `;
+
+    }
+
+
+    /* =========================
+       ATRASADOS
+    ========================= */
+
+    const tablaAtrasados =
+      document.getElementById(
+        "atrasados"
+      );
+
+    tablaAtrasados.innerHTML = "";
+
+    const listaAtrasados =
+      Array.isArray(datos.atrasados)
+        ? datos.atrasados
+        : [];
+
+    if (
+      listaAtrasados.length > 0
+    ) {
+
+      listaAtrasados.forEach(
+        (animal, index) => {
+
+          const fila =
+            document.createElement(
+              "tr"
+            );
+
+          fila.innerHTML = `
+
+            <td>
+              ${index + 1}
+            </td>
+
+            <td>
+              <strong>
+                ${animal.animal}
+              </strong>
+            </td>
+
+            <td>
+              ${animal.salidas}
+            </td>
+
+            <td>
+              ${animal.diasSinSalir}
+            </td>
+
+            <td>
+              ${Math.min(
+                Number(animal.indice) || 0,
                 100
               )}%
             </td>
@@ -342,11 +386,9 @@ async function cargarAnalisis() {
       tablaAtrasados.innerHTML = `
 
         <tr>
-
           <td colspan="5">
             No hay animales atrasados.
           </td>
-
         </tr>
 
       `;
@@ -366,7 +408,6 @@ async function cargarAnalisis() {
     contenedorAnimales.innerHTML = "";
 
     if (
-      typeof animales !== "undefined" &&
       Array.isArray(animales)
     ) {
 
@@ -376,7 +417,8 @@ async function cargarAnalisis() {
           Array.isArray(datos.top10)
             ? datos.top10.find(
                 x =>
-                  x.animal === a.animal
+                  x.animal ===
+                  a.animal
               )
             : null;
 
@@ -384,14 +426,15 @@ async function cargarAnalisis() {
 
         if (dato) {
 
-          if (
-            dato.indice >= 80
-          ) {
+          const indice =
+            Number(dato.indice) || 0;
+
+          if (indice >= 80) {
 
             clase = "caliente";
 
           } else if (
-            dato.indice >= 50
+            indice >= 50
           ) {
 
             clase = "medio";
@@ -442,16 +485,16 @@ async function cargarAnalisis() {
     const cantidadAtrasados =
       listaAtrasados.length;
 
-
     document.getElementById(
       "estadistica"
     ).innerHTML = `
 
       <p>
-        📚 Resultados analizados:
+        📚 Historial:
         <strong>
           ${datos.historial}
         </strong>
+        registros
       </p>
 
       <p>
@@ -465,6 +508,13 @@ async function cargarAnalisis() {
         🔥 Calientes:
         <strong>
           ${cantidadCalientes}
+        </strong>
+      </p>
+
+      <p>
+        ⚡ En observación:
+        <strong>
+          0
         </strong>
       </p>
 
@@ -519,6 +569,30 @@ async function cargarAnalisis() {
 
     `;
 
+    document.getElementById(
+      "top10"
+    ).innerHTML = `
+
+      <tr>
+        <td colspan="5">
+          Error cargando datos.
+        </td>
+      </tr>
+
+    `;
+
+    document.getElementById(
+      "atrasados"
+    ).innerHTML = `
+
+      <tr>
+        <td colspan="5">
+          Error cargando atrasados.
+        </td>
+      </tr>
+
+    `;
+
   }
 
 }
@@ -537,7 +611,7 @@ document
 
 
 /* =========================
-   CARGA INICIAL
+   CARGA AUTOMÁTICA
 ========================= */
 
 cargarAnalisis();
