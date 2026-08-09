@@ -6,25 +6,24 @@ async function cargarResultados() {
     const datos = await respuesta.json();
 
     if (!datos.ok) {
-      console.error(datos.error);
-      return;
+      throw new Error(datos.error || "Error en el análisis");
     }
 
     // ==========================================
-    // PRONÓSTICO XTREME
+    // PRONÓSTICO
     // ==========================================
 
-    if (datos.pronostico) {
+    const p = datos.pronostico;
 
-      const p = datos.pronostico;
+    if (p) {
 
       document.getElementById("pronostico").innerHTML = `
         <h1>🔥 ${p.animal}</h1>
-        <p>Índice XTREME: ${Math.min(p.indice, 100)}%</p>
+        <p>Índice XTREME: <strong>${p.indice}%</strong></p>
         <p>Tendencia: <strong>${p.tendencia}</strong></p>
-        <p>Salidas: ${p.salidas}</p>
-        <p>Días sin salir: ${p.diasSinSalir}</p>
-        <p>Categoría: 🔥 ${p.categoria}</p>
+        <p>Salidas: <strong>${p.salidas}</strong></p>
+        <p>Días sin salir: <strong>${p.diasSinSalir}</strong></p>
+        <p>Categoría: 🔥 <strong>${p.categoria}</strong></p>
       `;
 
     }
@@ -33,16 +32,52 @@ async function cargarResultados() {
     // TOP 10
     // ==========================================
 
-    document.getElementById("top10").innerHTML =
-      datos.top10.map((a, i) => `
+    const tablaTop = document.getElementById("top10");
+
+    tablaTop.innerHTML = "";
+
+    datos.top10.forEach((animal, index) => {
+
+      tablaTop.innerHTML += `
         <tr>
-          <td>${i + 1}</td>
-          <td>${a.animal}</td>
-          <td>${a.salidas}</td>
-          <td>${a.diasSinSalir}</td>
-          <td>${Math.min(a.indice, 100)}%</td>
+          <td>${index + 1}</td>
+          <td><strong>${animal.animal}</strong></td>
+          <td>${animal.salidas}</td>
+          <td>${animal.diasSinSalir}</td>
+          <td>${animal.indice}%</td>
         </tr>
-      `).join("");
+      `;
+
+    });
+
+
+    // ==========================================
+    // ANIMALES ATRASADOS
+    // ==========================================
+
+    const tablaAtrasados =
+      document.getElementById("atrasados");
+
+    tablaAtrasados.innerHTML = "";
+
+    if (datos.atrasados && datos.atrasados.length > 0) {
+
+      datos.atrasados.forEach((animal, index) => {
+
+        tablaAtrasados.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td><strong>${animal.animal}</strong></td>
+            <td>${animal.salidas}</td>
+            <td>${animal.diasSinSalir}</td>
+            <td>${animal.indice}%</td>
+          </tr>
+        `;
+
+      });
+
+    }
+
 
     // ==========================================
     // ANIMALITOS
@@ -62,19 +97,12 @@ async function cargarResultados() {
       if (dato) {
 
         if (dato.categoria === "CALIENTE") {
-
           clase = "caliente";
           etiqueta = "🔥";
 
         } else if (dato.categoria === "OBSERVACION") {
-
           clase = "medio";
           etiqueta = "⚡";
-
-        } else if (dato.categoria === "ATRASADO") {
-
-          clase = "atrasado";
-          etiqueta = "⏳";
 
         }
 
@@ -90,6 +118,7 @@ async function cargarResultados() {
     });
 
     document.getElementById("animales").innerHTML = html;
+
 
     // ==========================================
     // ESTADÍSTICAS
@@ -117,26 +146,32 @@ async function cargarResultados() {
       <p>⏳ Atrasados: <strong>${atrasados}</strong></p>
     `;
 
+
   } catch (error) {
 
-    console.error(
-      "Error cargando resultados:",
-      error
-    );
+    console.error(error);
+
+    document.getElementById("pronostico").innerHTML = `
+      <h2>⚠️ Error</h2>
+      <p>${error.message}</p>
+    `;
 
   }
 
 }
 
+
 // ==========================================
 // BOTÓN ACTUALIZAR
 // ==========================================
 
-document.getElementById("actualizar").onclick =
-  cargarResultados;
+document
+  .getElementById("actualizar")
+  .addEventListener("click", cargarResultados);
+
 
 // ==========================================
-// CARGAR AL ABRIR
+// CARGAR AUTOMÁTICAMENTE
 // ==========================================
 
 cargarResultados();
