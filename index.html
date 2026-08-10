@@ -22,7 +22,9 @@
 
 </header>
 
+
 <div class="container">
+
 
 <section>
 
@@ -40,6 +42,7 @@
 </section>
 
 
+
 <section>
 
 <h2>🔥 Pronóstico del Día</h2>
@@ -55,6 +58,7 @@
 </section>
 
 
+
 <section>
 
 <h2>🐾 Animalitos</h2>
@@ -66,6 +70,7 @@
 </section>
 
 
+
 <section>
 
 <h2>🏆 TOP 10 XTREME</h2>
@@ -75,26 +80,25 @@
 <thead>
 
 <tr>
+
 <th>#</th>
 <th>Animal</th>
 <th>Salidas</th>
 <th>Días</th>
 <th>Índice</th>
+
 </tr>
 
 </thead>
 
 <tbody id="top10">
 
-<tr>
-<td colspan="5">Cargando...</td>
-</tr>
-
 </tbody>
 
 </table>
 
 </section>
+
 
 
 <section>
@@ -106,26 +110,25 @@
 <thead>
 
 <tr>
+
 <th>#</th>
 <th>Animal</th>
 <th>Salidas</th>
 <th>Días</th>
 <th>Índice</th>
+
 </tr>
 
 </thead>
 
 <tbody id="atrasados">
 
-<tr>
-<td colspan="5">Cargando atrasados...</td>
-</tr>
-
 </tbody>
 
 </table>
 
 </section>
+
 
 
 <section>
@@ -141,13 +144,16 @@ Analizando resultados...
 </section>
 
 
+
 <button id="actualizar">
 
 🔄 ACTUALIZAR RESULTADOS
 
 </button>
 
+
 </div>
+
 
 
 <footer>
@@ -157,7 +163,9 @@ XTREME Predictor © 2026
 </footer>
 
 
+
 <script src="animales.js"></script>
+<script src="algoritmo.js"></script>
 
 
 <script>
@@ -166,28 +174,16 @@ async function cargarAnalisis() {
 
   try {
 
-    const respuesta = await fetch(
-      "/api/analizar?_=" + Date.now(),
-      {
-        method: "GET",
-        cache: "no-store"
-      }
-    );
-
-    if (!respuesta.ok) {
-      throw new Error(
-        "API respondió con error " +
-        respuesta.status
-      );
-    }
+    const respuesta = await fetch("/api/analizar");
 
     const datos = await respuesta.json();
 
     if (!datos.ok) {
+
       throw new Error(
-        datos.error ||
-        "Error en el análisis"
+        datos.error || "Error en el análisis"
       );
+
     }
 
 
@@ -197,16 +193,20 @@ async function cargarAnalisis() {
 
     const p = datos.pronostico;
 
-    const bloquePronostico =
-      document.getElementById(
-        "pronostico"
-      );
+    const pronostico =
+      document.getElementById("pronostico");
+
 
     if (p) {
 
-      bloquePronostico.innerHTML = `
+      pronostico.innerHTML = `
 
         <h1>🔥 ${p.animal}</h1>
+
+        <p>
+          Confianza XTREME:
+          <strong>${p.porcentaje}%</strong>
+        </p>
 
         <p>
           Salidas:
@@ -219,27 +219,19 @@ async function cargarAnalisis() {
         </p>
 
         <p>
-          Índice XTREME:
-          <strong>${p.indice}%</strong>
-        </p>
-
-        <p>
           Tendencia:
-          <strong>
-            ${p.tendencia || "N/A"}
-          </strong>
+          <strong>${p.tendencia}</strong>
         </p>
 
         <p>
           Categoría:
-          <strong>
-            ${p.categoria || "N/A"}
-          </strong>
+          <strong>${p.categoria}</strong>
         </p>
 
       `;
 
     }
+
 
 
     /* =========================
@@ -247,153 +239,96 @@ async function cargarAnalisis() {
     ========================= */
 
     const tablaTop =
-      document.getElementById(
-        "top10"
-      );
+      document.getElementById("top10");
 
     tablaTop.innerHTML = "";
 
-    if (
-      Array.isArray(datos.top10) &&
-      datos.top10.length > 0
-    ) {
 
-      datos.top10.forEach(
-        (animal, index) => {
+    if (Array.isArray(datos.top10)) {
 
-          const fila =
-            document.createElement(
-              "tr"
-            );
+      datos.top10.forEach((animal, index) => {
 
-          fila.innerHTML = `
+        tablaTop.innerHTML += `
+
+          <tr>
+
+            <td>${index + 1}</td>
 
             <td>
-              ${index + 1}
+              <strong>${animal.animal}</strong>
             </td>
 
-            <td>
-              <strong>
-                ${animal.animal}
-              </strong>
-            </td>
+            <td>${animal.salidas}</td>
 
-            <td>
-              ${animal.salidas}
-            </td>
+            <td>${animal.diasSinSalir}</td>
 
-            <td>
-              ${animal.diasSinSalir}
-            </td>
+            <td>${animal.indice}%</td>
 
-            <td>
-              ${Math.min(
-                Number(animal.indice) || 0,
-                100
-              )}%
-            </td>
+          </tr>
 
-          `;
+        `;
 
-          tablaTop.appendChild(
-            fila
-          );
-
-        }
-      );
-
-    } else {
-
-      tablaTop.innerHTML = `
-
-        <tr>
-          <td colspan="5">
-            No hay datos.
-          </td>
-        </tr>
-
-      `;
+      });
 
     }
 
 
+
     /* =========================
-       ATRASADOS
+       ANIMALES ATRASADOS
     ========================= */
 
     const tablaAtrasados =
-      document.getElementById(
-        "atrasados"
-      );
+      document.getElementById("atrasados");
 
     tablaAtrasados.innerHTML = "";
 
-    const listaAtrasados =
-      Array.isArray(datos.atrasados)
-        ? datos.atrasados
-        : [];
 
     if (
-      listaAtrasados.length > 0
+      Array.isArray(datos.atrasados) &&
+      datos.atrasados.length > 0
     ) {
 
-      listaAtrasados.forEach(
-        (animal, index) => {
+      datos.atrasados.forEach((animal, index) => {
 
-          const fila =
-            document.createElement(
-              "tr"
-            );
+        tablaAtrasados.innerHTML += `
 
-          fila.innerHTML = `
+          <tr>
+
+            <td>${index + 1}</td>
 
             <td>
-              ${index + 1}
+              <strong>${animal.animal}</strong>
             </td>
 
-            <td>
-              <strong>
-                ${animal.animal}
-              </strong>
-            </td>
+            <td>${animal.salidas}</td>
 
-            <td>
-              ${animal.salidas}
-            </td>
+            <td>${animal.diasSinSalir}</td>
 
-            <td>
-              ${animal.diasSinSalir}
-            </td>
+            <td>${animal.indice}%</td>
 
-            <td>
-              ${Math.min(
-                Number(animal.indice) || 0,
-                100
-              )}%
-            </td>
+          </tr>
 
-          `;
+        `;
 
-          tablaAtrasados.appendChild(
-            fila
-          );
-
-        }
-      );
+      });
 
     } else {
 
       tablaAtrasados.innerHTML = `
 
         <tr>
+
           <td colspan="5">
             No hay animales atrasados.
           </td>
+
         </tr>
 
       `;
 
     }
+
 
 
     /* =========================
@@ -401,41 +336,32 @@ async function cargarAnalisis() {
     ========================= */
 
     const contenedorAnimales =
-      document.getElementById(
-        "animales"
-      );
+      document.getElementById("animales");
 
     contenedorAnimales.innerHTML = "";
 
-    if (
-      Array.isArray(animales)
-    ) {
+
+    if (Array.isArray(animales)) {
 
       animales.forEach(a => {
 
         const dato =
-          Array.isArray(datos.top10)
-            ? datos.top10.find(
-                x =>
-                  x.animal ===
-                  a.animal
-              )
-            : null;
+          datos.top10 &&
+          datos.top10.find(
+            x => x.animal === a.animal
+          );
+
 
         let clase = "frio";
 
+
         if (dato) {
 
-          const indice =
-            Number(dato.indice) || 0;
-
-          if (indice >= 80) {
+          if (dato.indice >= 80) {
 
             clase = "caliente";
 
-          } else if (
-            indice >= 50
-          ) {
+          } else if (dato.indice >= 50) {
 
             clase = "medio";
 
@@ -443,13 +369,12 @@ async function cargarAnalisis() {
 
         }
 
+
         contenedorAnimales.innerHTML += `
 
           <div class="animal ${clase}">
 
-            <strong>
-              ${a.numero}
-            </strong>
+            <strong>${a.numero}</strong>
 
             <br>
 
@@ -464,87 +389,114 @@ async function cargarAnalisis() {
     }
 
 
+
     /* =========================
        ESTADÍSTICAS
     ========================= */
 
     const mayorAtraso =
-      listaAtrasados.length > 0
-        ? listaAtrasados[0]
+      Array.isArray(datos.atrasados) &&
+      datos.atrasados.length
+        ? datos.atrasados[0]
         : null;
+
 
     const cantidadCalientes =
       Array.isArray(datos.top10)
-        ? datos.top10.filter(
-            a =>
-              a.categoria ===
-              "CALIENTE"
-          ).length
+        ? datos.top10.length
         : 0;
 
+
     const cantidadAtrasados =
-      listaAtrasados.length;
+      Array.isArray(datos.atrasados)
+        ? datos.atrasados.length
+        : 0;
+
 
     document.getElementById(
       "estadistica"
     ).innerHTML = `
 
       <p>
+
         📚 Historial:
+
         <strong>
           ${datos.historial}
         </strong>
+
         registros
+
       </p>
 
+
       <p>
+
         🔥 Mayor tendencia:
+
         <strong>
           ${p ? p.animal : "N/A"}
         </strong>
+
       </p>
 
+
       <p>
+
         🔥 Calientes:
+
         <strong>
           ${cantidadCalientes}
         </strong>
+
       </p>
 
+
       <p>
+
         ⚡ En observación:
+
         <strong>
           0
         </strong>
+
       </p>
 
+
       <p>
+
         ⏳ Atrasados:
+
         <strong>
           ${cantidadAtrasados}
         </strong>
+
       </p>
 
+
       <p>
+
         📅 Mayor atraso:
+
         <strong>
-          ${
-            mayorAtraso
-              ? mayorAtraso.animal
-              : "N/A"
-          }
+          ${mayorAtraso
+            ? mayorAtraso.animal
+            : "N/A"}
         </strong>
+
       </p>
 
+
       <p>
+
         📅 Días de atraso:
+
         <strong>
-          ${
-            mayorAtraso
-              ? mayorAtraso.diasSinSalir
-              : 0
-          }
+          ${mayorAtraso
+            ? mayorAtraso.diasSinSalir
+            : 0}
         </strong>
+
       </p>
 
     `;
@@ -552,10 +504,8 @@ async function cargarAnalisis() {
 
   } catch (error) {
 
-    console.error(
-      "ERROR XTREME:",
-      error
-    );
+    console.error(error);
+
 
     document.getElementById(
       "pronostico"
@@ -566,30 +516,6 @@ async function cargarAnalisis() {
       <p>
         ${error.message}
       </p>
-
-    `;
-
-    document.getElementById(
-      "top10"
-    ).innerHTML = `
-
-      <tr>
-        <td colspan="5">
-          Error cargando datos.
-        </td>
-      </tr>
-
-    `;
-
-    document.getElementById(
-      "atrasados"
-    ).innerHTML = `
-
-      <tr>
-        <td colspan="5">
-          Error cargando atrasados.
-        </td>
-      </tr>
 
     `;
 
