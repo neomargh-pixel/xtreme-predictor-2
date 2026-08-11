@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
     /*
     ==========================================
-    TOP 10
+    TOP 10 XTREME
     ==========================================
     */
 
@@ -40,6 +40,10 @@ export default async function handler(req, res) {
 
         if (b.indice !== a.indice) {
           return b.indice - a.indice;
+        }
+
+        if (b.diasSinSalir !== a.diasSinSalir) {
+          return b.diasSinSalir - a.diasSinSalir;
         }
 
         if (b.salidas7 !== a.salidas7) {
@@ -66,14 +70,20 @@ export default async function handler(req, res) {
       .slice()
       .sort((a, b) => {
 
-        if (
-          b.diasSinSalir !==
-          a.diasSinSalir
-        ) {
+        if (b.diasSinSalir !== a.diasSinSalir) {
 
           return (
             b.diasSinSalir -
             a.diasSinSalir
+          );
+
+        }
+
+        if (b.indice !== a.indice) {
+
+          return (
+            b.indice -
+            a.indice
           );
 
         }
@@ -86,41 +96,199 @@ export default async function handler(req, res) {
 
     /*
     ==========================================
-    PRONÓSTICO DEL DÍA
+    PRONÓSTICO XTREME
     ==========================================
 
-    IMPORTANTE:
+    AQUÍ ESTÁ EL CAMBIO IMPORTANTE.
 
-    El animal #1 del TOP 10 NO será
-    automáticamente el pronóstico.
+    EL PRONÓSTICO YA NO SALE DEL TOP 10.
 
-    Si un animal domina demasiado,
-    buscamos el siguiente candidato fuerte.
+    BUSCAMOS PRIMERO LOS ANIMALES QUE
+    LLEVAN TIEMPO SIN SALIR.
 
-    Esto evita que el mismo animal quede
-    permanentemente clavado en pronóstico.
+    MÍNIMO: 7 DÍAS.
+
+    Así un animal que salió hace 1, 2 o 3 días
+    no puede dominar el pronóstico solamente
+    porque tenga muchas salidas históricas.
     ==========================================
     */
 
-    let pronostico = top10[0] || null;
+    let candidatos = analisis
+      .filter(a => a.diasSinSalir >= 7)
+      .sort((a, b) => {
+
+        /*
+        PRIMERO:
+        MÁS DÍAS SIN SALIR
+        */
+
+        if (
+          b.diasSinSalir !==
+          a.diasSinSalir
+        ) {
+
+          return (
+            b.diasSinSalir -
+            a.diasSinSalir
+          );
+
+        }
+
+
+        /*
+        SEGUNDO:
+        MAYOR ÍNDICE
+        */
+
+        if (b.indice !== a.indice) {
+
+          return (
+            b.indice -
+            a.indice
+          );
+
+        }
+
+
+        /*
+        TERCERO:
+        ACTIVIDAD RECIENTE
+        */
+
+        if (b.salidas14 !== a.salidas14) {
+
+          return (
+            b.salidas14 -
+            a.salidas14
+          );
+
+        }
+
+
+        return b.salidas - a.salidas;
+
+      });
 
 
     /*
     ==========================================
-    ROTACIÓN DEL PRONÓSTICO
+    SI NO HAY ANIMALES CON 7+ DÍAS
     ==========================================
 
-    Si existe un parámetro "anterior",
-    se puede indicar el animal que fue
-    pronóstico anteriormente.
+    Usamos los más atrasados disponibles.
+    ==========================================
+    */
+
+    if (candidatos.length === 0) {
+
+      candidatos = analisis
+        .slice()
+        .sort((a, b) => {
+
+          if (
+            b.diasSinSalir !==
+            a.diasSinSalir
+          ) {
+
+            return (
+              b.diasSinSalir -
+              a.diasSinSalir
+            );
+
+          }
+
+          return b.indice - a.indice;
+
+        });
+
+    }
+
+
+    /*
+    ==========================================
+    ROTACIÓN DIARIA
+    ==========================================
+
+    NO QUEREMOS QUE EL MISMO ANIMAL APAREZCA
+    COMO PRONÓSTICO TODOS LOS DÍAS.
+
+    Usamos el día calendario para movernos
+    entre los candidatos atrasados.
 
     Ejemplo:
 
+    Día 1 → Guacamaya
+    Día 2 → Alacrán
+    Día 3 → Chigüire
+    Día 4 → Gavilán
+    etc.
+
+    Cuando termina la lista vuelve a empezar.
+
+    Esto hace que el sistema VARÍE.
+    ==========================================
+    */
+
+    let pronostico = candidatos[0] || null;
+
+
+    if (candidatos.length > 1) {
+
+      const fechaReferencia =
+        historial
+          .map(r => r.fecha)
+          .filter(Boolean)
+          .sort()
+          .pop();
+
+
+      if (fechaReferencia) {
+
+        const fecha =
+          new Date(
+            `${String(fechaReferencia).substring(0, 10)}T00:00:00Z`
+          );
+
+
+        const inicio =
+          new Date("2026-01-01T00:00:00Z");
+
+
+        const diasDesdeInicio =
+          Math.floor(
+            (
+              fecha.getTime() -
+              inicio.getTime()
+            ) / 86400000
+          );
+
+
+        const posicion =
+          Math.abs(diasDesdeInicio) %
+          candidatos.length;
+
+
+        pronostico =
+          candidatos[posicion];
+
+      }
+
+    }
+
+
+    /*
+    ==========================================
+    PERMITIR SELECCIÓN MANUAL DE ANTERIOR
+    ==========================================
+
+    Si se envía:
+
     /api/analizar?anterior=BÚFALO
 
-    En ese caso BÚFALO puede continuar
-    en TOP 10, pero el pronóstico buscará
-    el siguiente candidato.
+    se evita ese animal y se busca otro.
+
+    Esto sirve como protección adicional.
     ==========================================
     */
 
@@ -133,17 +301,22 @@ export default async function handler(req, res) {
         : null;
 
 
-    if (anterior) {
+    if (
+      anterior &&
+      pronostico &&
+      pronostico.animal === anterior
+    ) {
 
       const siguiente =
-        top10.find(
+        candidatos.find(
           a =>
             a.animal !== anterior
         );
 
       if (siguiente) {
 
-        pronostico = siguiente;
+        pronostico =
+          siguiente;
 
       }
 
