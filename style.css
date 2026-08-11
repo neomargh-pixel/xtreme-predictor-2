@@ -1,162 +1,345 @@
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-body{
-font-family:Arial,Helvetica,sans-serif;
-background:linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.85)),
-url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600") center center/cover fixed;
-color:#fff;
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    linear-gradient(rgba(3, 15, 8, 0.82), rgba(3, 15, 8, 0.92)),
+    url("fondo.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: #ffffff;
+  min-height: 100vh;
 }
 
-.container{
-width:95%;
-max-width:1200px;
-margin:auto;
-padding:20px;
+header {
+  text-align: center;
+  padding: 25px 15px 20px;
+  background: rgba(5, 20, 10, 0.88);
+  border-bottom: 2px solid #16c75a;
+  box-shadow: 0 0 20px rgba(0, 255, 100, 0.25);
 }
 
-header{
-text-align:center;
-padding:25px;
-margin-bottom:20px;
+header h1 {
+  font-size: 30px;
+  color: #20e968;
+  text-shadow: 0 0 12px rgba(32, 233, 104, 0.5);
 }
 
-header h1{
-font-size:42px;
-color:#ffffff;
-text-shadow:0 0 15px #00ff88;
+header p {
+  margin-top: 7px;
+  color: #b8c9be;
+  font-size: 14px;
 }
 
-header p{
-color:#cfcfcf;
-margin-top:10px;
+.container {
+  width: 95%;
+  max-width: 900px;
+  margin: auto;
+  padding: 15px 0 30px;
 }
 
-section{
-background:rgba(18,25,18,.88);
-border:1px solid #1db954;
-border-radius:18px;
-padding:20px;
-margin-bottom:20px;
-box-shadow:0 0 15px rgba(0,255,120,.25);
-backdrop-filter:blur(4px);
+section {
+  background: rgba(8, 20, 12, 0.91);
+  border: 1px solid rgba(25, 230, 100, 0.65);
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 0 14px rgba(0, 255, 100, 0.12);
 }
 
-h2{
-color:#6dffb0;
-margin-bottom:15px;
+section h2 {
+  color: #49f58a;
+  font-size: 19px;
+  margin-bottom: 13px;
 }
 
-select{
-width:100%;
-padding:12px;
-border-radius:10px;
-border:1px solid #1db954;
-background:#101010;
-color:white;
+/* ==============================
+   SELECTOR
+============================== */
+
+select {
+  width: 100%;
+  padding: 13px;
+  border-radius: 9px;
+  border: 1px solid #20d965;
+  background: #101c14;
+  color: #ffffff;
+  font-size: 15px;
+  outline: none;
 }
 
-#pronostico{
-text-align:center;
-font-size:28px;
-font-weight:bold;
+/* ==============================
+   PRONÓSTICO
+============================== */
+
+#pronostico {
+  text-align: center;
+  padding: 20px 10px;
 }
 
-.animales{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
-gap:12px;
+#pronostico h1 {
+  font-size: 34px;
+  color: #ffd21c;
+  text-shadow: 0 0 14px rgba(255, 210, 28, 0.45);
+  margin-bottom: 12px;
 }
 
-.animal{
-background:#1b1b1b;
-border:1px solid #2ecc71;
-border-radius:12px;
-padding:15px;
-text-align:center;
-transition:.25s;
+#pronostico p {
+  margin: 7px 0;
+  font-size: 16px;
 }
 
-.animal:hover{
-transform:translateY(-4px);
-box-shadow:0 0 15px #2ecc71;
+#pronostico strong {
+  color: #ffffff;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
+/* ==============================
+   ANIMALITOS
+============================== */
+
+.animales {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
 }
 
-th{
-background:#1db954;
-color:#fff;
-padding:12px;
+.animal {
+  min-height: 67px;
+  padding: 8px 3px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  font-size: 11px;
+  font-weight: bold;
+
+  background: linear-gradient(
+    145deg,
+    #1473d1,
+    #0753a5
+  );
+
+  border: 1px solid #45aaff;
+
+  box-shadow:
+    inset 0 0 7px rgba(255,255,255,0.08),
+    0 0 7px rgba(0,130,255,0.25);
+
+  transition: transform 0.15s ease,
+              box-shadow 0.15s ease;
 }
 
-td{
-padding:10px;
-text-align:center;
-border-bottom:1px solid #333;
+.animal strong {
+  font-size: 14px;
+  color: #ffffff;
+  margin-bottom: 3px;
 }
 
-tr:nth-child(even){
-background:rgba(255,255,255,.04);
+.animal:hover {
+  transform: scale(1.04);
 }
 
-button{
-width:100%;
-padding:16px;
-border:none;
-border-radius:12px;
-background:#1db954;
-color:white;
-font-size:18px;
-font-weight:bold;
-cursor:pointer;
+/* ==============================
+   ANIMAL CALIENTE
+============================== */
+
+.animal.caliente {
+  background: linear-gradient(
+    145deg,
+    #e10c16,
+    #970008
+  );
+
+  border-color: #ff5555;
+
+  box-shadow:
+    0 0 12px rgba(255, 30, 30, 0.65);
 }
 
-button:hover{
-background:#17a74b;
+/* ==============================
+   OBSERVACIÓN / MEDIO
+============================== */
+
+.animal.medio {
+  background: linear-gradient(
+    145deg,
+    #d39b08,
+    #997000
+  );
+
+  border-color: #ffd329;
+
+  box-shadow:
+    0 0 10px rgba(255, 204, 0, 0.45);
 }
 
-footer{
-text-align:center;
-padding:20px;
-color:#ccc;
+/* ==============================
+   FRÍO / NORMAL
+============================== */
+
+.animal.frio {
+  background: linear-gradient(
+    145deg,
+    #1473d1,
+    #0753a5
+  );
 }
 
-@media(max-width:768px){
+/* ==============================
+   TABLAS
+============================== */
 
-header h1{
-font-size:32px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
-table{
-font-size:12px;
+thead {
+  background: #19bd50;
 }
 
+th {
+  padding: 10px 5px;
+  font-size: 12px;
+  color: #ffffff;
 }
 
-.caliente{
-background:#c62828;
-border:2px solid #ff5252;
-color:#fff;
-box-shadow:0 0 15px rgba(255,0,0,.6);
+td {
+  padding: 9px 5px;
+  text-align: center;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.medio{
-background:#b28704;
-border:2px solid #ffd54f;
-color:#fff;
-box-shadow:0 0 15px rgba(255,193,7,.5);
+tbody tr:nth-child(even) {
+  background: rgba(255,255,255,0.045);
 }
 
-.frio{
-background:#1565c0;
-border:2px solid #64b5f6;
-color:#fff;
-box-shadow:0 0 15px rgba(33,150,243,.5);
+tbody tr:hover {
+  background: rgba(30,220,100,0.08);
+}
+
+td strong {
+  color: #ffffff;
+}
+
+/* ==============================
+   ESTADÍSTICAS
+============================== */
+
+#estadistica {
+  line-height: 1.65;
+  font-size: 14px;
+}
+
+#estadistica strong {
+  color: #49f58a;
+}
+
+/* ==============================
+   BOTÓN
+============================== */
+
+#actualizar {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 15px;
+  background: linear-gradient(
+    90deg,
+    #12b84d,
+    #20d965
+  );
+
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+
+  box-shadow:
+    0 0 14px rgba(20, 220, 90, 0.3);
+}
+
+#actualizar:active {
+  transform: scale(0.98);
+}
+
+/* ==============================
+   FOOTER
+============================== */
+
+footer {
+  text-align: center;
+  padding: 20px;
+  color: #8b998f;
+  font-size: 12px;
+}
+
+/* ==============================
+   TELÉFONOS
+============================== */
+
+@media (max-width: 600px) {
+
+  .container {
+    width: 94%;
   }
+
+  header h1 {
+    font-size: 25px;
+  }
+
+  section {
+    padding: 12px;
+  }
+
+  .animales {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+  }
+
+  .animal {
+    min-height: 70px;
+    font-size: 10px;
+    padding: 6px 2px;
+  }
+
+  .animal strong {
+    font-size: 13px;
+  }
+
+  #pronostico h1 {
+    font-size: 29px;
+  }
+
+  th,
+  td {
+    font-size: 11px;
+    padding: 8px 3px;
+  }
+}
+
+/* ==============================
+   TELÉFONOS MUY PEQUEÑOS
+============================== */
+
+@media (max-width: 380px) {
+
+  .animales {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .animal {
+    min-height: 72px;
+  }
+}
