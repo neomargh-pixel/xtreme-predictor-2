@@ -164,14 +164,52 @@ async function cargarAnalisis() {
 
   try {
 
+
     /*
     ==========================================
-    RECORDAR PRONÓSTICO ANTERIOR
+    HISTORIAL DE PRONÓSTICOS
     ==========================================
     */
 
-    const anterior =
-      localStorage.getItem("xtremePronostico");
+    let historialPronosticos = [];
+
+
+    try {
+
+      const guardado =
+        localStorage.getItem(
+          "xtremePronosticos"
+        );
+
+
+      if (guardado) {
+
+        const lista =
+          JSON.parse(guardado);
+
+
+        if (Array.isArray(lista)) {
+
+          historialPronosticos =
+            lista
+              .map(a =>
+                String(a)
+                  .trim()
+                  .toUpperCase()
+              )
+              .filter(Boolean)
+              .slice(0, 5);
+
+        }
+
+      }
+
+    } catch (e) {
+
+      historialPronosticos = [];
+
+    }
+
 
 
     /*
@@ -180,15 +218,57 @@ async function cargarAnalisis() {
     ==========================================
     */
 
-    let url = "/api/analizar";
+    let url =
+      "/api/analizar";
 
-    if (anterior) {
 
-      url +=
-        "?anterior=" +
-        encodeURIComponent(anterior);
+    const parametros = [];
+
+
+    /*
+    ÚLTIMO PRONÓSTICO
+    */
+
+    if (
+      historialPronosticos.length > 0
+    ) {
+
+      parametros.push(
+        "anterior=" +
+        encodeURIComponent(
+          historialPronosticos[0]
+        )
+      );
 
     }
+
+
+    /*
+    ÚLTIMOS PRONÓSTICOS
+    */
+
+    if (
+      historialPronosticos.length > 0
+    ) {
+
+      parametros.push(
+        "recientes=" +
+        encodeURIComponent(
+          historialPronosticos.join(",")
+        )
+      );
+
+    }
+
+
+    if (parametros.length > 0) {
+
+      url +=
+        "?" +
+        parametros.join("&");
+
+    }
+
 
 
     /*
@@ -217,6 +297,7 @@ async function cargarAnalisis() {
     }
 
 
+
     /*
     ==========================================
     PRONÓSTICO
@@ -241,41 +322,84 @@ async function cargarAnalisis() {
 
         <p>
           Confianza XTREME:
-          <strong>${p.porcentaje}%</strong>
+          <strong>
+            ${p.porcentaje}%
+          </strong>
         </p>
 
         <p>
           Salidas:
-          <strong>${p.salidas}</strong>
+          <strong>
+            ${p.salidas}
+          </strong>
         </p>
 
         <p>
           Días sin salir:
-          <strong>${p.diasSinSalir}</strong>
+          <strong>
+            ${p.diasSinSalir}
+          </strong>
         </p>
 
         <p>
           Tendencia:
-          <strong>${p.tendencia}</strong>
+          <strong>
+            ${p.tendencia}
+          </strong>
         </p>
 
         <p>
           Categoría:
-          <strong>${p.categoria}</strong>
+          <strong>
+            ${p.categoria}
+          </strong>
         </p>
 
       `;
 
 
+
       /*
       ========================================
-      GUARDAR PRONÓSTICO ACTUAL
+      GUARDAR NUEVO PRONÓSTICO
       ========================================
       */
 
+      const nuevo =
+        String(p.animal)
+          .trim()
+          .toUpperCase();
+
+
+      let nuevosPronosticos = [
+        nuevo,
+        ...historialPronosticos
+      ];
+
+
+      /*
+      QUITAR REPETIDOS
+      */
+
+      nuevosPronosticos =
+        [...new Set(
+          nuevosPronosticos
+        )];
+
+
+      /*
+      GUARDAR SOLO LOS ÚLTIMOS 5
+      */
+
+      nuevosPronosticos =
+        nuevosPronosticos.slice(0, 5);
+
+
       localStorage.setItem(
-        "xtremePronostico",
-        p.animal
+        "xtremePronosticos",
+        JSON.stringify(
+          nuevosPronosticos
+        )
       );
 
     }
