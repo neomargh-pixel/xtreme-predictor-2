@@ -25,39 +25,41 @@ export default async function handler(req, res) {
     ==========================================
     */
 
-    const analisis = analizarResultados(historial);
+    const analisis =
+      analizarResultados(historial);
 
 
     /*
     ==========================================
-    TOP 10 XTREME
+    TOP 10
     ==========================================
     */
 
-    const top10 = analisis
-      .slice()
-      .sort((a, b) => {
+    const top10 =
+      analisis
+        .slice()
+        .sort((a, b) => {
 
-        if (b.indice !== a.indice) {
-          return b.indice - a.indice;
-        }
+          if (b.indice !== a.indice) {
+            return b.indice - a.indice;
+          }
 
-        if (b.diasSinSalir !== a.diasSinSalir) {
-          return b.diasSinSalir - a.diasSinSalir;
-        }
+          if (b.diasSinSalir !== a.diasSinSalir) {
+            return b.diasSinSalir - a.diasSinSalir;
+          }
 
-        if (b.salidas7 !== a.salidas7) {
-          return b.salidas7 - a.salidas7;
-        }
+          if (b.salidas7 !== a.salidas7) {
+            return b.salidas7 - a.salidas7;
+          }
 
-        if (b.salidas14 !== a.salidas14) {
-          return b.salidas14 - a.salidas14;
-        }
+          if (b.salidas14 !== a.salidas14) {
+            return b.salidas14 - a.salidas14;
+          }
 
-        return b.salidas30 - a.salidas30;
+          return b.salidas30 - a.salidas30;
 
-      })
-      .slice(0, 10);
+        })
+        .slice(0, 10);
 
 
     /*
@@ -66,123 +68,8 @@ export default async function handler(req, res) {
     ==========================================
     */
 
-    const atrasados = analisis
-      .slice()
-      .sort((a, b) => {
-
-        if (b.diasSinSalir !== a.diasSinSalir) {
-
-          return (
-            b.diasSinSalir -
-            a.diasSinSalir
-          );
-
-        }
-
-        if (b.indice !== a.indice) {
-
-          return (
-            b.indice -
-            a.indice
-          );
-
-        }
-
-        return b.salidas - a.salidas;
-
-      })
-      .slice(0, 10);
-
-
-    /*
-    ==========================================
-    PRONÓSTICO XTREME
-    ==========================================
-
-    AQUÍ ESTÁ EL CAMBIO IMPORTANTE.
-
-    EL PRONÓSTICO YA NO SALE DEL TOP 10.
-
-    BUSCAMOS PRIMERO LOS ANIMALES QUE
-    LLEVAN TIEMPO SIN SALIR.
-
-    MÍNIMO: 7 DÍAS.
-
-    Así un animal que salió hace 1, 2 o 3 días
-    no puede dominar el pronóstico solamente
-    porque tenga muchas salidas históricas.
-    ==========================================
-    */
-
-    let candidatos = analisis
-      .filter(a => a.diasSinSalir >= 7)
-      .sort((a, b) => {
-
-        /*
-        PRIMERO:
-        MÁS DÍAS SIN SALIR
-        */
-
-        if (
-          b.diasSinSalir !==
-          a.diasSinSalir
-        ) {
-
-          return (
-            b.diasSinSalir -
-            a.diasSinSalir
-          );
-
-        }
-
-
-        /*
-        SEGUNDO:
-        MAYOR ÍNDICE
-        */
-
-        if (b.indice !== a.indice) {
-
-          return (
-            b.indice -
-            a.indice
-          );
-
-        }
-
-
-        /*
-        TERCERO:
-        ACTIVIDAD RECIENTE
-        */
-
-        if (b.salidas14 !== a.salidas14) {
-
-          return (
-            b.salidas14 -
-            a.salidas14
-          );
-
-        }
-
-
-        return b.salidas - a.salidas;
-
-      });
-
-
-    /*
-    ==========================================
-    SI NO HAY ANIMALES CON 7+ DÍAS
-    ==========================================
-
-    Usamos los más atrasados disponibles.
-    ==========================================
-    */
-
-    if (candidatos.length === 0) {
-
-      candidatos = analisis
+    const atrasados =
+      analisis
         .slice()
         .sort((a, b) => {
 
@@ -198,97 +85,138 @@ export default async function handler(req, res) {
 
           }
 
-          return b.indice - a.indice;
+          if (b.indice !== a.indice) {
 
-        });
+            return (
+              b.indice -
+              a.indice
+            );
 
-    }
+          }
+
+          return b.salidas - a.salidas;
+
+        })
+        .slice(0, 10);
 
 
     /*
     ==========================================
-    ROTACIÓN DIARIA
+    CANDIDATOS AL PRONÓSTICO
     ==========================================
 
-    NO QUEREMOS QUE EL MISMO ANIMAL APAREZCA
-    COMO PRONÓSTICO TODOS LOS DÍAS.
+    EL PRONÓSTICO DEBE BUSCAR ANIMALES
+    ATRASADOS.
 
-    Usamos el día calendario para movernos
-    entre los candidatos atrasados.
-
-    Ejemplo:
-
-    Día 1 → Guacamaya
-    Día 2 → Alacrán
-    Día 3 → Chigüire
-    Día 4 → Gavilán
-    etc.
-
-    Cuando termina la lista vuelve a empezar.
-
-    Esto hace que el sistema VARÍE.
+    NO QUEREMOS QUE UN ANIMAL QUE ACABA
+    DE SALIR DOMINE EL PRONÓSTICO.
     ==========================================
     */
 
-    let pronostico = candidatos[0] || null;
+    let candidatos =
+      analisis
+        .filter(a =>
+          a.diasSinSalir >= 7
+        )
+        .sort((a, b) => {
+
+          /*
+          MÁS ATRASADO PRIMERO
+          */
+
+          if (
+            b.diasSinSalir !==
+            a.diasSinSalir
+          ) {
+
+            return (
+              b.diasSinSalir -
+              a.diasSinSalir
+            );
+
+          }
 
 
-    if (candidatos.length > 1) {
+          /*
+          LUEGO ÍNDICE
+          */
 
-      const fechaReferencia =
-        historial
-          .map(r => r.fecha)
-          .filter(Boolean)
-          .sort()
-          .pop();
+          if (b.indice !== a.indice) {
 
+            return (
+              b.indice -
+              a.indice
+            );
 
-      if (fechaReferencia) {
-
-        const fecha =
-          new Date(
-            `${String(fechaReferencia).substring(0, 10)}T00:00:00Z`
-          );
+          }
 
 
-        const inicio =
-          new Date("2026-01-01T00:00:00Z");
+          /*
+          LUEGO ACTIVIDAD
+          */
+
+          if (
+            b.salidas14 !==
+            a.salidas14
+          ) {
+
+            return (
+              b.salidas14 -
+              a.salidas14
+            );
+
+          }
 
 
-        const diasDesdeInicio =
-          Math.floor(
-            (
-              fecha.getTime() -
-              inicio.getTime()
-            ) / 86400000
-          );
+          return b.salidas - a.salidas;
+
+        });
 
 
-        const posicion =
-          Math.abs(diasDesdeInicio) %
-          candidatos.length;
+    /*
+    ==========================================
+    SI NO HAY 7+ DÍAS
+    ==========================================
+    */
 
+    if (candidatos.length === 0) {
 
-        pronostico =
-          candidatos[posicion];
+      candidatos =
+        analisis
+          .slice()
+          .sort((a, b) => {
 
-      }
+            if (
+              b.diasSinSalir !==
+              a.diasSinSalir
+            ) {
+
+              return (
+                b.diasSinSalir -
+                a.diasSinSalir
+              );
+
+            }
+
+            return b.indice - a.indice;
+
+          });
 
     }
 
 
     /*
     ==========================================
-    PERMITIR SELECCIÓN MANUAL DE ANTERIOR
+    HISTORIAL DE PRONÓSTICOS DEL NAVEGADOR
     ==========================================
 
-    Si se envía:
+    El index.html enviará:
 
-    /api/analizar?anterior=BÚFALO
+    anterior=GUACAMAYA
+    recientes=GUACAMAYA,CHIGUIRE,...
 
-    se evita ese animal y se busca otro.
-
-    Esto sirve como protección adicional.
+    Así evitamos que el sistema alterne
+    únicamente entre dos animales.
     ==========================================
     */
 
@@ -301,38 +229,86 @@ export default async function handler(req, res) {
         : null;
 
 
+    let recientes = [];
+
+
     if (
-      anterior &&
-      pronostico &&
-      pronostico.animal === anterior
+      req.query &&
+      req.query.recientes
     ) {
 
-      const siguiente =
-        candidatos.find(
-          a =>
-            a.animal !== anterior
-        );
-
-      if (siguiente) {
-
-        pronostico =
-          siguiente;
-
-      }
+      recientes =
+        String(req.query.recientes)
+          .split(",")
+          .map(a =>
+            a.trim().toUpperCase()
+          )
+          .filter(Boolean);
 
     }
 
 
     /*
     ==========================================
-    DIAGNÓSTICO DE FECHAS
+    EXCLUSIONES
     ==========================================
     */
 
-    const fechas = historial
-      .map(r => r.fecha)
-      .filter(Boolean)
-      .sort();
+    const excluidos =
+      new Set([
+        ...recientes,
+        ...(anterior ? [anterior] : [])
+      ]);
+
+
+    /*
+    ==========================================
+    BUSCAR CANDIDATO NUEVO
+    ==========================================
+    */
+
+    let pronostico =
+      candidatos.find(
+        a =>
+          !excluidos.has(
+            a.animal
+          )
+      );
+
+
+    /*
+    ==========================================
+    SI TODOS ESTÁN EXCLUIDOS
+    ==========================================
+
+    No dejamos el pronóstico vacío.
+
+    En ese caso utilizamos el candidato
+    más fuerte disponible.
+    ==========================================
+    */
+
+    if (!pronostico) {
+
+      pronostico =
+        candidatos[0] ||
+        analisis[0] ||
+        null;
+
+    }
+
+
+    /*
+    ==========================================
+    RESPUESTA
+    ==========================================
+    */
+
+    const fechas =
+      historial
+        .map(r => r.fecha)
+        .filter(Boolean)
+        .sort();
 
 
     const fechaMasAntigua =
@@ -357,17 +333,12 @@ export default async function handler(req, res) {
     ].sort();
 
 
-    /*
-    ==========================================
-    RESPUESTA
-    ==========================================
-    */
-
     return res.status(200).json({
 
       ok: true,
 
-      historial: historial.length,
+      historial:
+        historial.length,
 
       DIAGNOSTICO: {
 
