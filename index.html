@@ -42,6 +42,7 @@
 </section>
 
 
+
 <section>
 
 <h2>🔥 Pronóstico del Día</h2>
@@ -57,6 +58,7 @@
 </section>
 
 
+
 <section>
 
 <h2>🐾 Animalitos</h2>
@@ -64,6 +66,7 @@
 <div id="animales" class="animales"></div>
 
 </section>
+
 
 
 <section>
@@ -75,13 +78,11 @@
 <thead>
 
 <tr>
-
 <th>#</th>
 <th>Animal</th>
 <th>Salidas</th>
 <th>Días</th>
 <th>Índice</th>
-
 </tr>
 
 </thead>
@@ -93,6 +94,7 @@
 </section>
 
 
+
 <section>
 
 <h2>⏳ ANIMALES ATRASADOS</h2>
@@ -102,13 +104,11 @@
 <thead>
 
 <tr>
-
 <th>#</th>
 <th>Animal</th>
 <th>Salidas</th>
 <th>Días</th>
 <th>Índice</th>
-
 </tr>
 
 </thead>
@@ -118,6 +118,7 @@
 </table>
 
 </section>
+
 
 
 <section>
@@ -133,6 +134,7 @@ Analizando resultados...
 </section>
 
 
+
 <button id="actualizar">
 
 🔄 ACTUALIZAR RESULTADOS
@@ -143,11 +145,13 @@ Analizando resultados...
 </div>
 
 
+
 <footer>
 
 XTREME Predictor © 2026
 
 </footer>
+
 
 
 <script src="animales.js"></script>
@@ -160,153 +164,74 @@ async function cargarAnalisis() {
 
   try {
 
-    const respuesta = await fetch("/api/analizar");
+    /*
+    ==========================================
+    RECORDAR PRONÓSTICO ANTERIOR
+    ==========================================
+    */
 
-    const datos = await respuesta.json();
+    const anterior =
+      localStorage.getItem("xtremePronostico");
+
+
+    /*
+    ==========================================
+    CONSTRUIR URL
+    ==========================================
+    */
+
+    let url = "/api/analizar";
+
+    if (anterior) {
+
+      url +=
+        "?anterior=" +
+        encodeURIComponent(anterior);
+
+    }
+
+
+    /*
+    ==========================================
+    CONSULTAR API
+    ==========================================
+    */
+
+    const respuesta =
+      await fetch(url, {
+        cache: "no-store"
+      });
+
+
+    const datos =
+      await respuesta.json();
+
 
     if (!datos.ok) {
 
       throw new Error(
-        datos.error || "Error en el análisis"
+        datos.error ||
+        "Error en el análisis"
       );
 
     }
 
 
     /*
-    ==================================================
-    DATOS
-    ==================================================
-    */
-
-    const pronostico =
-      document.getElementById("pronostico");
-
-    const tablaTop =
-      document.getElementById("top10");
-
-    const tablaAtrasados =
-      document.getElementById("atrasados");
-
-    const estadistica =
-      document.getElementById("estadistica");
-
-
-    const todos =
-      Array.isArray(datos.top10)
-        ? datos.top10.slice()
-        : [];
-
-
-    /*
-    ==================================================
+    ==========================================
     PRONÓSTICO
-    ==================================================
-
-    IMPORTANTE:
-
-    No mostramos automáticamente el primer elemento
-    de la lista si acaba de salir.
-
-    Buscamos primero animales con atraso real.
-
-    Prioridad:
-
-    1. 7+ días sin salir
-    2. 4-6 días
-    3. 2-3 días
-    4. finalmente actividad reciente
-
-    Esto evita que un mismo animal permanezca
-    eternamente como pronóstico.
-    ==================================================
+    ==========================================
     */
-
-    let candidatos =
-      todos
-        .filter(a => a.diasSinSalir >= 7)
-        .sort((a, b) => {
-
-          if (b.diasSinSalir !== a.diasSinSalir) {
-
-            return b.diasSinSalir -
-                   a.diasSinSalir;
-
-          }
-
-          return b.indice -
-                 a.indice;
-
-        });
-
-
-    if (candidatos.length === 0) {
-
-      candidatos =
-        todos
-          .filter(a => a.diasSinSalir >= 4)
-          .sort((a, b) => {
-
-            if (b.diasSinSalir !== a.diasSinSalir) {
-
-              return b.diasSinSalir -
-                     a.diasSinSalir;
-
-            }
-
-            return b.indice -
-                   a.indice;
-
-          });
-
-    }
-
-
-    if (candidatos.length === 0) {
-
-      candidatos =
-        todos
-          .filter(a => a.diasSinSalir >= 2)
-          .sort((a, b) => {
-
-            if (b.indice !== a.indice) {
-
-              return b.indice -
-                     a.indice;
-
-            }
-
-            return b.diasSinSalir -
-                   a.diasSinSalir;
-
-          });
-
-    }
-
-
-    if (candidatos.length === 0) {
-
-      candidatos =
-        todos
-          .slice()
-          .sort((a, b) =>
-            b.indice - a.indice
-          );
-
-    }
-
 
     const p =
-      candidatos.length
-        ? candidatos[0]
-        : datos.pronostico;
+      datos.pronostico;
 
 
-    /*
-    ==================================================
-    MOSTRAR PRONÓSTICO
-    ==================================================
-    */
+    const pronostico =
+      document.getElementById(
+        "pronostico"
+      );
+
 
     if (p) {
 
@@ -341,150 +266,51 @@ async function cargarAnalisis() {
 
       `;
 
+
+      /*
+      ========================================
+      GUARDAR PRONÓSTICO ACTUAL
+      ========================================
+      */
+
+      localStorage.setItem(
+        "xtremePronostico",
+        p.animal
+      );
+
     }
 
 
+
     /*
-    ==================================================
+    ==========================================
     TOP 10
-    ==================================================
-
-    El Top 10 NO debe ser simplemente una copia
-    del listado de atrasados.
-
-    Se ordena por:
-
-    índice
-    días sin salir
-    actividad reciente
-    ==================================================
+    ==========================================
     */
 
-    const top =
-      todos
-        .slice()
-        .sort((a, b) => {
-
-          if (b.indice !== a.indice) {
-
-            return b.indice -
-                   a.indice;
-
-          }
-
-          if (
-            b.diasSinSalir !==
-            a.diasSinSalir
-          ) {
-
-            return b.diasSinSalir -
-                   a.diasSinSalir;
-
-          }
-
-          if (
-            b.salidas7 !==
-            a.salidas7
-          ) {
-
-            return b.salidas7 -
-                   a.salidas7;
-
-          }
-
-          return b.salidas -
-                 a.salidas;
-
-        })
-        .slice(0, 10);
+    const tablaTop =
+      document.getElementById(
+        "top10"
+      );
 
 
     tablaTop.innerHTML = "";
 
 
-    top.forEach((animal, index) => {
+    if (
+      Array.isArray(datos.top10)
+    ) {
 
-      tablaTop.innerHTML += `
+      datos.top10.forEach(
+        (animal, index) => {
 
-        <tr>
-
-          <td>${index + 1}</td>
-
-          <td>
-            <strong>
-              ${animal.animal}
-            </strong>
-          </td>
-
-          <td>
-            ${animal.salidas}
-          </td>
-
-          <td>
-            ${animal.diasSinSalir}
-          </td>
-
-          <td>
-            ${animal.indice}%
-          </td>
-
-        </tr>
-
-      `;
-
-    });
-
-
-    /*
-    ==================================================
-    ATRASADOS
-    ==================================================
-
-    AQUÍ SÍ importa principalmente cuánto tiempo
-    lleva sin salir.
-
-    NO usamos el índice como criterio principal.
-    ==================================================
-    */
-
-    let atrasados =
-      Array.isArray(datos.atrasados)
-        ? datos.atrasados.slice()
-        : [];
-
-
-    atrasados.sort((a, b) => {
-
-      if (
-        b.diasSinSalir !==
-        a.diasSinSalir
-      ) {
-
-        return b.diasSinSalir -
-               a.diasSinSalir;
-
-      }
-
-      return b.salidas -
-             a.salidas;
-
-    });
-
-
-    tablaAtrasados.innerHTML = "";
-
-
-    if (atrasados.length > 0) {
-
-      atrasados
-        .slice(0, 10)
-        .forEach((animal, index) => {
-
-          tablaAtrasados.innerHTML += `
+          tablaTop.innerHTML += `
 
             <tr>
 
-              <td>${index + 1}</td>
+              <td>
+                ${index + 1}
+              </td>
 
               <td>
                 <strong>
@@ -508,7 +334,68 @@ async function cargarAnalisis() {
 
           `;
 
-        });
+        }
+      );
+
+    }
+
+
+
+    /*
+    ==========================================
+    ANIMALES ATRASADOS
+    ==========================================
+    */
+
+    const tablaAtrasados =
+      document.getElementById(
+        "atrasados"
+      );
+
+
+    tablaAtrasados.innerHTML = "";
+
+
+    if (
+      Array.isArray(datos.atrasados) &&
+      datos.atrasados.length > 0
+    ) {
+
+      datos.atrasados.forEach(
+        (animal, index) => {
+
+          tablaAtrasados.innerHTML += `
+
+            <tr>
+
+              <td>
+                ${index + 1}
+              </td>
+
+              <td>
+                <strong>
+                  ${animal.animal}
+                </strong>
+              </td>
+
+              <td>
+                ${animal.salidas}
+              </td>
+
+              <td>
+                ${animal.diasSinSalir}
+              </td>
+
+              <td>
+                ${animal.indice}%
+              </td>
+
+            </tr>
+
+          `;
+
+        }
+      );
 
     } else {
 
@@ -527,24 +414,31 @@ async function cargarAnalisis() {
     }
 
 
+
     /*
-    ==================================================
+    ==========================================
     ANIMALITOS
-    ==================================================
+    ==========================================
     */
 
     const contenedorAnimales =
-      document.getElementById("animales");
+      document.getElementById(
+        "animales"
+      );
+
 
     contenedorAnimales.innerHTML = "";
 
 
-    if (Array.isArray(animales)) {
+    if (
+      Array.isArray(animales)
+    ) {
 
       animales.forEach(a => {
 
         const dato =
-          todos.find(
+          datos.top10 &&
+          datos.top10.find(
             x =>
               x.animal === a.animal
           );
@@ -555,7 +449,9 @@ async function cargarAnalisis() {
 
         if (dato) {
 
-          if (dato.indice >= 80) {
+          if (
+            dato.indice >= 80
+          ) {
 
             clase = "caliente";
 
@@ -591,37 +487,47 @@ async function cargarAnalisis() {
     }
 
 
+
     /*
-    ==================================================
+    ==========================================
     ESTADÍSTICAS
-    ==================================================
+    ==========================================
     */
 
-    const cantidadCalientes =
-      todos.filter(
-        a => a.indice >= 80
-      ).length;
-
-
-    const cantidadObservacion =
-      todos.filter(
-        a =>
-          a.indice >= 65 &&
-          a.indice < 80
-      ).length;
-
-
-    const cantidadAtrasados =
-      atrasados.length;
-
-
     const mayorAtraso =
-      atrasados.length
-        ? atrasados[0]
+      Array.isArray(datos.atrasados) &&
+      datos.atrasados.length
+        ? datos.atrasados[0]
         : null;
 
 
-    estadistica.innerHTML = `
+    const cantidadCalientes =
+      Array.isArray(datos.top10)
+        ? datos.top10.filter(
+            a => a.indice >= 80
+          ).length
+        : 0;
+
+
+    const cantidadObservacion =
+      Array.isArray(datos.top10)
+        ? datos.top10.filter(
+            a =>
+              a.indice >= 65 &&
+              a.indice < 80
+          ).length
+        : 0;
+
+
+    const cantidadAtrasados =
+      Array.isArray(datos.atrasados)
+        ? datos.atrasados.length
+        : 0;
+
+
+    document.getElementById(
+      "estadistica"
+    ).innerHTML = `
 
       <p>
 
@@ -685,11 +591,9 @@ async function cargarAnalisis() {
         📅 Mayor atraso:
 
         <strong>
-          ${
-            mayorAtraso
-              ? mayorAtraso.animal
-              : "N/A"
-          }
+          ${mayorAtraso
+            ? mayorAtraso.animal
+            : "N/A"}
         </strong>
 
       </p>
@@ -700,11 +604,9 @@ async function cargarAnalisis() {
         📅 Días sin salir:
 
         <strong>
-          ${
-            mayorAtraso
-              ? mayorAtraso.diasSinSalir
-              : 0
-          }
+          ${mayorAtraso
+            ? mayorAtraso.diasSinSalir
+            : 0}
         </strong>
 
       </p>
@@ -734,10 +636,11 @@ async function cargarAnalisis() {
 }
 
 
+
 /*
-==================================================
+==========================================
 BOTÓN ACTUALIZAR
-==================================================
+==========================================
 */
 
 document
@@ -748,10 +651,11 @@ document
   );
 
 
+
 /*
-==================================================
+==========================================
 CARGA AUTOMÁTICA
-==================================================
+==========================================
 */
 
 cargarAnalisis();
