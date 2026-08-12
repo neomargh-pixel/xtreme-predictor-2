@@ -612,152 +612,95 @@ async function cargarAnalisis() {
 
 
 
-    /*
-    ==========================================
-    ESTADÍSTICAS
-    ==========================================
-    */
+    
+/* =========================
+   ESTADÍSTICAS ACTUALES
+========================= */
 
-    const mayorAtraso =
-      Array.isArray(datos.atrasados) &&
-      datos.atrasados.length
-        ? datos.atrasados[0]
-        : null;
+const estadistica =
+  document.getElementById("estadistica");
 
+const listaAnalisis =
+  Array.isArray(datos.atrasados)
+    ? datos.atrasados
+    : [];
 
-    const cantidadCalientes =
-      Array.isArray(datos.top10)
-        ? datos.top10.filter(
-            a => a.indice >= 80
-          ).length
-        : 0;
+const mayorAtraso =
+  listaAnalisis.length > 0
+    ? listaAnalisis[0]
+    : null;
 
+const totalHistorial =
+  Number(datos.historial) || 0;
 
-    const cantidadObservacion =
-      Array.isArray(datos.top10)
-        ? datos.top10.filter(
-            a =>
-              a.indice >= 65 &&
-              a.indice < 80
-          ).length
-        : 0;
+const totalAtrasados =
+  listaAnalisis.length;
 
-
-    const cantidadAtrasados =
-      Array.isArray(datos.atrasados)
-        ? datos.atrasados.length
-        : 0;
+const totalAnimales =
+  Array.isArray(animales)
+    ? animales.length
+    : 77;
 
 
-    document.getElementById(
-      "estadistica"
-    ).innerHTML = `
+/* =========================
+   MOSTRAR ESTADÍSTICAS
+========================= */
 
-      <p>
+estadistica.innerHTML = `
 
-        📚 Historial:
+  <p>
+    📚 Historial:
+    <strong>${totalHistorial}</strong>
+    registros
+  </p>
 
-        <strong>
-          ${datos.historial}
-        </strong>
+  <p>
+    🐾 Animales analizados:
+    <strong>${totalAnimales}</strong>
+  </p>
 
-        registros
+  <p>
+    🔥 Mayor tendencia:
+    <strong>
+      ${p ? p.animal : "N/A"}
+    </strong>
+  </p>
 
-      </p>
+  <p>
+    🎯 Pronóstico actual:
+    <strong>
+      ${p ? p.animal : "N/A"}
+    </strong>
+  </p>
 
+  <p>
+    ⏳ Animales atrasados:
+    <strong>${totalAtrasados}</strong>
+  </p>
 
-      <p>
+  <p>
+    📅 Mayor atraso:
+    <strong>
+      ${
+        mayorAtraso
+          ? mayorAtraso.animal
+          : "N/A"
+      }
+    </strong>
+  </p>
 
-        🔥 Pronóstico:
+  <p>
+    📅 Días de atraso:
+    <strong>
+      ${
+        mayorAtraso
+          ? mayorAtraso.diasSinSalir
+          : 0
+      }
+    </strong>
+  </p>
 
-        <strong>
-          ${p ? p.animal : "N/A"}
-        </strong>
-
-      </p>
-
-
-      <p>
-
-        🔥 Calientes:
-
-        <strong>
-          ${cantidadCalientes}
-        </strong>
-
-      </p>
-
-
-      <p>
-
-        ⚡ En observación:
-
-        <strong>
-          ${cantidadObservacion}
-        </strong>
-
-      </p>
-
-
-      <p>
-
-        ⏳ Atrasados:
-
-        <strong>
-          ${cantidadAtrasados}
-        </strong>
-
-      </p>
-
-
-      <p>
-
-        📅 Mayor atraso:
-
-        <strong>
-          ${mayorAtraso
-            ? mayorAtraso.animal
-            : "N/A"}
-        </strong>
-
-      </p>
-
-
-      <p>
-
-        📅 Días sin salir:
-
-        <strong>
-          ${mayorAtraso
-            ? mayorAtraso.diasSinSalir
-            : 0}
-        </strong>
-
-      </p>
-
-    `;
-
-
-  } catch (error) {
-
-    console.error(error);
-
-
-    document.getElementById(
-      "pronostico"
-    ).innerHTML = `
-
-      <h2>⚠️ Error</h2>
-
-      <p>
-        ${error.message}
-      </p>
-
-    `;
-
-  }
-
-}
+`;
 
 
 
