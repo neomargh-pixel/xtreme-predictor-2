@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   try {
 
     // ==========================================
-    // OBTENER HISTORIAL ACTUAL
+    // OBTENER HISTORIAL
     // ==========================================
 
     const { data: historial, error } = await supabase
@@ -23,21 +23,22 @@ export default async function handler(req, res) {
         historial: 0,
         pronostico: null,
         top10: [],
-        atrasados: []
+        atrasados: [],
+        estadisticas: {}
       });
 
     }
 
 
     // ==========================================
-    // ANALIZAR HISTORIAL
+    // ANALIZAR
     // ==========================================
 
     const analisis = analizarResultados(historial);
 
 
     // ==========================================
-    // TOP 10
+    // TOP 10 REAL
     // ==========================================
 
     const top10 = analisis
@@ -67,10 +68,7 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // LISTA DE ATRASADOS
-    //
-    // ESTA LISTA SE CALCULA DIRECTAMENTE
-    // DESDE EL ANALISIS ACTUAL.
+    // ATRASADOS REAL
     // ==========================================
 
     const atrasados = analisis
@@ -78,55 +76,47 @@ export default async function handler(req, res) {
       .slice()
       .sort((a, b) => {
 
-        // 1. MÁS DÍAS SIN SALIR
         if (b.diasSinSalir !== a.diasSinSalir) {
           return b.diasSinSalir - a.diasSinSalir;
         }
 
-        // 2. MAYOR ÍNDICE
         if (b.indice !== a.indice) {
           return b.indice - a.indice;
         }
 
-        // 3. MENOS SALIDAS RECIENTES
         if (a.salidas7 !== b.salidas7) {
           return a.salidas7 - b.salidas7;
         }
 
-        if (a.salidas14 !== b.salidas14) {
-          return a.salidas14 - b.salidas14;
-        }
-
-        return a.salidas30 - b.salidas30;
+        return a.salidas14 - b.salidas14;
 
       })
       .slice(0, 10);
 
 
     // ==========================================
-    // CANDIDATOS PARA PRONÓSTICO
+    // CANDIDATOS DEL PRONÓSTICO
     //
-    // PRIORIDAD:
-    // 1. ATRASO
-    // 2. ÍNDICE
-    // 3. MENOS ACTIVIDAD RECIENTE
-    //
-    // NO SE USA EL TOP 10.
+    // IMPORTANTE:
+    // NO usamos TOP 10 directamente.
     // ==========================================
 
     let candidatos = analisis
-      .filter(a => a.diasSinSalir >= 3)
+      .filter(a => a.diasSinSalir >= 2)
       .slice()
       .sort((a, b) => {
 
+        // Primero atraso
         if (b.diasSinSalir !== a.diasSinSalir) {
           return b.diasSinSalir - a.diasSinSalir;
         }
 
+        // Después índice
         if (b.indice !== a.indice) {
           return b.indice - a.indice;
         }
 
+        // Menos actividad reciente
         if (a.salidas7 !== b.salidas7) {
           return a.salidas7 - b.salidas7;
         }
@@ -141,42 +131,10 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // SI HAY POCOS CON 3+ DÍAS
-    // BAJAMOS A 2 DÍAS
+    // SI HAY POCOS
     // ==========================================
 
-    if (candidatos.length < 5) {
-
-      candidatos = analisis
-        .filter(a => a.diasSinSalir >= 2)
-        .slice()
-        .sort((a, b) => {
-
-          if (b.diasSinSalir !== a.diasSinSalir) {
-            return b.diasSinSalir - a.diasSinSalir;
-          }
-
-          if (b.indice !== a.indice) {
-            return b.indice - a.indice;
-          }
-
-          if (a.salidas7 !== b.salidas7) {
-            return a.salidas7 - b.salidas7;
-          }
-
-          return a.salidas14 - b.salidas14;
-
-        });
-
-    }
-
-
-    // ==========================================
-    // SI TODAVÍA HAY POCOS
-    // EXCLUIR LOS QUE SALIERON HOY
-    // ==========================================
-
-    if (candidatos.length < 5) {
+    if (candidatos.length < 8) {
 
       candidatos = analisis
         .filter(a => a.diasSinSalir >= 1)
@@ -201,21 +159,42 @@ export default async function handler(req, res) {
     // ==========================================
     // PRONÓSTICO
     //
-    // EL MEJOR CANDIDATO ACTUAL.
+    // ROTACIÓN POR BLOQUES DE TIEMPO
     //
-    // SIN ROTACIÓN ARTIFICIAL.
+    // Esto es SOLO para el pronóstico.
+    // NO modifica TOP 10, ATRASADOS
+    // ni las estadísticas.
     // ==========================================
 
     let pronostico = candidatos[0] || null;
 
+    if (candidatos.length > 1) {
+
+      const ahora = new Date();
+
+      /*
+      Un bloque = 5 minutos.
+
+      Cada bloque puede seleccionar
+      un candidato diferente.
+      */
+
+      const bloque =
+        Math.floor(
+          ahora.getTime() / (5 * 60 * 1000)
+        );
+
+      const posicion =
+        bloque % candidatos.length;
+
+      pronostico =
+        candidatos[posicion];
+
+    }
+
 
     // ==========================================
-    // PROTECCIÓN CONTRA REPETICIÓN
-    //
-    // Si la página manda:
-    // ?anterior=GUACAMAYA
-    //
-    // buscamos el siguiente candidato.
+    // PROTECCIÓN CONTRA ANTERIOR
     // ==========================================
 
     const anterior =
@@ -233,12 +212,23 @@ export default async function handler(req, res) {
       pronostico.animal === anterior
     ) {
 
-      const siguiente = candidatos.find(
-        a => a.animal !== anterior
-      );
+      const posicionActual =
+        candidatos.findIndex(
+          a => a.animal === anterior
+        );
 
-      if (siguiente) {
-        pronostico = siguiente;
+      if (posicionActual >= 0) {
+
+        const siguiente =
+          candidatos[
+            (posicionActual + 1) %
+            candidatos.length
+          ];
+
+        if (siguiente) {
+          pronostico = siguiente;
+        }
+
       }
 
     }
@@ -261,7 +251,7 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // ESTADÍSTICAS ACTUALES
+    // ESTADÍSTICAS REALES
     // ==========================================
 
     const mayorAtraso =
@@ -272,9 +262,11 @@ export default async function handler(req, res) {
 
     const estadisticas = {
 
-      totalAnimales: analisis.length,
+      totalAnimales:
+        analisis.length,
 
-      totalHistorial: historial.length,
+      totalHistorial:
+        historial.length,
 
       mayorAtraso:
         mayorAtraso
@@ -293,14 +285,15 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // RESPUESTA FINAL
+    // RESPUESTA
     // ==========================================
 
     return res.status(200).json({
 
       ok: true,
 
-      historial: historial.length,
+      historial:
+        historial.length,
 
       DIAGNOSTICO: {
 
