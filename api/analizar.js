@@ -20,20 +20,37 @@ export default async function handler(req, res) {
     if (!Array.isArray(historial) || historial.length === 0) {
 
       return res.status(200).json({
+
         ok: true,
+
         historial: 0,
+
         pronostico: null,
+
         top10: [],
+
         atrasados: [],
+
         estadisticas: {
+
           totalAnimales: 77,
+
           totalHistorial: 0,
+
+          totalAtrasados: 0,
+
           mayorAtraso: null,
+
           diasMayorAtraso: 0,
+
           candidatosPronostico: 0,
+
           pronosticoActual: null,
+
           diasPronostico: 0
+
         }
+
       });
 
     }
@@ -43,104 +60,281 @@ export default async function handler(req, res) {
     // ANALIZAR HISTORIAL
     // ==========================================
 
-    const analisis = analizarResultados(historial);
+    const analisis =
+      analizarResultados(historial);
 
 
     // ==========================================
     // TOP 10 XTREME
     // ==========================================
 
-    const top10 = analisis
-      .slice()
-      .sort((a, b) => {
+    const top10 =
+      analisis
+        .slice()
+        .sort((a, b) => {
 
-        if (b.indice !== a.indice) {
-          return b.indice - a.indice;
-        }
+          if (b.indice !== a.indice) {
 
-        if (b.diasSinSalir !== a.diasSinSalir) {
-          return b.diasSinSalir - a.diasSinSalir;
-        }
+            return (
+              b.indice -
+              a.indice
+            );
 
-        if (b.salidas7 !== a.salidas7) {
-          return b.salidas7 - a.salidas7;
-        }
+          }
 
-        if (b.salidas14 !== a.salidas14) {
-          return b.salidas14 - a.salidas14;
-        }
 
-        return b.salidas30 - a.salidas30;
+          if (
+            b.diasSinSalir !==
+            a.diasSinSalir
+          ) {
 
-      })
-      .slice(0, 10);
+            return (
+              b.diasSinSalir -
+              a.diasSinSalir
+            );
+
+          }
+
+
+          if (
+            b.salidas7 !==
+            a.salidas7
+          ) {
+
+            return (
+              b.salidas7 -
+              a.salidas7
+            );
+
+          }
+
+
+          if (
+            b.salidas14 !==
+            a.salidas14
+          ) {
+
+            return (
+              b.salidas14 -
+              a.salidas14
+            );
+
+          }
+
+
+          return (
+            b.salidas30 -
+            a.salidas30
+          );
+
+        })
+        .slice(0, 10);
+
 
 
     // ==========================================
-    // ANIMALES ATRASADOS
+    // TODOS LOS ANIMALES ATRASADOS
+    //
+    // IMPORTANTE:
+    //
+    // Esta variable contiene TODOS los animales
+    // que tienen al menos 1 día sin salir.
+    //
+    // NO está limitada a 10.
     // ==========================================
 
-    const atrasados = analisis
-      .filter(a => a.diasSinSalir >= 1)
-      .slice()
-      .sort((a, b) => {
+    const todosAtrasados =
+      analisis
+        .filter(
+          a =>
+            Number(a.diasSinSalir) >= 1
+        )
+        .slice()
+        .sort((a, b) => {
 
-        // MÁS DÍAS SIN SALIR
-        if (b.diasSinSalir !== a.diasSinSalir) {
-          return b.diasSinSalir - a.diasSinSalir;
-        }
+          if (
+            b.diasSinSalir !==
+            a.diasSinSalir
+          ) {
 
-        // MAYOR ÍNDICE
-        if (b.indice !== a.indice) {
-          return b.indice - a.indice;
-        }
+            return (
+              b.diasSinSalir -
+              a.diasSinSalir
+            );
 
-        // MENOS ACTIVIDAD RECIENTE
-        if (a.salidas7 !== b.salidas7) {
-          return a.salidas7 - b.salidas7;
-        }
+          }
 
-        if (a.salidas14 !== b.salidas14) {
-          return a.salidas14 - b.salidas14;
-        }
 
-        return a.salidas30 - b.salidas30;
+          if (
+            b.indice !==
+            a.indice
+          ) {
 
-      })
-      .slice(0, 10);
+            return (
+              b.indice -
+              a.indice
+            );
+
+          }
+
+
+          if (
+            a.salidas7 !==
+            b.salidas7
+          ) {
+
+            return (
+              a.salidas7 -
+              b.salidas7
+            );
+
+          }
+
+
+          if (
+            a.salidas14 !==
+            b.salidas14
+          ) {
+
+            return (
+              a.salidas14 -
+              b.salidas14
+            );
+
+          }
+
+
+          return (
+            a.salidas30 -
+            b.salidas30
+          );
+
+        });
+
+
+
+    // ==========================================
+    // TOTAL REAL DE ATRASADOS
+    // ==========================================
+
+    const totalAtrasados =
+      todosAtrasados.length;
+
+
+
+    // ==========================================
+    // LISTA DE ATRASADOS PARA LA PÁGINA
+    //
+    // SOLO MOSTRAMOS LOS 10 PRIMEROS.
+    //
+    // PERO EL TOTAL SE CALCULA ARRIBA CON
+    // TODOS LOS ANIMALES.
+    // ==========================================
+
+    const atrasados =
+      todosAtrasados.slice(0, 10);
+
+
+
+    // ==========================================
+    // FECHA DE REFERENCIA
+    // ==========================================
+
+    const fechas =
+      historial
+        .map(r => r.fecha)
+        .filter(Boolean)
+        .map(
+          r =>
+            String(r).substring(0, 10)
+        )
+        .sort();
+
+
+    const fechaReferencia =
+      fechas[fechas.length - 1] ||
+      null;
+
 
 
     // ==========================================
     // CANDIDATOS PARA PRONÓSTICO
+    //
+    // PRIORIDAD:
+    //
+    // 1. ATRASO
+    // 2. ÍNDICE
+    // 3. MENOS ACTIVIDAD RECIENTE
     // ==========================================
 
-    let candidatos = analisis
-      .filter(a => a.diasSinSalir >= 3)
-      .slice()
-      .sort((a, b) => {
+    let candidatos =
+      analisis
+        .filter(
+          a =>
+            Number(a.diasSinSalir) >= 3
+        )
+        .slice()
+        .sort((a, b) => {
 
-        // 1. MAYOR ATRASO
-        if (b.diasSinSalir !== a.diasSinSalir) {
-          return b.diasSinSalir - a.diasSinSalir;
-        }
+          if (
+            b.diasSinSalir !==
+            a.diasSinSalir
+          ) {
 
-        // 2. MAYOR ÍNDICE
-        if (b.indice !== a.indice) {
-          return b.indice - a.indice;
-        }
+            return (
+              b.diasSinSalir -
+              a.diasSinSalir
+            );
 
-        // 3. MENOS ACTIVIDAD RECIENTE
-        if (a.salidas7 !== b.salidas7) {
-          return a.salidas7 - b.salidas7;
-        }
+          }
 
-        if (a.salidas14 !== b.salidas14) {
-          return a.salidas14 - b.salidas14;
-        }
 
-        return a.salidas30 - b.salidas30;
+          if (
+            b.indice !==
+            a.indice
+          ) {
 
-      });
+            return (
+              b.indice -
+              a.indice
+            );
+
+          }
+
+
+          if (
+            a.salidas7 !==
+            b.salidas7
+          ) {
+
+            return (
+              a.salidas7 -
+              b.salidas7
+            );
+
+          }
+
+
+          if (
+            a.salidas14 !==
+            b.salidas14
+          ) {
+
+            return (
+              a.salidas14 -
+              b.salidas14
+            );
+
+          }
+
+
+          return (
+            a.salidas30 -
+            b.salidas30
+          );
+
+        });
+
 
 
     // ==========================================
@@ -148,74 +342,150 @@ export default async function handler(req, res) {
     // BAJAMOS A 2 DÍAS
     // ==========================================
 
-    if (candidatos.length < 5) {
+    if (
+      candidatos.length < 5
+    ) {
 
-      candidatos = analisis
-        .filter(a => a.diasSinSalir >= 2)
-        .slice()
-        .sort((a, b) => {
+      candidatos =
+        analisis
+          .filter(
+            a =>
+              Number(a.diasSinSalir) >= 2
+          )
+          .slice()
+          .sort((a, b) => {
 
-          if (b.diasSinSalir !== a.diasSinSalir) {
-            return b.diasSinSalir - a.diasSinSalir;
-          }
+            if (
+              b.diasSinSalir !==
+              a.diasSinSalir
+            ) {
 
-          if (b.indice !== a.indice) {
-            return b.indice - a.indice;
-          }
+              return (
+                b.diasSinSalir -
+                a.diasSinSalir
+              );
 
-          if (a.salidas7 !== b.salidas7) {
-            return a.salidas7 - b.salidas7;
-          }
+            }
 
-          return a.salidas14 - b.salidas14;
 
-        });
+            if (
+              b.indice !==
+              a.indice
+            ) {
+
+              return (
+                b.indice -
+                a.indice
+              );
+
+            }
+
+
+            if (
+              a.salidas7 !==
+              b.salidas7
+            ) {
+
+              return (
+                a.salidas7 -
+                b.salidas7
+              );
+
+            }
+
+
+            return (
+              a.salidas14 -
+              b.salidas14
+            );
+
+          });
 
     }
+
 
 
     // ==========================================
     // SI TODAVÍA HAY POCOS
-    // EXCLUIR LOS QUE SALIERON HOY
+    // USAMOS LOS QUE TIENEN 1+ DÍA
     // ==========================================
 
-    if (candidatos.length < 5) {
+    if (
+      candidatos.length < 5
+    ) {
 
-      candidatos = analisis
-        .filter(a => a.diasSinSalir >= 1)
-        .slice()
-        .sort((a, b) => {
+      candidatos =
+        analisis
+          .filter(
+            a =>
+              Number(a.diasSinSalir) >= 1
+          )
+          .slice()
+          .sort((a, b) => {
 
-          if (b.diasSinSalir !== a.diasSinSalir) {
-            return b.diasSinSalir - a.diasSinSalir;
-          }
+            if (
+              b.diasSinSalir !==
+              a.diasSinSalir
+            ) {
 
-          if (b.indice !== a.indice) {
-            return b.indice - a.indice;
-          }
+              return (
+                b.diasSinSalir -
+                a.diasSinSalir
+              );
 
-          return a.salidas7 - b.salidas7;
+            }
 
-        });
+
+            if (
+              b.indice !==
+              a.indice
+            ) {
+
+              return (
+                b.indice -
+                a.indice
+              );
+
+            }
+
+
+            return (
+              a.salidas7 -
+              b.salidas7
+            );
+
+          });
 
     }
 
 
+
     // ==========================================
-    // PRONÓSTICO ACTUAL
+    // PRONÓSTICO
     // ==========================================
 
-    let pronostico = candidatos[0] || null;
+    let pronostico =
+      candidatos[0] ||
+      null;
+
 
 
     // ==========================================
     // PROTECCIÓN CONTRA REPETICIÓN
+    //
+    // Si llega:
+    //
+    // ?anterior=GUACAMAYA
+    //
+    // buscamos otro candidato.
     // ==========================================
 
     const anterior =
       req.query &&
       req.query.anterior
-        ? String(req.query.anterior)
+        ? String(
+            req.query.anterior
+          )
             .trim()
             .toUpperCase()
         : null;
@@ -227,88 +497,107 @@ export default async function handler(req, res) {
       pronostico.animal === anterior
     ) {
 
-      const siguiente = candidatos.find(
-        a => a.animal !== anterior
-      );
+      const siguiente =
+        candidatos.find(
+          a =>
+            a.animal !== anterior
+        );
+
 
       if (siguiente) {
-        pronostico = siguiente;
+
+        pronostico =
+          siguiente;
+
       }
 
     }
 
 
-    // ==========================================
-    // FECHAS ACTUALES
-    // ==========================================
-
-    const fechas = historial
-      .map(r => r.fecha)
-      .filter(Boolean)
-      .map(r => String(r).substring(0, 10))
-      .sort();
-
-
-    const fechaMasAntigua =
-      fechas[0] || null;
-
-
-    const fechaMasReciente =
-      fechas[fechas.length - 1] || null;
-
-
-    const fechasUnicas = [
-      ...new Set(fechas)
-    ].sort();
-
 
     // ==========================================
-    // ESTADÍSTICA ACTUAL
+    // MAYOR ATRASO REAL
+    //
+    // SE CALCULA CON TODOS LOS ATRASADOS,
+    // NO CON LOS 10 QUE SE MUESTRAN.
     // ==========================================
 
     const mayorAtraso =
-      atrasados.length > 0
-        ? atrasados[0]
+      todosAtrasados.length > 0
+        ? todosAtrasados[0]
         : null;
 
 
+
+    // ==========================================
+    // ESTADÍSTICAS ACTUALES
+    // ==========================================
+
     const estadisticas = {
 
-      // LA LISTA OFICIAL TIENE 77
-      totalAnimales: 77,
+      // Cantidad real de animales analizados
+      totalAnimales:
+        analisis.length,
 
-      // HISTORIAL REAL DE SUPABASE
-      totalHistorial: historial.length,
 
-      // ANIMAL CON MAYOR ATRASO ACTUAL
+      // Cantidad real de registros
+      totalHistorial:
+        historial.length,
+
+
+      // CANTIDAD REAL DE ATRASADOS
+      //
+      // Ya NO será siempre 10.
+      totalAtrasados:
+        totalAtrasados,
+
+
+      // Animal con mayor atraso
       mayorAtraso:
         mayorAtraso
           ? mayorAtraso.animal
           : null,
 
-      // DÍAS REALES DEL MAYOR ATRASO
+
+      // Días del mayor atraso
       diasMayorAtraso:
         mayorAtraso
           ? mayorAtraso.diasSinSalir
           : 0,
 
-      // CANTIDAD REAL DE CANDIDATOS
+
+      // Cantidad de candidatos
       candidatosPronostico:
         candidatos.length,
 
-      // PRONÓSTICO ACTUAL
+
+      // Pronóstico actual
       pronosticoActual:
         pronostico
           ? pronostico.animal
           : null,
 
-      // DÍAS DEL PRONÓSTICO
+
+      // Días sin salir del pronóstico
       diasPronostico:
         pronostico
           ? pronostico.diasSinSalir
           : 0
 
     };
+
+
+
+    // ==========================================
+    // FECHAS ÚNICAS
+    // ==========================================
+
+    const fechasUnicas = [
+      ...new Set(
+        fechas
+      )
+    ];
+
 
 
     // ==========================================
@@ -319,48 +608,92 @@ export default async function handler(req, res) {
 
       ok: true,
 
-      historial: historial.length,
+
+      historial:
+        historial.length,
+
 
       DIAGNOSTICO: {
 
-        fechaMasAntigua,
+        fechaMasAntigua:
+          fechas[0] ||
+          null,
 
-        fechaMasReciente,
+
+        fechaMasReciente:
+          fechas[fechas.length - 1] ||
+          null,
+
 
         cantidadFechasDiferentes:
           fechasUnicas.length,
 
+
         primeras5Fechas:
-          fechasUnicas.slice(0, 5),
+          fechasUnicas.slice(
+            0,
+            5
+          ),
+
 
         ultimas5Fechas:
-          fechasUnicas.slice(-5),
+          fechasUnicas.slice(
+            -5
+          ),
+
 
         candidatosPronostico:
-          candidatos.length
+          candidatos.length,
+
+
+        totalAtrasados:
+          totalAtrasados
 
       },
 
-      pronostico,
 
-      top10,
+      pronostico:
 
-      atrasados,
 
-      estadisticas
+        pronostico,
+
+
+      top10:
+
+
+        top10,
+
+
+      atrasados:
+
+
+        atrasados,
+
+
+      estadisticas:
+
+
+        estadisticas
 
     });
 
 
   } catch (error) {
 
-    console.error(error);
+
+    console.error(
+      "ERROR /api/analizar:",
+      error
+    );
+
 
     return res.status(500).json({
 
       ok: false,
 
-      error: error.message
+      error:
+        error.message ||
+        "Error interno del servidor"
 
     });
 
