@@ -262,26 +262,37 @@ export default async function handler(req, res) {
 
     const estadisticas = {
 
-      totalAnimales:
-        analisis.length,
+  totalAnimales: 77,
 
-      totalHistorial:
-        historial.length,
+  totalHistorial: historial.length,
 
-      mayorAtraso:
-        mayorAtraso
-          ? mayorAtraso.animal
-          : null,
+  mayorAtraso:
+    atrasados.length > 0
+      ? atrasados[0].animal
+      : null,
 
-      diasMayorAtraso:
-        mayorAtraso
-          ? mayorAtraso.diasSinSalir
-          : 0,
+  diasMayorAtraso:
+    atrasados.length > 0
+      ? atrasados[0].diasSinSalir
+      : 0,
 
-      candidatosPronostico:
-        candidatos.length
+  candidatosPronostico:
+    candidatos.length,
 
-    };
+  fechaActual:
+    fechaReferencia,
+
+  pronosticoActual:
+    pronostico
+      ? pronostico.animal
+      : null,
+
+  diasPronostico:
+    pronostico
+      ? pronostico.diasSinSalir
+      : 0
+
+};
 
 
     // ==========================================
