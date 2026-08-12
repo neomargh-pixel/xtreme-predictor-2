@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   try {
 
     // ==========================================
-    // OBTENER HISTORIAL
+    // OBTENER HISTORIAL ACTUAL
     // ==========================================
 
     const { data: historial, error } = await supabase
@@ -16,6 +16,7 @@ export default async function handler(req, res) {
 
     if (error) throw error;
 
+
     if (!Array.isArray(historial) || historial.length === 0) {
 
       return res.status(200).json({
@@ -24,21 +25,29 @@ export default async function handler(req, res) {
         pronostico: null,
         top10: [],
         atrasados: [],
-        estadisticas: {}
+        estadisticas: {
+          totalAnimales: 77,
+          totalHistorial: 0,
+          mayorAtraso: null,
+          diasMayorAtraso: 0,
+          candidatosPronostico: 0,
+          pronosticoActual: null,
+          diasPronostico: 0
+        }
       });
 
     }
 
 
     // ==========================================
-    // ANALIZAR
+    // ANALIZAR HISTORIAL
     // ==========================================
 
     const analisis = analizarResultados(historial);
 
 
     // ==========================================
-    // TOP 10 REAL
+    // TOP 10 XTREME
     // ==========================================
 
     const top10 = analisis
@@ -68,7 +77,7 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // ATRASADOS REAL
+    // ANIMALES ATRASADOS
     // ==========================================
 
     const atrasados = analisis
@@ -76,47 +85,51 @@ export default async function handler(req, res) {
       .slice()
       .sort((a, b) => {
 
+        // MÁS DÍAS SIN SALIR
         if (b.diasSinSalir !== a.diasSinSalir) {
           return b.diasSinSalir - a.diasSinSalir;
         }
 
+        // MAYOR ÍNDICE
         if (b.indice !== a.indice) {
           return b.indice - a.indice;
         }
 
+        // MENOS ACTIVIDAD RECIENTE
         if (a.salidas7 !== b.salidas7) {
           return a.salidas7 - b.salidas7;
         }
 
-        return a.salidas14 - b.salidas14;
+        if (a.salidas14 !== b.salidas14) {
+          return a.salidas14 - b.salidas14;
+        }
+
+        return a.salidas30 - b.salidas30;
 
       })
       .slice(0, 10);
 
 
     // ==========================================
-    // CANDIDATOS DEL PRONÓSTICO
-    //
-    // IMPORTANTE:
-    // NO usamos TOP 10 directamente.
+    // CANDIDATOS PARA PRONÓSTICO
     // ==========================================
 
     let candidatos = analisis
-      .filter(a => a.diasSinSalir >= 2)
+      .filter(a => a.diasSinSalir >= 3)
       .slice()
       .sort((a, b) => {
 
-        // Primero atraso
+        // 1. MAYOR ATRASO
         if (b.diasSinSalir !== a.diasSinSalir) {
           return b.diasSinSalir - a.diasSinSalir;
         }
 
-        // Después índice
+        // 2. MAYOR ÍNDICE
         if (b.indice !== a.indice) {
           return b.indice - a.indice;
         }
 
-        // Menos actividad reciente
+        // 3. MENOS ACTIVIDAD RECIENTE
         if (a.salidas7 !== b.salidas7) {
           return a.salidas7 - b.salidas7;
         }
@@ -131,10 +144,42 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // SI HAY POCOS
+    // SI HAY POCOS CON 3+ DÍAS
+    // BAJAMOS A 2 DÍAS
     // ==========================================
 
-    if (candidatos.length < 8) {
+    if (candidatos.length < 5) {
+
+      candidatos = analisis
+        .filter(a => a.diasSinSalir >= 2)
+        .slice()
+        .sort((a, b) => {
+
+          if (b.diasSinSalir !== a.diasSinSalir) {
+            return b.diasSinSalir - a.diasSinSalir;
+          }
+
+          if (b.indice !== a.indice) {
+            return b.indice - a.indice;
+          }
+
+          if (a.salidas7 !== b.salidas7) {
+            return a.salidas7 - b.salidas7;
+          }
+
+          return a.salidas14 - b.salidas14;
+
+        });
+
+    }
+
+
+    // ==========================================
+    // SI TODAVÍA HAY POCOS
+    // EXCLUIR LOS QUE SALIERON HOY
+    // ==========================================
+
+    if (candidatos.length < 5) {
 
       candidatos = analisis
         .filter(a => a.diasSinSalir >= 1)
@@ -157,44 +202,14 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // PRONÓSTICO
-    //
-    // ROTACIÓN POR BLOQUES DE TIEMPO
-    //
-    // Esto es SOLO para el pronóstico.
-    // NO modifica TOP 10, ATRASADOS
-    // ni las estadísticas.
+    // PRONÓSTICO ACTUAL
     // ==========================================
 
     let pronostico = candidatos[0] || null;
 
-    if (candidatos.length > 1) {
-
-      const ahora = new Date();
-
-      /*
-      Un bloque = 5 minutos.
-
-      Cada bloque puede seleccionar
-      un candidato diferente.
-      */
-
-      const bloque =
-        Math.floor(
-          ahora.getTime() / (5 * 60 * 1000)
-        );
-
-      const posicion =
-        bloque % candidatos.length;
-
-      pronostico =
-        candidatos[posicion];
-
-    }
-
 
     // ==========================================
-    // PROTECCIÓN CONTRA ANTERIOR
+    // PROTECCIÓN CONTRA REPETICIÓN
     // ==========================================
 
     const anterior =
@@ -212,30 +227,19 @@ export default async function handler(req, res) {
       pronostico.animal === anterior
     ) {
 
-      const posicionActual =
-        candidatos.findIndex(
-          a => a.animal === anterior
-        );
+      const siguiente = candidatos.find(
+        a => a.animal !== anterior
+      );
 
-      if (posicionActual >= 0) {
-
-        const siguiente =
-          candidatos[
-            (posicionActual + 1) %
-            candidatos.length
-          ];
-
-        if (siguiente) {
-          pronostico = siguiente;
-        }
-
+      if (siguiente) {
+        pronostico = siguiente;
       }
 
     }
 
 
     // ==========================================
-    // FECHAS
+    // FECHAS ACTUALES
     // ==========================================
 
     const fechas = historial
@@ -245,13 +249,21 @@ export default async function handler(req, res) {
       .sort();
 
 
+    const fechaMasAntigua =
+      fechas[0] || null;
+
+
+    const fechaMasReciente =
+      fechas[fechas.length - 1] || null;
+
+
     const fechasUnicas = [
       ...new Set(fechas)
-    ];
+    ].sort();
 
 
     // ==========================================
-    // ESTADÍSTICAS REALES
+    // ESTADÍSTICA ACTUAL
     // ==========================================
 
     const mayorAtraso =
@@ -262,57 +274,58 @@ export default async function handler(req, res) {
 
     const estadisticas = {
 
-  totalAnimales: 77,
+      // LA LISTA OFICIAL TIENE 77
+      totalAnimales: 77,
 
-  totalHistorial: historial.length,
+      // HISTORIAL REAL DE SUPABASE
+      totalHistorial: historial.length,
 
-  mayorAtraso:
-    atrasados.length > 0
-      ? atrasados[0].animal
-      : null,
+      // ANIMAL CON MAYOR ATRASO ACTUAL
+      mayorAtraso:
+        mayorAtraso
+          ? mayorAtraso.animal
+          : null,
 
-  diasMayorAtraso:
-    atrasados.length > 0
-      ? atrasados[0].diasSinSalir
-      : 0,
+      // DÍAS REALES DEL MAYOR ATRASO
+      diasMayorAtraso:
+        mayorAtraso
+          ? mayorAtraso.diasSinSalir
+          : 0,
 
-  candidatosPronostico:
-    candidatos.length,
+      // CANTIDAD REAL DE CANDIDATOS
+      candidatosPronostico:
+        candidatos.length,
 
-  fechaActual:
-    fechaReferencia,
+      // PRONÓSTICO ACTUAL
+      pronosticoActual:
+        pronostico
+          ? pronostico.animal
+          : null,
 
-  pronosticoActual:
-    pronostico
-      ? pronostico.animal
-      : null,
+      // DÍAS DEL PRONÓSTICO
+      diasPronostico:
+        pronostico
+          ? pronostico.diasSinSalir
+          : 0
 
-  diasPronostico:
-    pronostico
-      ? pronostico.diasSinSalir
-      : 0
-
-};
+    };
 
 
     // ==========================================
-    // RESPUESTA
+    // RESPUESTA FINAL
     // ==========================================
 
     return res.status(200).json({
 
       ok: true,
 
-      historial:
-        historial.length,
+      historial: historial.length,
 
       DIAGNOSTICO: {
 
-        fechaMasAntigua:
-          fechas[0] || null,
+        fechaMasAntigua,
 
-        fechaMasReciente:
-          fechas[fechas.length - 1] || null,
+        fechaMasReciente,
 
         cantidadFechasDiferentes:
           fechasUnicas.length,
