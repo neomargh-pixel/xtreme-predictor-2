@@ -4,7 +4,11 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
 <title>XTREME Predictor 2.0</title>
 
@@ -12,132 +16,170 @@
 
 </head>
 
+
 <body>
+
 
 <header>
 
-<h1>🚀 XTREME Predictor</h1>
+  <h1>🚀 XTREME Predictor</h1>
 
-<p>El poder del algoritmo a tu favor</p>
+  <p>El poder del algoritmo a tu favor</p>
 
 </header>
+
 
 
 <div class="container">
 
 
+<!-- ==========================================
+     SELECCIONAR LOTERÍA
+========================================== -->
+
 <section>
 
-<h2>🎯 Seleccionar Lotería</h2>
+  <h2>🎯 Seleccionar Lotería</h2>
 
-<select id="selectorLoteria">
+  <select id="selectorLoteria">
 
-<option>Guácharo Activo</option>
-<option>La Granjita</option>
-<option>Selva Plus</option>
-<option>Granja Millonaria</option>
+    <option>Guácharo Activo</option>
+    <option>La Granjita</option>
+    <option>Selva Plus</option>
+    <option>Granja Millonaria</option>
 
-</select>
+  </select>
 
 </section>
 
 
 
+<!-- ==========================================
+     PRONÓSTICO
+========================================== -->
+
 <section>
 
-<h2>🔥 Pronóstico del Día</h2>
+  <h2>🔥 Pronóstico del Día</h2>
 
-<div id="pronostico">
+  <div id="pronostico">
 
-<h1>Analizando...</h1>
+    <h1>Analizando...</h1>
 
-<p>Calculando tendencia XTREME...</p>
+    <p>Calculando tendencia XTREME...</p>
 
-</div>
+  </div>
 
 </section>
 
 
 
+<!-- ==========================================
+     ANIMALITOS
+========================================== -->
+
 <section>
 
-<h2>🐾 Animalitos</h2>
+  <h2>🐾 Animalitos</h2>
 
-<div id="animales" class="animales"></div>
+  <div
+    id="animales"
+    class="animales"
+  ></div>
 
 </section>
 
 
 
+<!-- ==========================================
+     TOP 10
+========================================== -->
+
 <section>
 
-<h2>🏆 TOP 10 XTREME</h2>
+  <h2>🏆 TOP 10 XTREME</h2>
 
-<table>
+  <table>
 
-<thead>
+    <thead>
 
-<tr>
-<th>#</th>
-<th>Animal</th>
-<th>Salidas</th>
-<th>Días</th>
-<th>Índice</th>
-</tr>
+      <tr>
 
-</thead>
+        <th>#</th>
+        <th>Animal</th>
+        <th>Salidas</th>
+        <th>Días</th>
+        <th>Índice</th>
 
-<tbody id="top10"></tbody>
+      </tr>
 
-</table>
+    </thead>
+
+    <tbody id="top10"></tbody>
+
+  </table>
 
 </section>
 
 
 
+<!-- ==========================================
+     ATRASADOS
+========================================== -->
+
 <section>
 
-<h2>⏳ ANIMALES ATRASADOS</h2>
+  <h2>⏳ ANIMALES ATRASADOS</h2>
 
-<table>
+  <table>
 
-<thead>
+    <thead>
 
-<tr>
-<th>#</th>
-<th>Animal</th>
-<th>Salidas</th>
-<th>Días</th>
-<th>Índice</th>
-</tr>
+      <tr>
 
-</thead>
+        <th>#</th>
+        <th>Animal</th>
+        <th>Salidas</th>
+        <th>Días</th>
+        <th>Índice</th>
 
-<tbody id="atrasados"></tbody>
+      </tr>
 
-</table>
+    </thead>
+
+    <tbody id="atrasados"></tbody>
+
+  </table>
 
 </section>
 
 
 
+<!-- ==========================================
+     ESTADÍSTICAS
+========================================== -->
+
 <section>
 
-<h2>📊 Estadísticas</h2>
+  <h2>📊 Estadísticas</h2>
 
-<div id="estadistica">
+  <div id="estadistica">
 
-Analizando resultados...
+    Analizando resultados...
 
-</div>
+  </div>
 
 </section>
 
 
+
+<!-- ==========================================
+     ACTUALIZAR
+========================================== -->
 
 <button id="actualizar">
 
-🔄 ACTUALIZAR RESULTADOS
+  🔄 ACTUALIZAR RESULTADOS
 
 </button>
 
@@ -148,28 +190,89 @@ Analizando resultados...
 
 <footer>
 
-XTREME Predictor © 2026
+  XTREME Predictor © 2026
 
 </footer>
 
 
 
+<!-- ==========================================
+     ANIMALITOS
+========================================== -->
+
 <script src="animales.js"></script>
-<script src="algoritmo.js"></script>
+
 
 
 <script>
 
+
+// =================================================
+// FUNCIÓN PRINCIPAL
+// =================================================
+
 async function cargarAnalisis() {
+
+
+  const pronosticoBox =
+    document.getElementById("pronostico");
+
+
+  const tablaTop =
+    document.getElementById("top10");
+
+
+  const tablaAtrasados =
+    document.getElementById("atrasados");
+
+
+  const estadistica =
+    document.getElementById("estadistica");
+
+
+  const contenedorAnimales =
+    document.getElementById("animales");
+
+
+  const boton =
+    document.getElementById("actualizar");
+
+
+
+  // ===============================================
+  // ESTADO DE CARGA
+  // ===============================================
+
+  pronosticoBox.innerHTML = `
+
+    <h1>Analizando...</h1>
+
+    <p>Calculando tendencia XTREME...</p>
+
+  `;
+
+
+  tablaTop.innerHTML = "";
+
+  tablaAtrasados.innerHTML = "";
+
+  estadistica.innerHTML =
+    "Analizando resultados...";
+
+
+  boton.disabled = true;
+
+  boton.innerText =
+    "⏳ ACTUALIZANDO...";
+
+
 
   try {
 
 
-    /*
-    ==========================================
-    HISTORIAL DE PRONÓSTICOS
-    ==========================================
-    */
+    // =============================================
+    // HISTORIAL DE PRONÓSTICOS
+    // =============================================
 
     let historialPronosticos = [];
 
@@ -204,7 +307,12 @@ async function cargarAnalisis() {
 
       }
 
-    } catch (e) {
+    } catch (errorLocal) {
+
+      console.warn(
+        "No se pudo leer historial local:",
+        errorLocal
+      );
 
       historialPronosticos = [];
 
@@ -212,11 +320,9 @@ async function cargarAnalisis() {
 
 
 
-    /*
-    ==========================================
-    CONSTRUIR URL
-    ==========================================
-    */
+    // =============================================
+    // CONSTRUIR URL
+    // =============================================
 
     let url =
       "/api/analizar";
@@ -224,10 +330,6 @@ async function cargarAnalisis() {
 
     const parametros = [];
 
-
-    /*
-    ÚLTIMO PRONÓSTICO
-    */
 
     if (
       historialPronosticos.length > 0
@@ -242,10 +344,6 @@ async function cargarAnalisis() {
 
     }
 
-
-    /*
-    ÚLTIMOS PRONÓSTICOS
-    */
 
     if (
       historialPronosticos.length > 0
@@ -271,99 +369,112 @@ async function cargarAnalisis() {
 
 
 
-    /*
-    ==========================================
-    CONSULTAR API
-    ==========================================
-    */
+    // =============================================
+    // CONSULTAR API
+    // =============================================
 
     const respuesta =
-      await fetch(url, {
-        cache: "no-store"
-      });
+      await fetch(
+        url,
+        {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            "Accept": "application/json"
+          }
+        }
+      );
+
+
+    if (!respuesta.ok) {
+
+      throw new Error(
+        "API respondió HTTP " +
+        respuesta.status
+      );
+
+    }
 
 
     const datos =
       await respuesta.json();
 
 
-    if (!datos.ok) {
+    console.log(
+      "XTREME API:",
+      datos
+    );
+
+
+    if (!datos || datos.ok !== true) {
 
       throw new Error(
-        datos.error ||
-        "Error en el análisis"
+        datos && datos.error
+          ? datos.error
+          : "La API no devolvió datos válidos."
       );
 
     }
 
 
 
-    /*
-    ==========================================
-    PRONÓSTICO
-    ==========================================
-    */
+    // =============================================
+    // PRONÓSTICO
+    // =============================================
 
     const p =
       datos.pronostico;
 
 
-    const pronostico =
-      document.getElementById(
-        "pronostico"
-      );
-
-
     if (p) {
 
-      pronostico.innerHTML = `
+      pronosticoBox.innerHTML = `
 
-        <h1>🔥 ${p.animal}</h1>
+        <h1>
+          🔥 ${p.animal}
+        </h1>
 
         <p>
           Confianza XTREME:
           <strong>
-            ${p.porcentaje}%
+            ${p.porcentaje ?? p.indice ?? 0}%
           </strong>
         </p>
 
         <p>
           Salidas:
           <strong>
-            ${p.salidas}
+            ${p.salidas ?? 0}
           </strong>
         </p>
 
         <p>
           Días sin salir:
           <strong>
-            ${p.diasSinSalir}
+            ${p.diasSinSalir ?? 0}
           </strong>
         </p>
 
         <p>
           Tendencia:
           <strong>
-            ${p.tendencia}
+            ${p.tendencia ?? "N/A"}
           </strong>
         </p>
 
         <p>
           Categoría:
           <strong>
-            ${p.categoria}
+            ${p.categoria ?? "N/A"}
           </strong>
         </p>
 
       `;
 
 
-
-      /*
-      ========================================
-      GUARDAR NUEVO PRONÓSTICO
-      ========================================
-      */
+      // ===========================================
+      // GUARDAR PRONÓSTICO
+      // ===========================================
 
       const nuevo =
         String(p.animal)
@@ -372,61 +483,79 @@ async function cargarAnalisis() {
 
 
       let nuevosPronosticos = [
+
         nuevo,
+
         ...historialPronosticos
+
       ];
 
 
-      /*
-      QUITAR REPETIDOS
-      */
+      nuevosPronosticos =
+        [
+          ...new Set(
+            nuevosPronosticos
+          )
+        ];
+
 
       nuevosPronosticos =
-        [...new Set(
-          nuevosPronosticos
-        )];
+        nuevosPronosticos.slice(
+          0,
+          5
+        );
 
 
-      /*
-      GUARDAR SOLO LOS ÚLTIMOS 5
-      */
+      try {
 
-      nuevosPronosticos =
-        nuevosPronosticos.slice(0, 5);
+        localStorage.setItem(
+          "xtremePronosticos",
+          JSON.stringify(
+            nuevosPronosticos
+          )
+        );
 
+      } catch (errorLocal) {
 
-      localStorage.setItem(
-        "xtremePronosticos",
-        JSON.stringify(
-          nuevosPronosticos
-        )
-      );
+        console.warn(
+          "No se pudo guardar pronóstico:",
+          errorLocal
+        );
+
+      }
+
+    } else {
+
+      pronosticoBox.innerHTML = `
+
+        <h1>⚠️ Sin pronóstico</h1>
+
+        <p>
+          La API no devolvió un pronóstico.
+        </p>
+
+      `;
 
     }
 
 
 
-    /*
-    ==========================================
-    TOP 10
-    ==========================================
-    */
-
-    const tablaTop =
-      document.getElementById(
-        "top10"
-      );
-
+    // =============================================
+    // TOP 10
+    // =============================================
 
     tablaTop.innerHTML = "";
 
 
     if (
-      Array.isArray(datos.top10)
+      Array.isArray(datos.top10) &&
+      datos.top10.length > 0
     ) {
+
 
       datos.top10.forEach(
         (animal, index) => {
+
 
           tablaTop.innerHTML += `
 
@@ -443,15 +572,15 @@ async function cargarAnalisis() {
               </td>
 
               <td>
-                ${animal.salidas}
+                ${animal.salidas ?? 0}
               </td>
 
               <td>
-                ${animal.diasSinSalir}
+                ${animal.diasSinSalir ?? 0}
               </td>
 
               <td>
-                ${animal.indice}%
+                ${animal.indice ?? 0}%
               </td>
 
             </tr>
@@ -461,21 +590,28 @@ async function cargarAnalisis() {
         }
       );
 
+
+    } else {
+
+      tablaTop.innerHTML = `
+
+        <tr>
+
+          <td colspan="5">
+            No hay datos disponibles.
+          </td>
+
+        </tr>
+
+      `;
+
     }
 
 
 
-    /*
-    ==========================================
-    ANIMALES ATRASADOS
-    ==========================================
-    */
-
-    const tablaAtrasados =
-      document.getElementById(
-        "atrasados"
-      );
-
+    // =============================================
+    // ANIMALES ATRASADOS
+    // =============================================
 
     tablaAtrasados.innerHTML = "";
 
@@ -485,8 +621,10 @@ async function cargarAnalisis() {
       datos.atrasados.length > 0
     ) {
 
+
       datos.atrasados.forEach(
         (animal, index) => {
+
 
           tablaAtrasados.innerHTML += `
 
@@ -503,15 +641,15 @@ async function cargarAnalisis() {
               </td>
 
               <td>
-                ${animal.salidas}
+                ${animal.salidas ?? 0}
               </td>
 
               <td>
-                ${animal.diasSinSalir}
+                ${animal.diasSinSalir ?? 0}
               </td>
 
               <td>
-                ${animal.indice}%
+                ${animal.indice ?? 0}%
               </td>
 
             </tr>
@@ -520,6 +658,7 @@ async function cargarAnalisis() {
 
         }
       );
+
 
     } else {
 
@@ -539,176 +678,379 @@ async function cargarAnalisis() {
 
 
 
-    /*
-    ==========================================
-    ANIMALITOS
-    ==========================================
-    */
-
-    const contenedorAnimales =
-      document.getElementById(
-        "animales"
-      );
-
+    // =============================================
+    // ANIMALITOS
+    // =============================================
 
     contenedorAnimales.innerHTML = "";
 
 
-    if (
-      Array.isArray(animales)
-    ) {
+    /*
+     * Si animales.js define "animales",
+     * lo usamos.
+     *
+     * Si por alguna razón no está disponible,
+     * la página NO se rompe.
+     */
 
-      animales.forEach(a => {
-
-        const dato =
-          datos.top10 &&
-          datos.top10.find(
-            x =>
-              x.animal === a.animal
-          );
+    let listaAnimales = [];
 
 
-        let clase = "frio";
+    try {
+
+      if (
+        typeof animales !== "undefined" &&
+        Array.isArray(animales)
+      ) {
+
+        listaAnimales =
+          animales;
+
+      }
+
+    } catch (errorAnimales) {
+
+      console.warn(
+        "No se pudo leer animales.js:",
+        errorAnimales
+      );
+
+    }
 
 
-        if (dato) {
+    if (listaAnimales.length > 0) {
 
-          if (
-            dato.indice >= 80
-          ) {
 
-            clase = "caliente";
+      listaAnimales.forEach(
+        a => {
 
-          } else if (
-            dato.indice >= 50
-          ) {
 
-            clase = "medio";
+          const dato =
+            Array.isArray(datos.top10)
+              ? datos.top10.find(
+                  x =>
+                    x.animal === a.animal
+                )
+              : null;
+
+
+          let clase =
+            "frio";
+
+
+          if (dato) {
+
+            if (
+              dato.indice >= 80
+            ) {
+
+              clase =
+                "caliente";
+
+            } else if (
+              dato.indice >= 50
+            ) {
+
+              clase =
+                "medio";
+
+            }
 
           }
 
+
+          contenedorAnimales.innerHTML += `
+
+            <div
+              class="animal ${clase}"
+            >
+
+              <strong>
+                ${a.numero}
+              </strong>
+
+              <br>
+
+              ${a.animal}
+
+            </div>
+
+          `;
+
         }
+      );
 
 
-        contenedorAnimales.innerHTML += `
+    } else {
 
-          <div class="animal ${clase}">
+      contenedorAnimales.innerHTML = `
 
-            <strong>
-              ${a.numero}
-            </strong>
+        <p>
+          ⚠️ No se pudo cargar la lista de animalitos.
+        </p>
 
-            <br>
-
-            ${a.animal}
-
-          </div>
-
-        `;
-
-      });
+      `;
 
     }
 
 
 
-    
-/* =========================
-   ESTADÍSTICAS ACTUALES
-========================= */
+    // =============================================
+    // ESTADÍSTICAS
+    //
+    // AHORA LAS TOMAMOS DIRECTAMENTE DE LA API.
+    // =============================================
 
-const estadistica =
-  document.getElementById("estadistica");
-
-const listaAnalisis =
-  Array.isArray(datos.atrasados)
-    ? datos.atrasados
-    : [];
-
-const mayorAtraso =
-  listaAnalisis.length > 0
-    ? listaAnalisis[0]
-    : null;
-
-const totalHistorial =
-  Number(datos.historial) || 0;
-
-const totalAtrasados =
-  listaAnalisis.length;
-
-const totalAnimales =
-  Array.isArray(animales)
-    ? animales.length
-    : 77;
+    const estadisticasAPI =
+      datos.estadisticas || {};
 
 
-/* =========================
-   MOSTRAR ESTADÍSTICAS
-========================= */
+    const totalHistorial =
+      Number(
+        estadisticasAPI.totalHistorial ??
+        datos.historial ??
+        0
+      );
 
-estadistica.innerHTML = `
 
-  <p>
-    📚 Historial:
-    <strong>${totalHistorial}</strong>
-    registros
-  </p>
+    const totalAnimales =
+      Number(
+        estadisticasAPI.totalAnimales ??
+        listaAnimales.length ??
+        77
+      );
 
-  <p>
-    🐾 Animales analizados:
-    <strong>${totalAnimales}</strong>
-  </p>
 
-  <p>
-    🔥 Mayor tendencia:
-    <strong>
-      ${p ? p.animal : "N/A"}
-    </strong>
-  </p>
-
-  <p>
-    🎯 Pronóstico actual:
-    <strong>
-      ${p ? p.animal : "N/A"}
-    </strong>
-  </p>
-
-  <p>
-    ⏳ Animales atrasados:
-    <strong>${totalAtrasados}</strong>
-  </p>
-
-  <p>
-    📅 Mayor atraso:
-    <strong>
-      ${
-        mayorAtraso
-          ? mayorAtraso.animal
+    const mayorAtraso =
+      estadisticasAPI.mayorAtraso ??
+      (
+        Array.isArray(datos.atrasados) &&
+        datos.atrasados.length > 0
+          ? datos.atrasados[0].animal
           : "N/A"
-      }
-    </strong>
-  </p>
-
-  <p>
-    📅 Días de atraso:
-    <strong>
-      ${
-        mayorAtraso
-          ? mayorAtraso.diasSinSalir
-          : 0
-      }
-    </strong>
-  </p>
-
-`;
+      );
 
 
+    const diasMayorAtraso =
+      Number(
+        estadisticasAPI.diasMayorAtraso ??
+        (
+          Array.isArray(datos.atrasados) &&
+          datos.atrasados.length > 0
+            ? datos.atrasados[0].diasSinSalir
+            : 0
+        )
+      );
 
-/*
-==========================================
-BOTÓN ACTUALIZAR
-==========================================
-*/
+
+    const candidatosPronostico =
+      Number(
+        estadisticasAPI.candidatosPronostico ??
+        0
+      );
+
+
+    const totalAtrasados =
+      Array.isArray(datos.atrasados)
+        ? datos.atrasados.length
+        : 0;
+
+
+
+    estadistica.innerHTML = `
+
+      <p>
+
+        📚 Historial:
+
+        <strong>
+          ${totalHistorial}
+        </strong>
+
+        registros
+
+      </p>
+
+
+      <p>
+
+        🐾 Animales analizados:
+
+        <strong>
+          ${totalAnimales}
+        </strong>
+
+      </p>
+
+
+      <p>
+
+        🔥 Mayor tendencia:
+
+        <strong>
+          ${
+            p
+              ? p.animal
+              : "N/A"
+          }
+        </strong>
+
+      </p>
+
+
+      <p>
+
+        🎯 Pronóstico actual:
+
+        <strong>
+          ${
+            p
+              ? p.animal
+              : "N/A"
+          }
+        </strong>
+
+      </p>
+
+
+      <p>
+
+        ⏳ Animales atrasados:
+
+        <strong>
+          ${totalAtrasados}
+        </strong>
+
+      </p>
+
+
+      <p>
+
+        📅 Mayor atraso:
+
+        <strong>
+          ${mayorAtraso}
+        </strong>
+
+      </p>
+
+
+      <p>
+
+        📅 Días de atraso:
+
+        <strong>
+          ${diasMayorAtraso}
+        </strong>
+
+      </p>
+
+
+      <p>
+
+        🎯 Candidatos para pronóstico:
+
+        <strong>
+          ${candidatosPronostico}
+        </strong>
+
+      </p>
+
+    `;
+
+
+
+    // =============================================
+    // FIN CORRECTO
+    // =============================================
+
+    boton.disabled = false;
+
+    boton.innerText =
+      "🔄 ACTUALIZAR RESULTADOS";
+
+
+  } catch (error) {
+
+
+    // =============================================
+    // ERROR
+    // =============================================
+
+    console.error(
+      "ERROR XTREME:",
+      error
+    );
+
+
+    pronosticoBox.innerHTML = `
+
+      <h1>❌ Error</h1>
+
+      <p>
+        No se pudieron cargar los resultados.
+      </p>
+
+      <p>
+        ${error.message}
+      </p>
+
+    `;
+
+
+    tablaTop.innerHTML = `
+
+      <tr>
+
+        <td colspan="5">
+          Error al cargar datos.
+        </td>
+
+      </tr>
+
+    `;
+
+
+    tablaAtrasados.innerHTML = `
+
+      <tr>
+
+        <td colspan="5">
+          Error al cargar datos.
+        </td>
+
+      </tr>
+
+    `;
+
+
+    estadistica.innerHTML = `
+
+      <p>
+        ❌ Error al analizar resultados.
+      </p>
+
+      <p>
+        ${error.message}
+      </p>
+
+    `;
+
+
+    boton.disabled = false;
+
+    boton.innerText =
+      "🔄 INTENTAR DE NUEVO";
+
+  }
+
+}
+
+
+
+// =================================================
+// BOTÓN ACTUALIZAR
+// =================================================
 
 document
   .getElementById("actualizar")
@@ -719,13 +1061,12 @@ document
 
 
 
-/*
-==========================================
-CARGA AUTOMÁTICA
-==========================================
-*/
+// =================================================
+// CARGA AUTOMÁTICA
+// =================================================
 
 cargarAnalisis();
+
 
 </script>
 
