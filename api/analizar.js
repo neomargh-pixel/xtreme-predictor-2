@@ -255,6 +255,23 @@ export default async function handler(req, res) {
 
 
     // ==========================================
+    // DIAGNÓSTICO DE CANDIDATOS
+    // ==========================================
+
+    console.log(
+      "CANDIDATOS PRONÓSTICO:",
+      candidatos.slice(0, 10).map(a => ({
+        animal: a.animal,
+        diasSinSalir: a.diasSinSalir,
+        indice: a.indice,
+        salidas7: a.salidas7,
+        salidas14: a.salidas14,
+        salidas30: a.salidas30
+      }))
+    );
+
+
+    // ==========================================
     // PRONÓSTICO
     // ==========================================
 
