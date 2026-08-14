@@ -6,56 +6,102 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+
   background:
-    linear-gradient(rgba(3, 15, 8, 0.82), rgba(3, 15, 8, 0.92)),
+    linear-gradient(
+      rgba(5, 10, 18, 0.90),
+      rgba(5, 10, 18, 0.96)
+    ),
     url("fondo.jpg");
+
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+
   color: #ffffff;
   min-height: 100vh;
 }
 
+/* ==============================
+   ENCABEZADO
+============================== */
+
 header {
   text-align: center;
   padding: 25px 15px 20px;
-  background: rgba(5, 20, 10, 0.88);
-  border-bottom: 2px solid #16c75a;
-  box-shadow: 0 0 20px rgba(0, 255, 100, 0.25);
+
+  background: rgba(8, 13, 22, 0.94);
+
+  border-bottom: 1px solid rgba(60, 150, 255, 0.35);
+
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.45);
 }
 
 header h1 {
   font-size: 30px;
-  color: #20e968;
-  text-shadow: 0 0 12px rgba(32, 233, 104, 0.5);
+
+  color: #ffffff;
+
+  text-shadow:
+    0 0 12px rgba(60, 150, 255, 0.35);
 }
 
 header p {
   margin-top: 7px;
-  color: #b8c9be;
+
+  color: #9ca9b8;
+
   font-size: 14px;
 }
+
+/* ==============================
+   CONTENEDOR
+============================== */
 
 .container {
   width: 95%;
   max-width: 900px;
+
   margin: auto;
+
   padding: 15px 0 30px;
 }
 
+/* ==============================
+   SECCIONES
+============================== */
+
 section {
-  background: rgba(8, 20, 12, 0.91);
-  border: 1px solid rgba(25, 230, 100, 0.65);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(15, 22, 32, 0.96),
+      rgba(9, 15, 24, 0.96)
+    );
+
+  border: 1px solid rgba(90, 110, 135, 0.30);
+
   border-radius: 14px;
+
   padding: 15px;
+
   margin-bottom: 15px;
-  box-shadow: 0 0 14px rgba(0, 255, 100, 0.12);
+
+  box-shadow:
+    0 5px 18px rgba(0, 0, 0, 0.30);
 }
 
 section h2 {
-  color: #49f58a;
+  color: #d9e2ec;
+
   font-size: 19px;
+
   margin-bottom: 13px;
+
+  border-left: 3px solid #3b9cff;
+
+  padding-left: 9px;
 }
 
 /* ==============================
@@ -64,13 +110,27 @@ section h2 {
 
 select {
   width: 100%;
+
   padding: 13px;
+
   border-radius: 9px;
-  border: 1px solid #20d965;
-  background: #101c14;
+
+  border: 1px solid #33465d;
+
+  background: #111a27;
+
   color: #ffffff;
+
   font-size: 15px;
+
   outline: none;
+}
+
+select:focus {
+  border-color: #3b9cff;
+
+  box-shadow:
+    0 0 8px rgba(59, 156, 255, 0.18);
 }
 
 /* ==============================
@@ -79,19 +139,27 @@ select {
 
 #pronostico {
   text-align: center;
-  padding: 20px 10px;
+
+  padding: 22px 10px;
 }
 
 #pronostico h1 {
   font-size: 34px;
-  color: #ffd21c;
-  text-shadow: 0 0 14px rgba(255, 210, 28, 0.45);
+
+  color: #ffd447;
+
+  text-shadow:
+    0 0 14px rgba(255, 212, 71, 0.35);
+
   margin-bottom: 12px;
 }
 
 #pronostico p {
   margin: 7px 0;
+
   font-size: 16px;
+
+  color: #c3ced9;
 }
 
 #pronostico strong {
@@ -104,47 +172,65 @@ select {
 
 .animales {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
   gap: 8px;
 }
 
 .animal {
   min-height: 67px;
+
   padding: 8px 3px;
+
   border-radius: 10px;
+
   display: flex;
+
   flex-direction: column;
+
   justify-content: center;
+
   align-items: center;
+
   text-align: center;
 
   font-size: 11px;
+
   font-weight: bold;
 
-  background: linear-gradient(
-    145deg,
-    #1473d1,
-    #0753a5
-  );
+  background:
+    linear-gradient(
+      145deg,
+      #176fc1,
+      #0b4788
+    );
 
-  border: 1px solid #45aaff;
+  border: 1px solid #328edc;
 
   box-shadow:
-    inset 0 0 7px rgba(255,255,255,0.08),
-    0 0 7px rgba(0,130,255,0.25);
+    inset 0 0 7px rgba(255,255,255,0.06),
+    0 3px 8px rgba(0, 0, 0, 0.28);
 
-  transition: transform 0.15s ease,
-              box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .animal strong {
   font-size: 14px;
+
   color: #ffffff;
+
   margin-bottom: 3px;
 }
 
 .animal:hover {
   transform: scale(1.04);
+
+  box-shadow:
+    0 5px 12px rgba(0, 0, 0, 0.35);
 }
 
 /* ==============================
@@ -152,33 +238,35 @@ select {
 ============================== */
 
 .animal.caliente {
-  background: linear-gradient(
-    145deg,
-    #e10c16,
-    #970008
-  );
+  background:
+    linear-gradient(
+      145deg,
+      #e01822,
+      #8f080f
+    );
 
-  border-color: #ff5555;
+  border-color: #ff4c55;
 
   box-shadow:
-    0 0 12px rgba(255, 30, 30, 0.65);
+    0 0 12px rgba(255, 40, 45, 0.45);
 }
 
 /* ==============================
-   OBSERVACIÓN / MEDIO
+   OBSERVACIÓN
 ============================== */
 
 .animal.medio {
-  background: linear-gradient(
-    145deg,
-    #d39b08,
-    #997000
-  );
+  background:
+    linear-gradient(
+      145deg,
+      #d19a12,
+      #8c6505
+    );
 
-  border-color: #ffd329;
+  border-color: #e5bb3b;
 
   box-shadow:
-    0 0 10px rgba(255, 204, 0, 0.45);
+    0 0 10px rgba(255, 200, 50, 0.28);
 }
 
 /* ==============================
@@ -186,11 +274,12 @@ select {
 ============================== */
 
 .animal.frio {
-  background: linear-gradient(
-    145deg,
-    #1473d1,
-    #0753a5
-  );
+  background:
+    linear-gradient(
+      145deg,
+      #176fc1,
+      #0b4788
+    );
 }
 
 /* ==============================
@@ -199,34 +288,50 @@ select {
 
 table {
   width: 100%;
+
   border-collapse: collapse;
+
   overflow: hidden;
+
   border-radius: 8px;
 }
 
 thead {
-  background: #19bd50;
+  background: #263548;
 }
 
 th {
   padding: 10px 5px;
+
   font-size: 12px;
-  color: #ffffff;
+
+  color: #dfe8f1;
+
+  border-bottom:
+    1px solid #3b5068;
 }
 
 td {
   padding: 9px 5px;
+
   text-align: center;
+
   font-size: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+  border-bottom:
+    1px solid rgba(255,255,255,0.05);
+
+  color: #d5dde6;
 }
 
 tbody tr:nth-child(even) {
-  background: rgba(255,255,255,0.045);
+  background:
+    rgba(255,255,255,0.025);
 }
 
 tbody tr:hover {
-  background: rgba(30,220,100,0.08);
+  background:
+    rgba(60, 150, 255, 0.08);
 }
 
 td strong {
@@ -239,11 +344,14 @@ td strong {
 
 #estadistica {
   line-height: 1.65;
+
   font-size: 14px;
+
+  color: #b9c5d1;
 }
 
 #estadistica strong {
-  color: #49f58a;
+  color: #63b1ff;
 }
 
 /* ==============================
@@ -252,22 +360,30 @@ td strong {
 
 #actualizar {
   width: 100%;
+
   border: none;
+
   border-radius: 10px;
+
   padding: 15px;
-  background: linear-gradient(
-    90deg,
-    #12b84d,
-    #20d965
-  );
+
+  background:
+    linear-gradient(
+      90deg,
+      #176fc1,
+      #2689e8
+    );
 
   color: white;
+
   font-weight: bold;
+
   font-size: 15px;
+
   cursor: pointer;
 
   box-shadow:
-    0 0 14px rgba(20, 220, 90, 0.3);
+    0 5px 14px rgba(0, 0, 0, 0.30);
 }
 
 #actualizar:active {
@@ -280,8 +396,11 @@ td strong {
 
 footer {
   text-align: center;
+
   padding: 20px;
-  color: #8b998f;
+
+  color: #707d8c;
+
   font-size: 12px;
 }
 
@@ -304,13 +423,17 @@ footer {
   }
 
   .animales {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns:
+      repeat(4, 1fr);
+
     gap: 7px;
   }
 
   .animal {
     min-height: 70px;
+
     font-size: 10px;
+
     padding: 6px 2px;
   }
 
@@ -325,6 +448,7 @@ footer {
   th,
   td {
     font-size: 11px;
+
     padding: 8px 3px;
   }
 }
@@ -336,7 +460,8 @@ footer {
 @media (max-width: 380px) {
 
   .animales {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns:
+      repeat(3, 1fr);
   }
 
   .animal {
