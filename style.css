@@ -465,3 +465,18 @@ footer {
     min-height: 72px;
   }
 }
+
+/* FONDO XTREME */
+body {
+  background:
+    linear-gradient(
+      rgba(2, 8, 15, 0.55),
+      rgba(2, 8, 15, 0.72)
+    ),
+    url("file_00000000586c81f7aad3b934342b3a1c.png");
+
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
