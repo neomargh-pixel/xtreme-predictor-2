@@ -201,8 +201,7 @@ export default async function handler(req, res) {
     // ==========================================
     // CANDIDATOS PARA PRONÓSTICO
     //
-    // NO SON RESULTADOS GARANTIZADOS.
-    // SON POSIBILIDADES ESTADÍSTICAS.
+    // SON POSIBILIDADES ESTADÍSTICAS. XTREME Predictor2 
     // ==========================================
 
     let candidatos = analisis
