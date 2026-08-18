@@ -1,502 +1,1341 @@
-import supabase from "../lib/supabase.js";
-import analizarResultados from "../lib/analizarResultados.js";
+<!DOCTYPE html>
+<html lang="es">
 
-export default async function handler(req, res) {
+<head>
 
-  try {
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    // ==========================================
-    // OBTENER HISTORIAL
-    // ==========================================
+<title>XTREME Predictor 2.0</title>
 
-    const { data: historial, error } = await supabase
-      .from("historial")
-      .select("*")
-      .order("fecha", { ascending: false });
+<link rel="stylesheet" href="style.css">
 
-    if (error) throw error;
+</head>
 
 
-    // ==========================================
-    // SIN HISTORIAL
-    // ==========================================
+<body>
 
-    if (!Array.isArray(historial) || historial.length === 0) {
 
-      return res.status(200).json({
+<header>
 
-        ok: true,
+<h1>🚀 XTREME Predictor</h1>
 
-        historial: 0,
+<p>
+Análisis estadístico de posibilidades
+</p>
 
-        pronosticos: [],
+</header>
 
-        pronostico: null,
 
-        top10: [],
+<div class="container">
 
-        atrasados: [],
 
-        estadisticas: {
+<!-- ==========================================
+     SELECCIONAR LOTERÍA
+========================================== -->
 
-          totalAnimales: 77,
+<section>
 
-          totalHistorial: 0,
+<h2>🎯 Seleccionar Lotería</h2>
 
-          totalAtrasados: 0,
+<select id="selectorLoteria">
 
-          mayorAtraso: null,
+<option>Guácharo Activo</option>
+<option>La Granjita</option>
+<option>Selva Plus</option>
+<option>Granja Millonaria</option>
 
-          diasMayorAtraso: 0,
+</select>
 
-          candidatosPronostico: 0,
+</section>
 
-          pronosticosHoy: 0,
 
-          pronosticoActual: null,
 
-          diasPronostico: 0
+<!-- ==========================================
+     PRONÓSTICOS DEL DÍA
+========================================== -->
 
-        }
+<section>
 
-      });
+<h2>🔥 Pronóstico del Día</h2>
 
-    }
+<div id="pronostico">
 
+<h1>Analizando...</h1>
 
-    // ==========================================
-    // ANALIZAR LOS 77 ANIMALITOS
-    // ==========================================
+<p>
+Calculando posibilidades XTREME...
+</p>
 
-    const analisis =
-      analizarResultados(historial);
+</div>
 
+</section>
 
-    // ==========================================
-    // FECHAS
-    // ==========================================
 
-    const fechas = historial
 
-      .map(r => r.fecha)
+<!-- ==========================================
+     ANIMALITOS
+========================================== -->
 
-      .filter(Boolean)
+<section>
 
-      .map(r => String(r).substring(0, 10))
+<h2>🐾 Animalitos</h2>
 
-      .sort();
+<div
+id="animales"
+class="animales">
+</div>
 
+</section>
 
-    const fechaReferencia =
-      fechas[fechas.length - 1] || null;
 
 
-    const fechasUnicas = [
-      ...new Set(fechas)
-    ];
+<!-- ==========================================
+     TOP 10
+========================================== -->
 
+<section>
 
-    // ==========================================
-    // TOP 10 XTREME
-    // ==========================================
+<h2>🏆 TOP 10 XTREME</h2>
 
-    const top10 = analisis
+<table>
 
-      .slice()
+<thead>
 
-      .sort((a, b) => {
+<tr>
 
-        if (b.indice !== a.indice) {
-          return b.indice - a.indice;
-        }
+<th>#</th>
+<th>Animal</th>
+<th>Salidas</th>
+<th>Días</th>
+<th>Índice</th>
 
-        if (b.diasSinSalir !== a.diasSinSalir) {
-          return b.diasSinSalir - a.diasSinSalir;
-        }
+</tr>
 
-        if (b.salidas7 !== a.salidas7) {
-          return b.salidas7 - a.salidas7;
-        }
+</thead>
 
-        if (b.salidas14 !== a.salidas14) {
-          return b.salidas14 - a.salidas14;
-        }
 
-        if (b.salidas30 !== a.salidas30) {
-          return b.salidas30 - a.salidas30;
-        }
+<tbody id="top10">
 
-        return b.salidas - a.salidas;
+</tbody>
 
-      })
+</table>
 
-      .slice(0, 10);
+</section>
 
 
-    // ==========================================
-    // ANIMALES ATRASADOS
-    // ==========================================
 
-    const todosAtrasados = analisis
+<!-- ==========================================
+     ANIMALES ATRASADOS
+========================================== -->
 
-      .filter(
-        a => a.diasSinSalir >= 7
-      )
+<section>
 
-      .slice()
+<h2>⏳ ANIMALES ATRASADOS</h2>
 
-      .sort((a, b) => {
+<table>
 
-        if (
-          b.diasSinSalir !==
-          a.diasSinSalir
-        ) {
+<thead>
 
-          return (
-            b.diasSinSalir -
-            a.diasSinSalir
-          );
+<tr>
 
-        }
+<th>#</th>
+<th>Animal</th>
+<th>Salidas</th>
+<th>Días</th>
+<th>Índice</th>
 
-        return b.indice - a.indice;
+</tr>
 
-      });
+</thead>
 
 
-    const atrasados =
-      todosAtrasados.slice(0, 10);
+<tbody id="atrasados">
 
+</tbody>
 
-    const totalAtrasados =
-      todosAtrasados.length;
+</table>
 
+</section>
 
-    // ==========================================
-    // HISTORIAL DE PRONÓSTICOS ANTERIORES
-    // ==========================================
 
-    let recientes = [];
 
+<!-- ==========================================
+     ESTADÍSTICAS
+========================================== -->
 
-    if (
-      req.query &&
-      req.query.recientes
-    ) {
+<section>
 
-      recientes =
-        String(
-          req.query.recientes
-        )
+<h2>📊 Estadísticas</h2>
 
-        .split(",")
+<div id="estadistica">
 
-        .map(a =>
-          String(a)
-            .trim()
-            .toUpperCase()
-        )
+Analizando resultados...
 
-        .filter(Boolean);
+</div>
 
-    }
+</section>
 
 
-    // ==========================================
-    // CANDIDATOS
-    //
-    // BUSCAMOS ANIMALITOS CON BUEN ÍNDICE
-    // Y CON CONDICIONES INTERESANTES.
-    // ==========================================
 
-    let candidatos =
-      analisis
+<!-- ==========================================
+     ACTUALIZAR
+========================================== -->
 
-        .filter(a =>
-          a.diasSinSalir >= 2
-        )
+<button id="actualizar">
 
-        .slice()
+🔄 ACTUALIZAR RESULTADOS
 
-        .sort((a, b) => {
+</button>
 
-          if (
-            b.indice !==
-            a.indice
-          ) {
 
-            return (
-              b.indice -
-              a.indice
-            );
+</div>
 
-          }
 
-          if (
-            b.diasSinSalir !==
-            a.diasSinSalir
-          ) {
 
-            return (
-              b.diasSinSalir -
-              a.diasSinSalir
-            );
+<footer>
 
-          }
+XTREME Predictor © 2026
 
-          if (
-            a.salidas7 !==
-            b.salidas7
-          ) {
+</footer>
 
-            return (
-              a.salidas7 -
-              b.salidas7
-            );
 
-          }
 
-          if (
-            a.salidas14 !==
-            b.salidas14
-          ) {
+<script src="animales.js"></script>
 
-            return (
-              a.salidas14 -
-              b.salidas14
-            );
+<script src="algoritmo.js"></script>
 
-          }
 
-          return (
-            b.salidas30 -
-            a.salidas30
-          );
 
-        });
+<script>
 
 
-    // ==========================================
-    // EVITAR REPETIR PRONÓSTICOS RECIENTES
-    //
-    // No queremos que Xtreme se quede pegado
-    // al mismo animal varios días.
-    // ==========================================
+/*
+==================================================
+CARGAR ANÁLISIS
+==================================================
+*/
 
-    const candidatosNuevos =
-      candidatos.filter(
-        a =>
-          !recientes.includes(
-            String(a.animal)
-              .trim()
-              .toUpperCase()
-          )
-      );
+async function cargarAnalisis() {
 
 
-    /*
-    Si tenemos suficientes candidatos nuevos,
-    usamos solamente esos.
+try {
 
-    Si no hay suficientes, usamos los mejores
-    disponibles para que el sistema nunca
-    quede sin pronóstico.
-    */
 
-    if (
-      candidatosNuevos.length >= 3
-    ) {
+/*
+==================================================
+HISTORIAL DE PRONÓSTICOS
+==================================================
+*/
 
-      candidatos =
-        candidatosNuevos;
+let historialPronosticos = [];
 
-    }
 
+try {
 
-    // ==========================================
-    // PRONÓSTICO DEL DÍA
-    //
-    // AHORA SON 3 ANIMALITOS.
-    // ==========================================
 
-    const pronosticos =
-      candidatos.slice(0, 3);
+const guardado =
+localStorage.getItem(
+"xtremePronosticos"
+);
 
 
-    // ==========================================
-    // DIAGNÓSTICO
-    // ==========================================
+if (guardado) {
 
-    console.log(
-      "PRONÓSTICOS XTREME:",
-      pronosticos.map(a => ({
 
-        animal:
-          a.animal,
+const lista =
+JSON.parse(guardado);
 
-        indice:
-          a.indice,
 
-        porcentaje:
-          a.porcentaje,
+if (Array.isArray(lista)) {
 
-        diasSinSalir:
-          a.diasSinSalir,
 
-        salidas7:
-          a.salidas7,
+historialPronosticos =
 
-        salidas14:
-          a.salidas14,
+lista
 
-        salidas30:
-          a.salidas30,
+.map(a =>
+String(a)
+.trim()
+.toUpperCase()
+)
 
-        tendencia:
-          a.tendencia,
+.filter(Boolean)
 
-        categoria:
-          a.categoria
+.slice(0, 10);
 
-      }))
-    );
-
-
-    // ==========================================
-    // PRONÓSTICO PRINCIPAL
-    //
-    // Se mantiene para compatibilidad.
-    // El verdadero pronóstico diario está
-    // en "pronosticos".
-    // ==========================================
-
-    const pronostico =
-      pronosticos[0] || null;
-
-
-    // ==========================================
-    // ESTADÍSTICAS
-    // ==========================================
-
-    const mayorAtraso =
-      todosAtrasados.length > 0
-        ? todosAtrasados[0]
-        : null;
-
-
-    const estadisticas = {
-
-      totalAnimales:
-        77,
-
-      totalHistorial:
-        historial.length,
-
-      totalAtrasados:
-        totalAtrasados,
-
-      mayorAtraso:
-        mayorAtraso
-          ? mayorAtraso.animal
-          : null,
-
-      diasMayorAtraso:
-        mayorAtraso
-          ? mayorAtraso.diasSinSalir
-          : 0,
-
-      candidatosPronostico:
-        candidatos.length,
-
-      pronosticosHoy:
-        pronosticos.length,
-
-      pronosticoActual:
-        pronosticos.length > 0
-          ? pronosticos
-              .map(a => a.animal)
-              .join(" • ")
-          : null,
-
-      diasPronostico:
-        pronostico
-          ? pronostico.diasSinSalir
-          : 0
-
-    };
-
-
-    // ==========================================
-    // RESPUESTA FINAL
-    // ==========================================
-
-    return res.status(200).json({
-
-      ok: true,
-
-      historial:
-        historial.length,
-
-      DIAGNOSTICO: {
-
-        fechaMasAntigua:
-          fechas[0] || null,
-
-        fechaMasReciente:
-          fechas[fechas.length - 1] || null,
-
-        cantidadFechasDiferentes:
-          fechasUnicas.length,
-
-        primeras5Fechas:
-          fechasUnicas.slice(0, 5),
-
-        ultimas5Fechas:
-          fechasUnicas.slice(-5),
-
-        candidatosPronostico:
-          candidatos.length,
-
-        pronosticosHoy:
-          pronosticos.length,
-
-        totalAtrasados:
-          totalAtrasados
-
-      },
-
-      // ========================================
-      // LOS 3 PRONÓSTICOS DEL DÍA
-      // ========================================
-
-      pronosticos,
-
-      // Compatibilidad con el código anterior
-      pronostico,
-
-      top10,
-
-      atrasados,
-
-      estadisticas
-
-    });
-
-
-  } catch (error) {
-
-    console.error(error);
-
-
-    return res.status(500).json({
-
-      ok: false,
-
-      error:
-        error.message
-
-    });
-
-  }
 
 }
+
+
+}
+
+
+} catch (e) {
+
+
+historialPronosticos = [];
+
+
+}
+
+
+
+/*
+==================================================
+URL API
+==================================================
+*/
+
+let url =
+"/api/analizar";
+
+
+const parametros = [];
+
+
+
+/*
+--------------------------------------------------
+PRONÓSTICOS RECIENTES
+--------------------------------------------------
+*/
+
+if (
+historialPronosticos.length > 0
+) {
+
+
+parametros.push(
+
+"recientes=" +
+
+encodeURIComponent(
+
+historialPronosticos.join(",")
+
+)
+
+);
+
+
+}
+
+
+
+/*
+--------------------------------------------------
+CONSTRUIR URL
+--------------------------------------------------
+*/
+
+if (
+parametros.length > 0
+) {
+
+
+url +=
+"?" +
+parametros.join("&");
+
+
+}
+
+
+
+/*
+==================================================
+CONSULTAR API
+==================================================
+*/
+
+const respuesta =
+
+await fetch(
+
+url,
+
+{
+cache: "no-store"
+}
+
+);
+
+
+
+const datos =
+await respuesta.json();
+
+
+
+if (!datos.ok) {
+
+
+throw new Error(
+
+datos.error ||
+
+"Error en el análisis"
+
+);
+
+
+}
+
+
+
+/*
+==================================================
+PRONÓSTICOS DEL DÍA
+==================================================
+*/
+
+/*
+La API nueva entrega:
+
+datos.pronosticos
+
+con hasta 3 animalitos.
+
+*/
+
+const pronosticos =
+
+Array.isArray(
+datos.pronosticos
+)
+
+? datos.pronosticos.slice(0, 3)
+
+: [];
+
+
+/*
+Compatibilidad con la API anterior.
+*/
+
+const p =
+
+pronosticos[0] ||
+
+datos.pronostico ||
+
+null;
+
+
+
+const contenedorPronostico =
+
+document.getElementById(
+"pronostico"
+);
+
+
+
+/*
+==================================================
+MOSTRAR LOS 3 ANIMALITOS
+==================================================
+*/
+
+if (
+pronosticos.length > 0
+) {
+
+
+contenedorPronostico.innerHTML = `
+
+
+<div class="pronosticos-dia">
+
+
+<h1>
+🎯 POSIBILIDADES DEL DÍA
+</h1>
+
+
+<p>
+Estos son los 3 animalitos que el análisis XTREME
+considera con mejores posibilidades según el historial.
+</p>
+
+
+<div class="lista-pronosticos">
+
+
+${pronosticos.map(
+
+(animal, index) => {
+
+
+let posicion =
+
+index === 0
+? "🥇"
+
+: index === 1
+? "🥈"
+
+: "🥉";
+
+
+return `
+
+
+<div class="pronostico-animal">
+
+
+<h2>
+
+${posicion}
+
+${animal.animal}
+
+</h2>
+
+
+<p>
+
+🔥 Confianza XTREME:
+
+<strong>
+
+${animal.porcentaje ?? 0}%
+
+</strong>
+
+</p>
+
+
+<p>
+
+📊 Salidas:
+
+<strong>
+
+${animal.salidas ?? 0}
+
+</strong>
+
+</p>
+
+
+<p>
+
+⏳ Días sin salir:
+
+<strong>
+
+${animal.diasSinSalir ?? 0}
+
+</strong>
+
+</p>
+
+
+<p>
+
+📈 Tendencia:
+
+<strong>
+
+${animal.tendencia ?? "N/A"}
+
+</strong>
+
+</p>
+
+
+<p>
+
+🏷️ Categoría:
+
+<strong>
+
+${animal.categoria ?? "N/A"}
+
+</strong>
+
+</p>
+
+
+</div>
+
+
+`;
+
+
+}
+
+).join("")}
+
+
+</div>
+
+
+<p class="nota-pronostico">
+
+⚠️ Son posibilidades estadísticas, de Xtreme proyecto!
+
+</p>
+
+
+</div>
+
+
+`;
+
+
+
+/*
+==================================================
+GUARDAR LOS 3 PRONÓSTICOS
+==================================================
+*/
+
+const nuevosAnimales =
+
+pronosticos.map(
+
+animal =>
+
+String(animal.animal)
+
+.trim()
+
+.toUpperCase()
+
+);
+
+
+let nuevosPronosticos = [
+
+...nuevosAnimales,
+
+...historialPronosticos
+
+];
+
+
+nuevosPronosticos =
+
+[
+...new Set(
+nuevosPronosticos
+)
+];
+
+
+nuevosPronosticos =
+
+nuevosPronosticos.slice(0, 10);
+
+
+localStorage.setItem(
+
+"xtremePronosticos",
+
+JSON.stringify(
+nuevosPronosticos
+)
+
+);
+
+
+
+} else {
+
+
+/*
+==================================================
+SIN PRONÓSTICOS
+==================================================
+*/
+
+contenedorPronostico.innerHTML = `
+
+
+<h2>
+⚠️ Sin pronóstico disponible
+</h2>
+
+
+<p>
+
+No hay suficientes datos para generar
+las posibilidades del día.
+
+</p>
+
+
+`;
+
+
+}
+
+
+
+/*
+==================================================
+TOP 10 XTREME
+==================================================
+*/
+
+const tablaTop =
+
+document.getElementById(
+"top10"
+);
+
+
+tablaTop.innerHTML = "";
+
+
+
+if (
+Array.isArray(datos.top10)
+) {
+
+
+datos.top10.forEach(
+
+(animal, index) => {
+
+
+tablaTop.innerHTML += `
+
+
+<tr>
+
+
+<td>
+
+${index + 1}
+
+</td>
+
+
+<td>
+
+<strong>
+
+${animal.animal}
+
+</strong>
+
+</td>
+
+
+<td>
+
+${animal.salidas ?? 0}
+
+</td>
+
+
+<td>
+
+${animal.diasSinSalir ?? 0}
+
+</td>
+
+
+<td>
+
+${animal.indice ?? 0}%
+
+</td>
+
+
+</tr>
+
+
+`;
+
+
+}
+
+);
+
+
+}
+
+
+
+/*
+==================================================
+ANIMALES ATRASADOS
+==================================================
+*/
+
+const tablaAtrasados =
+
+document.getElementById(
+"atrasados"
+);
+
+
+tablaAtrasados.innerHTML = "";
+
+
+
+if (
+
+Array.isArray(datos.atrasados) &&
+
+datos.atrasados.length > 0
+
+) {
+
+
+datos.atrasados.forEach(
+
+(animal, index) => {
+
+
+tablaAtrasados.innerHTML += `
+
+
+<tr>
+
+
+<td>
+
+${index + 1}
+
+</td>
+
+
+<td>
+
+<strong>
+
+${animal.animal}
+
+</strong>
+
+</td>
+
+
+<td>
+
+${animal.salidas ?? 0}
+
+</td>
+
+
+<td>
+
+${animal.diasSinSalir ?? 0}
+
+</td>
+
+
+<td>
+
+${animal.indice ?? 0}%
+
+</td>
+
+
+</tr>
+
+
+`;
+
+
+}
+
+);
+
+
+} else {
+
+
+tablaAtrasados.innerHTML = `
+
+
+<tr>
+
+
+<td colspan="5">
+
+No hay animales con 7 o más días de atraso.
+
+</td>
+
+
+</tr>
+
+
+`;
+
+
+}
+
+
+
+/*
+==================================================
+ANIMALITOS
+==================================================
+*/
+
+const contenedorAnimales =
+
+document.getElementById(
+"animales"
+);
+
+
+contenedorAnimales.innerHTML = "";
+
+
+
+if (
+Array.isArray(animales)
+) {
+
+
+animales.forEach(
+
+a => {
+
+
+const dato =
+
+datos.top10 &&
+
+datos.top10.find(
+
+x =>
+
+x.animal === a.animal
+
+);
+
+
+let clase = "frio";
+
+
+
+if (dato) {
+
+
+if (
+Number(dato.indice) >= 80
+) {
+
+
+clase = "caliente";
+
+
+}
+
+else if (
+Number(dato.indice) >= 50
+) {
+
+
+clase = "medio";
+
+
+}
+
+
+}
+
+
+
+contenedorAnimales.innerHTML += `
+
+
+<div class="animal ${clase}">
+
+
+<strong>
+
+${a.numero}
+
+</strong>
+
+
+<br>
+
+
+${a.animal}
+
+
+</div>
+
+
+`;
+
+
+}
+
+);
+
+
+}
+
+
+
+/*
+==================================================
+ESTADÍSTICAS
+==================================================
+*/
+
+const estadistica =
+
+document.getElementById(
+"estadistica"
+);
+
+
+
+const estadisticasAPI =
+
+datos.estadisticas || {};
+
+
+
+const totalHistorial =
+
+Number(
+datos.historial
+) || 0;
+
+
+
+const totalAnimales =
+
+Number(
+estadisticasAPI.totalAnimales
+)
+
+||
+
+(
+Array.isArray(animales)
+
+? animales.length
+
+: 77
+);
+
+
+
+const totalAtrasados =
+
+Number(
+estadisticasAPI.totalAtrasados
+) || 0;
+
+
+
+const mayorAtrasoAnimal =
+
+estadisticasAPI.mayorAtraso
+
+||
+
+(
+datos.atrasados &&
+
+datos.atrasados.length > 0
+
+?
+
+datos.atrasados[0].animal
+
+:
+
+"N/A"
+
+);
+
+
+
+const diasMayorAtraso =
+
+Number(
+estadisticasAPI.diasMayorAtraso
+) || 0;
+
+
+
+const candidatosPronostico =
+
+Number(
+estadisticasAPI.candidatosPronostico
+) || 0;
+
+
+
+const pronosticosHoy =
+
+Number(
+estadisticasAPI.pronosticosHoy
+)
+
+||
+
+pronosticos.length;
+
+
+
+const pronosticoActual =
+
+estadisticasAPI.pronosticoActual
+
+||
+
+(
+pronosticos.length > 0
+
+?
+
+pronosticos
+
+.map(a => a.animal)
+
+.join(" • ")
+
+:
+
+"N/A"
+
+);
+
+
+
+/*
+==================================================
+MOSTRAR ESTADÍSTICAS
+==================================================
+*/
+
+estadistica.innerHTML = `
+
+
+<p>
+
+📚 Historial:
+
+<strong>
+
+${totalHistorial}
+
+</strong>
+
+registros
+
+</p>
+
+
+
+<p>
+
+🐾 Animales analizados:
+
+<strong>
+
+${totalAnimales}
+
+</strong>
+
+</p>
+
+
+
+<p>
+
+🎯 Posibilidades del día:
+
+<strong>
+
+${pronosticosHoy}
+
+</strong>
+
+animalitos
+
+</p>
+
+
+
+<p>
+
+🔥 Pronósticos actuales:
+
+<strong>
+
+${pronosticoActual}
+
+</strong>
+
+</p>
+
+
+
+<p>
+
+⏳ Animales atrasados:
+
+<strong>
+
+${totalAtrasados}
+
+</strong>
+
+</p>
+
+
+
+<p>
+
+📅 Mayor atraso:
+
+<strong>
+
+${mayorAtrasoAnimal}
+
+</strong>
+
+</p>
+
+
+
+<p>
+
+📅 Días de atraso:
+
+<strong>
+
+${diasMayorAtraso}
+
+</strong>
+
+</p>
+
+
+
+<p>
+
+🎯 Candidatos analizados:
+
+<strong>
+
+${candidatosPronostico}
+
+</strong>
+
+</p>
+
+
+`;
+
+
+
+/*
+==================================================
+FIN
+==================================================
+*/
+
+
+}
+
+catch (error) {
+
+
+console.error(error);
+
+
+
+document.getElementById(
+"pronostico"
+).innerHTML = `
+
+
+<h2>
+
+❌ Error
+
+</h2>
+
+
+<p>
+
+${error.message}
+
+</p>
+
+
+`;
+
+
+
+document.getElementById(
+"estadistica"
+).innerHTML = `
+
+
+❌ Error al cargar estadísticas:
+
+<strong>
+
+${error.message}
+
+</strong>
+
+
+`;
+
+
+}
+
+
+}
+
+
+
+/*
+==================================================
+BOTÓN ACTUALIZAR
+==================================================
+*/
+
+document
+
+.getElementById(
+"actualizar"
+)
+
+.addEventListener(
+
+"click",
+
+cargarAnalisis
+
+);
+
+
+
+/*
+==================================================
+CARGA AUTOMÁTICA
+==================================================
+*/
+
+cargarAnalisis();
+
+
+</script>
+
+
+</body>
+
+</html>
