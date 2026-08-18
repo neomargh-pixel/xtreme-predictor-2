@@ -575,7 +575,8 @@ ${animal.categoria ?? "N/A"}
 
 <p class="nota-pronostico">
 
-⚠️ Son posibilidades estadísticas, de Xtreme proyecto!
+⚠️ Son posibilidades estadísticas, no resultados fijos.
+Ningún animal está garantizado para salir.
 
 </p>
 
