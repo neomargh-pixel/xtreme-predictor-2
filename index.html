@@ -212,11 +212,11 @@ XTREME Predictor © 2026
 
 /*
 ==================================================
-MAPA DE FIGURAS DE ANIMALES
+EMOJIS DE LOS ANIMALITOS
 ==================================================
 */
 
-const figurasAnimales = {
+const emojisAnimales = {
 
 "DELFÍN": "🐬",
 "BALLENA": "🐋",
@@ -268,14 +268,14 @@ const figurasAnimales = {
 "TUCÁN": "🦜",
 "MARIPOSA": "🦋",
 "CHIGÜIRE": "🦫",
-"GARZA": "🦢",
+"GARZA": "🪿",
 "PUMA": "🐆",
 "PAVO REAL": "🦚",
 "PUERCOESPÍN": "🦔",
 "PEREZA": "🦥",
 
-"CANARIO": "🐦",
-"PELÍCANO": "🐦",
+"CANARIO": "🐤",
+"PELÍCANO": "🦩",
 "PULPO": "🐙",
 "CARACOL": "🐌",
 "GRILLO": "🦗",
@@ -292,7 +292,7 @@ const figurasAnimales = {
 "GAVILÁN": "🦅",
 "ARAÑA": "🕷️",
 "LOBO": "🐺",
-"AVESTRUZ": "🦤",
+"AVESTRUZ": "🪶",
 "JAGUAR": "🐆",
 "CONEJO": "🐰",
 
@@ -304,6 +304,23 @@ const figurasAnimales = {
 "GUÁCHARO": "🦉"
 
 };
+
+
+/*
+==================================================
+FUNCIÓN PARA OBTENER LA CARITA
+==================================================
+*/
+
+function obtenerEmoji(animal) {
+
+return emojisAnimales[
+String(animal)
+.trim()
+.toUpperCase()
+] || "🐾";
+
+}
 
 
 
@@ -487,6 +504,15 @@ PRONÓSTICOS DEL DÍA
 ==================================================
 */
 
+/*
+La API nueva entrega:
+
+datos.pronosticos
+
+con hasta 3 animalitos.
+
+*/
+
 const pronosticos =
 
 Array.isArray(
@@ -567,6 +593,13 @@ index === 0
 : "🥉";
 
 
+const emoji =
+
+obtenerEmoji(
+animal.animal
+);
+
+
 return `
 
 
@@ -576,6 +609,8 @@ return `
 <h2>
 
 ${posicion}
+
+${emoji}
 
 ${animal.animal}
 
@@ -807,6 +842,8 @@ ${index + 1}
 
 <strong>
 
+${obtenerEmoji(animal.animal)}
+
 ${animal.animal}
 
 </strong>
@@ -897,6 +934,8 @@ ${index + 1}
 <td>
 
 <strong>
+
+${obtenerEmoji(animal.animal)}
 
 ${animal.animal}
 
@@ -1034,22 +1073,11 @@ clase = "medio";
 }
 
 
-const figura =
-
-figurasAnimales[a.animal] || "🐾";
-
 
 contenedorAnimales.innerHTML += `
 
 
 <div class="animal ${clase}">
-
-
-<div class="figura-animal">
-
-${figura}
-
-</div>
 
 
 <strong>
@@ -1061,6 +1089,8 @@ ${a.numero}
 
 <br>
 
+
+${obtenerEmoji(a.animal)}
 
 ${a.animal}
 
