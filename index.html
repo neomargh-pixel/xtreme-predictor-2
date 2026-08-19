@@ -212,6 +212,103 @@ XTREME Predictor © 2026
 
 /*
 ==================================================
+MAPA DE FIGURAS DE ANIMALES
+==================================================
+*/
+
+const figurasAnimales = {
+
+"DELFÍN": "🐬",
+"BALLENA": "🐋",
+"CARNERO": "🐏",
+"TORO": "🐂",
+"CIEMPIÉS": "🐛",
+"ALACRÁN": "🦂",
+"LEÓN": "🦁",
+"RANA": "🐸",
+"PERICO": "🦜",
+"RATÓN": "🐭",
+"ÁGUILA": "🦅",
+
+"TIGRE": "🐯",
+"GATO": "🐱",
+"CABALLO": "🐴",
+"MONO": "🐒",
+"PALOMA": "🕊️",
+"ZORRO": "🦊",
+"OSO": "🐻",
+"PAVO": "🦃",
+"BURRO": "🫏",
+"CHIVO": "🐐",
+
+"COCHINO": "🐷",
+"GALLO": "🐓",
+"CAMELLO": "🐫",
+"CEBRA": "🦓",
+"IGUANA": "🦎",
+"GALLINA": "🐔",
+"VACA": "🐄",
+"PERRO": "🐶",
+"ZAMURO": "🦅",
+"ELEFANTE": "🐘",
+
+"CAIMÁN": "🐊",
+"LAPA": "🐹",
+"ARDILLA": "🐿️",
+"PESCADO": "🐟",
+"VENADO": "🦌",
+"JIRAFA": "🦒",
+"CULEBRA": "🐍",
+"TORTUGA": "🐢",
+"BÚFALO": "🐃",
+"LECHUZA": "🦉",
+
+"AVISPA": "🐝",
+"CANGURO": "🦘",
+"TUCÁN": "🦜",
+"MARIPOSA": "🦋",
+"CHIGÜIRE": "🦫",
+"GARZA": "🦢",
+"PUMA": "🐆",
+"PAVO REAL": "🦚",
+"PUERCOESPÍN": "🦔",
+"PEREZA": "🦥",
+
+"CANARIO": "🐦",
+"PELÍCANO": "🐦",
+"PULPO": "🐙",
+"CARACOL": "🐌",
+"GRILLO": "🦗",
+"OSO HORMIGUERO": "🐜",
+"TIBURÓN": "🦈",
+"PATO": "🦆",
+"HORMIGA": "🐜",
+"PANTERA": "🐈‍⬛",
+
+"CAMALEÓN": "🦎",
+"PANDA": "🐼",
+"CACHICAMO": "🦔",
+"CANGREJO": "🦀",
+"GAVILÁN": "🦅",
+"ARAÑA": "🕷️",
+"LOBO": "🐺",
+"AVESTRUZ": "🦤",
+"JAGUAR": "🐆",
+"CONEJO": "🐰",
+
+"BISONTE": "🦬",
+"GUACAMAYA": "🦜",
+"GORILA": "🦍",
+"HIPOPÓTAMO": "🦛",
+"TURPIAL": "🐦",
+"GUÁCHARO": "🦉"
+
+};
+
+
+
+/*
+==================================================
 CARGAR ANÁLISIS
 ==================================================
 */
@@ -388,15 +485,6 @@ datos.error ||
 ==================================================
 PRONÓSTICOS DEL DÍA
 ==================================================
-*/
-
-/*
-La API nueva entrega:
-
-datos.pronosticos
-
-con hasta 3 animalitos.
-
 */
 
 const pronosticos =
@@ -946,11 +1034,22 @@ clase = "medio";
 }
 
 
+const figura =
+
+figurasAnimales[a.animal] || "🐾";
+
 
 contenedorAnimales.innerHTML += `
 
 
 <div class="animal ${clase}">
+
+
+<div class="figura-animal">
+
+${figura}
+
+</div>
 
 
 <strong>
