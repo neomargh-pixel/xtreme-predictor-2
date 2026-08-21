@@ -116,7 +116,6 @@ class="animales">
 
 
 <tbody id="top10">
-
 </tbody>
 
 </table>
@@ -151,7 +150,6 @@ class="animales">
 
 
 <tbody id="atrasados">
-
 </tbody>
 
 </table>
@@ -1431,6 +1429,150 @@ ${error.message}
 
 /*
 ==================================================
+ACTUALIZAR RESULTADOS DESDE LOTOVEN
+==================================================
+*/
+
+async function actualizarResultados() {
+
+const boton =
+document.getElementById("actualizar");
+
+
+try {
+
+boton.disabled = true;
+
+boton.textContent =
+"⏳ ACTUALIZANDO RESULTADOS...";
+
+
+/*
+==================================================
+PASO 1
+OBTENER RESULTADOS NUEVOS
+==================================================
+*/
+
+const respuestaActualizar =
+await fetch(
+"/api/actualizar",
+{
+method: "GET",
+cache: "no-store"
+}
+);
+
+
+const datosActualizar =
+await respuestaActualizar.json();
+
+
+if (!datosActualizar.ok) {
+
+throw new Error(
+datosActualizar.error ||
+"Error al actualizar resultados"
+);
+
+}
+
+
+/*
+==================================================
+PASO 2
+VOLVER A ANALIZAR
+==================================================
+*/
+
+boton.textContent =
+"📊 CALCULANDO ANÁLISIS...";
+
+
+await cargarAnalisis();
+
+
+/*
+==================================================
+FINAL
+==================================================
+*/
+
+boton.textContent =
+"✅ RESULTADOS ACTUALIZADOS";
+
+
+setTimeout(() => {
+
+boton.textContent =
+"🔄 ACTUALIZAR RESULTADOS";
+
+}, 2000);
+
+
+}
+catch (error) {
+
+console.error(
+"ERROR AL ACTUALIZAR:",
+error
+);
+
+
+document.getElementById(
+"pronostico"
+).innerHTML = `
+
+<h2>
+❌ Error al actualizar
+</h2>
+
+<p>
+${error.message}
+</p>
+
+`;
+
+
+document.getElementById(
+"estadistica"
+).innerHTML = `
+
+❌ No se pudieron actualizar
+los resultados:
+
+<strong>
+${error.message}
+</strong>
+
+`;
+
+
+boton.textContent =
+"❌ ERROR - INTENTAR DE NUEVO";
+
+
+setTimeout(() => {
+
+boton.textContent =
+"🔄 ACTUALIZAR RESULTADOS";
+
+}, 3000);
+
+
+}
+finally {
+
+boton.disabled = false;
+
+}
+
+}
+
+
+
+/*
+==================================================
 BOTÓN ACTUALIZAR
 ==================================================
 */
@@ -1445,7 +1587,7 @@ document
 
 "click",
 
-cargarAnalisis
+actualizarResultados
 
 );
 
