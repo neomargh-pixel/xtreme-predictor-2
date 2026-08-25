@@ -1,6 +1,28 @@
 import supabase from "../lib/supabase.js";
 import analizarResultados from "../lib/analizarResultados.js";
 
+function obtenerFechaCaracas(fecha) {
+  if (!fecha) return null;
+
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Caracas",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date(fecha));
+}
+
+function obtenerHoraCaracas(fecha) {
+  if (!fecha) return null;
+
+  return new Intl.DateTimeFormat("es-VE", {
+    timeZone: "America/Caracas",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  }).format(new Date(fecha));
+}
+
 export default async function handler(req, res) {
 
   try {
@@ -40,21 +62,13 @@ export default async function handler(req, res) {
         estadisticas: {
 
           totalAnimales: 77,
-
           totalHistorial: 0,
-
           totalAtrasados: 0,
-
           mayorAtraso: null,
-
           diasMayorAtraso: 0,
-
           candidatosPronostico: 0,
-
           pronosticosHoy: 0,
-
           pronosticoActual: null,
-
           diasPronostico: 0
 
         }
@@ -70,6 +84,126 @@ export default async function handler(req, res) {
 
     const analisis =
       analizarResultados(historial);
+
+
+    // ==========================================
+    // RESULTADOS DEL DÍA
+    // ==========================================
+
+    const hoyCaracas =
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Caracas",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date());
+
+
+    /*
+      Agrupamos los resultados de HOY por animal.
+
+      Ejemplo:
+
+      BALLENA:
+      [
+        "08:00 AM",
+        "10:00 AM"
+      ]
+
+      Esto permite que el frontend muestre
+      directamente el resultado dentro de
+      cada animalito.
+    */
+
+    const resultadosHoyPorAnimal = {};
+
+
+    historial.forEach(resultado => {
+
+      if (!resultado.fecha || !resultado.animal) {
+        return;
+      }
+
+
+      const fechaResultado =
+        obtenerFechaCaracas(resultado.fecha);
+
+
+      if (fechaResultado !== hoyCaracas) {
+        return;
+      }
+
+
+      const nombre =
+        String(resultado.animal)
+          .trim()
+          .toUpperCase();
+
+
+      if (!resultadosHoyPorAnimal[nombre]) {
+
+        resultadosHoyPorAnimal[nombre] = [];
+
+      }
+
+
+      resultadosHoyPorAnimal[nombre].push({
+
+        hora:
+          obtenerHoraCaracas(resultado.fecha),
+
+        fecha:
+          resultado.fecha,
+
+        numero:
+          resultado.numero
+
+      });
+
+    });
+
+
+    /*
+      Añadimos a cada animal:
+
+      salioHoy
+      horariosHoy
+      resultadoHoy
+
+      El resto de la información del análisis
+      permanece intacta.
+    */
+
+    analisis.forEach(animal => {
+
+      const nombre =
+        String(animal.animal)
+          .trim()
+          .toUpperCase();
+
+
+      const resultados =
+        resultadosHoyPorAnimal[nombre] || [];
+
+
+      animal.salioHoy =
+        resultados.length > 0;
+
+
+      animal.horariosHoy =
+        resultados.map(r => r.hora);
+
+
+      animal.resultadosHoy =
+        resultados;
+
+
+      animal.resultadoHoy =
+        resultados.length > 0
+          ? "SALIO"
+          : "NO SALIO";
+
+    });
 
 
     // ==========================================
@@ -259,8 +393,6 @@ export default async function handler(req, res) {
 
     // ==========================================
     // PRONÓSTICOS RECIENTES
-    //
-    // VIENEN DEL LOCALSTORAGE DEL INDEX.HTML
     // ==========================================
 
     let recientes = [];
@@ -288,15 +420,6 @@ export default async function handler(req, res) {
 
     // ==========================================
     // CANDIDATOS
-    //
-    // SOLO ANIMALES QUE LLEVAN 2 O MÁS DÍAS
-    // SIN SALIR.
-    //
-    // SI UN PRONÓSTICO SALIÓ HOY:
-    // diasSinSalir = 0
-    //
-    // POR LO TANTO SALE AUTOMÁTICAMENTE
-    // DE LOS CANDIDATOS.
     // ==========================================
 
     const candidatosBase =
@@ -376,12 +499,7 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // SEPARAR:
-    //
-    // 1. PRONÓSTICOS ANTERIORES QUE SIGUEN
-    //    PENDIENTES.
-    //
-    // 2. CANDIDATOS NUEVOS.
+    // SEPARAR PENDIENTES Y NUEVOS
     // ==========================================
 
     const recientesSet =
@@ -422,19 +540,10 @@ export default async function handler(req, res) {
 
     // ==========================================
     // PRONÓSTICOS DEL DÍA
-    //
-    // PRIMERO CONSERVAMOS LOS QUE SIGUEN
-    // PENDIENTES.
-    //
-    // LOS QUE YA SALIERON NO ESTÁN EN
-    // candidatosBase PORQUE SU ATRASO
-    // VOLVIÓ A 0.
     // ==========================================
 
     let pronosticos = [];
 
-
-    // Primero: pendientes anteriores
 
     pendientes
       .slice(0, 3)
@@ -444,10 +553,6 @@ export default async function handler(req, res) {
 
       });
 
-
-    // ==========================================
-    // COMPLETAR CON NUEVOS CANDIDATOS
-    // ==========================================
 
     if (
       pronosticos.length < 3
@@ -507,8 +612,7 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // SEGURIDAD:
-    // MÁXIMO 3 PRONÓSTICOS
+    // SEGURIDAD
     // ==========================================
 
     pronosticos =
@@ -516,7 +620,7 @@ export default async function handler(req, res) {
 
 
     // ==========================================
-    // MARCAR LOS PRONÓSTICOS ACTIVOS
+    // MARCAR PRONÓSTICOS
     // ==========================================
 
     analisis.forEach(a => {
@@ -572,7 +676,13 @@ export default async function handler(req, res) {
           a.tendencia,
 
         categoria:
-          a.categoria
+          a.categoria,
+
+        salioHoy:
+          a.salioHoy,
+
+        horariosHoy:
+          a.horariosHoy
 
       }))
     );
@@ -656,6 +766,8 @@ export default async function handler(req, res) {
       historial:
         historial.length,
 
+      hoy:
+        hoyCaracas,
 
       DIAGNOSTICO: {
 
@@ -739,7 +851,14 @@ export default async function handler(req, res) {
       // ESTADÍSTICAS
       // ========================================
 
-      estadisticas
+      estadisticas,
+
+      
+      // ========================================
+      // RESULTADOS DEL DÍA POR ANIMAL
+      // ========================================
+
+      resultadosHoy: resultadosHoyPorAnimal
 
     });
 
