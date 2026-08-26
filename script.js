@@ -1,3 +1,4 @@
+
 /*
 ==================================================
 XTREME PREDICTOR 2.0
@@ -154,6 +155,201 @@ function mostrarMensajePronostico(
 
 /*
 ==================================================
+MOSTRAR RESULTADOS DE HOY
+==================================================
+*/
+
+function mostrarResultadosHoy(
+  resultadosHoy
+) {
+
+  const contenedor =
+    document.getElementById(
+      "resultadosHoy"
+    );
+
+
+  if (!contenedor) {
+    return;
+  }
+
+
+  /*
+  ----------------------------------------------
+  SIN RESULTADOS
+  ----------------------------------------------
+  */
+
+  if (
+    !resultadosHoy ||
+    typeof resultadosHoy !== "object"
+  ) {
+
+    contenedor.innerHTML = `
+
+      <p>
+        ⏳ Todavía no hay resultados de hoy.
+      </p>
+
+    `;
+
+    return;
+
+  }
+
+
+  /*
+  ----------------------------------------------
+  CONSTRUIR LISTA
+  ----------------------------------------------
+  */
+
+  const lista = [];
+
+
+  Object.entries(
+    resultadosHoy
+  ).forEach(
+    ([animal, resultados]) => {
+
+      if (
+        !Array.isArray(resultados)
+      ) {
+
+        return;
+
+      }
+
+
+      resultados.forEach(
+        resultado => {
+
+          lista.push({
+
+            animal,
+
+            numero:
+              resultado.numero ??
+              "",
+
+            hora:
+              resultado.hora ??
+              "",
+
+            fecha:
+              resultado.fecha ??
+              ""
+
+          });
+
+        }
+      );
+
+    }
+  );
+
+
+  /*
+  ----------------------------------------------
+  ORDENAR POR HORA
+  ----------------------------------------------
+  */
+
+  lista.sort(
+    (a, b) => {
+
+      return String(
+        a.fecha
+      ).localeCompare(
+        String(
+          b.fecha
+        )
+      );
+
+    }
+  );
+
+
+  /*
+  ----------------------------------------------
+  SIN RESULTADOS
+  ----------------------------------------------
+  */
+
+  if (
+    lista.length === 0
+  ) {
+
+    contenedor.innerHTML = `
+
+      <p>
+        ⏳ Todavía no hay resultados de hoy.
+      </p>
+
+    `;
+
+    return;
+
+  }
+
+
+  /*
+  ----------------------------------------------
+  MOSTRAR RESULTADOS
+  ----------------------------------------------
+  */
+
+  contenedor.innerHTML = `
+
+    <div class="resultados-hoy-lista">
+
+      ${lista.map(
+        (resultado, index) => {
+
+          return `
+
+            <div class="resultado-hoy">
+
+              <strong>
+
+                ${index + 1}.
+
+                ${obtenerEmoji(
+                  resultado.animal
+                )}
+
+                ${resultado.animal}
+
+              </strong>
+
+              <span>
+
+                #${resultado.numero}
+
+              </span>
+
+              <small>
+
+                🕐 ${resultado.hora}
+
+              </small>
+
+            </div>
+
+          `;
+
+        }
+      ).join("")}
+
+    </div>
+
+  `;
+
+}
+
+
+/*
+==================================================
 CARGAR ANÁLISIS
 ==================================================
 */
@@ -203,6 +399,17 @@ async function cargarAnalisis() {
       );
 
     }
+
+
+    /*
+    ==============================================
+    RESULTADOS DE HOY
+    ==============================================
+    */
+
+    mostrarResultadosHoy(
+      datos.resultadosHoy
+    );
 
 
     /*
@@ -628,6 +835,31 @@ async function cargarAnalisis() {
                 null;
 
 
+            /*
+            --------------------------------------
+            RESULTADOS DE HOY DE ESTE ANIMAL
+            --------------------------------------
+            */
+
+            const nombreAnimal =
+              String(
+                a.animal
+              )
+                .trim()
+                .toUpperCase();
+
+
+            const resultadosAnimal =
+              datos.resultadosHoy &&
+              datos.resultadosHoy[
+                nombreAnimal
+              ]
+                ? datos.resultadosHoy[
+                    nombreAnimal
+                  ]
+                : [];
+
+
             let clase =
               "frio";
 
@@ -659,6 +891,50 @@ async function cargarAnalisis() {
             }
 
 
+            /*
+            --------------------------------------
+            TEXTO DEL RESULTADO
+            --------------------------------------
+            */
+
+            let resultadoHoyHTML = `
+
+              <small>
+
+                ⏳ No salió hoy
+
+              </small>
+
+            `;
+
+
+            if (
+              resultadosAnimal.length > 0
+            ) {
+
+              resultadoHoyHTML = `
+
+                <small>
+
+                  ✅ Salió hoy
+
+                  ${resultadosAnimal
+                    .map(
+                      resultado =>
+                        `
+                          <br>
+                          🕐 ${resultado.hora}
+                        `
+                    )
+                    .join("")}
+
+                </small>
+
+              `;
+
+            }
+
+
             contenedorAnimales.innerHTML += `
 
               <div class="animal ${clase}">
@@ -676,6 +952,10 @@ async function cargarAnalisis() {
                 )}
 
                 ${a.animal}
+
+                <br>
+
+                ${resultadoHoyHTML}
 
               </div>
 
@@ -992,6 +1272,7 @@ ORDEN:
 3. /api/analizar
 4. Se recalcula
 5. Se muestran los 3 pronósticos
+6. Se muestran los resultados de hoy
 
 ==================================================
 */
@@ -1017,12 +1298,6 @@ async function actualizarTodo() {
     boton.textContent =
       "⏳ ACTUALIZANDO RESULTADOS...";
 
-
-    /*
-    ----------------------------------------------
-    LIMPIAR PANTALLA
-    ----------------------------------------------
-    */
 
     mostrarMensajePronostico(
 
