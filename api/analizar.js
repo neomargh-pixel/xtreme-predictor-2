@@ -4,62 +4,81 @@ import analizarResultados from "../lib/analizarResultados.js";
 
 /*
 ==================================================
-FECHA CARACAS
-==================================================
-
-IMPORTANTE:
-
-La columna "fecha" de Supabase es TIMESTAMP
-SIN zona horaria.
-
-Los resultados se guardan como hora de Venezuela.
-
-Por eso NO usamos new Date() para convertir
-la zona horaria, porque eso puede restar 4 horas.
-
-Tomamos directamente YYYY-MM-DD.
+FECHA ACTUAL DE CARACAS
 ==================================================
 */
 
-function obtenerFechaCaracas(fecha) {
+function obtenerHoyCaracas() {
 
-  if (!fecha) {
-    return null;
-  }
-
-  const texto = String(fecha);
-
-  const match = texto.match(
-    /^(\d{4}-\d{2}-\d{2})/
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "America/Caracas",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(
+    new Date()
   );
 
-  if (match) {
-    return match[1];
-  }
-
-  return null;
 }
 
 
 /*
 ==================================================
-HORA CARACAS
+FECHA DEL RESULTADO
 ==================================================
 
-La hora almacenada en Supabase ya corresponde
-a la hora de Venezuela.
+La columna "fecha" en Supabase es TIMESTAMP
+sin zona horaria.
+
+Por eso NO usamos new Date(fecha).
+
+Tomamos directamente YYYY-MM-DD.
+==================================================
+*/
+
+function obtenerFechaResultado(fecha) {
+
+  if (!fecha) {
+    return null;
+  }
+
+  const texto =
+    String(fecha)
+      .trim();
+
+  const match =
+    texto.match(
+      /^(\d{4}-\d{2}-\d{2})/
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  return match[1];
+
+}
+
+
+/*
+==================================================
+HORA DEL RESULTADO
+==================================================
+
+La hora almacenada ya es hora de Venezuela.
 
 Ejemplo:
 
 2026-08-26T08:00:00
 
-Debe mostrar:
+Se muestra:
 
 08:00 a. m.
 
-NO:
-
-04:00 a. m.
+NO se hace conversión de zona horaria.
 ==================================================
 */
 
@@ -69,37 +88,35 @@ function obtenerHoraCaracas(fecha) {
     return null;
   }
 
-  const texto = String(fecha);
+  const texto =
+    String(fecha)
+      .trim();
 
-  /*
-    Aceptamos tanto:
-
-    2026-08-26T08:00:00
-
-    como:
-
-    2026-08-26 08:00:00
-  */
-
-  const match = texto.match(
-    /(?:T|\s)(\d{1,2}):(\d{2})/
-  );
+  const match =
+    texto.match(
+      /(?:T|\s)(\d{1,2}):(\d{2})(?::\d{2})?/
+    );
 
   if (!match) {
     return null;
   }
 
-  let hora = parseInt(
-    match[1],
-    10
-  );
+  let hora =
+    parseInt(
+      match[1],
+      10
+    );
 
-  const minutos = match[2];
+  const minutos =
+    match[2];
 
-  const periodo =
-    hora >= 12
-      ? "p. m."
-      : "a. m.";
+  let periodo;
+
+  if (hora >= 12) {
+    periodo = "p. m.";
+  } else {
+    periodo = "a. m.";
+  }
 
   if (hora === 0) {
     hora = 12;
@@ -109,7 +126,10 @@ function obtenerHoraCaracas(fecha) {
     hora -= 12;
   }
 
-  return `${String(hora).padStart(2, "0")}:${minutos} ${periodo}`;
+  return (
+    `${String(hora).padStart(2, "0")}:${minutos} ${periodo}`
+  );
+
 }
 
 
@@ -229,9 +249,7 @@ export default async function handler(
         historial: 0,
 
         hoy:
-          obtenerFechaCaracas(
-            new Date()
-          ),
+          obtenerHoyCaracas(),
 
         pronosticos: [],
 
@@ -272,7 +290,7 @@ export default async function handler(
 
     /*
     ==========================================
-    ANALIZAR LOS 77
+    ANALIZAR LOS 77 ANIMALITOS
     ==========================================
     */
 
@@ -289,9 +307,7 @@ export default async function handler(
     */
 
     const hoyCaracas =
-      obtenerFechaCaracas(
-        new Date()
-      );
+      obtenerHoyCaracas();
 
 
     const resultadosHoyPorAnimal = {};
@@ -310,8 +326,17 @@ export default async function handler(
         }
 
 
+        /*
+        IMPORTANTE:
+
+        NO usamos new Date(resultado.fecha).
+
+        La columna timestamp ya contiene la
+        hora venezolana.
+        */
+
         const fechaResultado =
-          obtenerFechaCaracas(
+          obtenerFechaResultado(
             resultado.fecha
           );
 
@@ -401,7 +426,8 @@ export default async function handler(
 
         animal.horariosHoy =
           resultados.map(
-            r => r.hora
+            r =>
+              r.hora
           );
 
 
@@ -416,19 +442,17 @@ export default async function handler(
 
     /*
     ==========================================
-    FECHAS
+    FECHAS DEL HISTORIAL
     ==========================================
     */
 
     const fechas =
       historial
         .map(
-          r => r.fecha
-        )
-        .filter(Boolean)
-        .map(
           r =>
-            obtenerFechaCaracas(r)
+            obtenerFechaResultado(
+              r.fecha
+            )
         )
         .filter(Boolean)
         .sort();
@@ -638,10 +662,6 @@ export default async function handler(
     PRONÓSTICOS
     ==========================================
 
-    IMPORTANTE:
-
-    NO VOLVEMOS A CALCULAR LOS 3.
-
     ANALIZARRESULTADOS.JS YA LOS GENERÓ.
 
     USAMOS DIRECTAMENTE LOS QUE TIENEN
@@ -689,7 +709,7 @@ export default async function handler(
 
     /*
     ==========================================
-    MARCAR LOS 3
+    MARCAR LOS 3 PRONÓSTICOS
     ==========================================
     */
 
@@ -947,7 +967,9 @@ export default async function handler(
     });
 
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(
       "ERROR EN /api/analizar:",
