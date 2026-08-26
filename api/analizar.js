@@ -1,10 +1,23 @@
-      import supabase from "../lib/supabase.js";
+import supabase from "../lib/supabase.js";
 import analizarResultados from "../lib/analizarResultados.js";
 
 
 /*
 ==================================================
 FECHA CARACAS
+==================================================
+
+IMPORTANTE:
+
+La columna "fecha" de Supabase es TIMESTAMP
+SIN zona horaria.
+
+Los resultados se guardan como hora de Venezuela.
+
+Por eso NO usamos new Date() para convertir
+la zona horaria, porque eso puede restar 4 horas.
+
+Tomamos directamente YYYY-MM-DD.
 ==================================================
 */
 
@@ -14,24 +27,39 @@ function obtenerFechaCaracas(fecha) {
     return null;
   }
 
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: "America/Caracas",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }
-  ).format(
-    new Date(fecha)
+  const texto = String(fecha);
+
+  const match = texto.match(
+    /^(\d{4}-\d{2}-\d{2})/
   );
 
+  if (match) {
+    return match[1];
+  }
+
+  return null;
 }
 
 
 /*
 ==================================================
 HORA CARACAS
+==================================================
+
+La hora almacenada en Supabase ya corresponde
+a la hora de Venezuela.
+
+Ejemplo:
+
+2026-08-26T08:00:00
+
+Debe mostrar:
+
+08:00 a. m.
+
+NO:
+
+04:00 a. m.
 ==================================================
 */
 
@@ -41,18 +69,47 @@ function obtenerHoraCaracas(fecha) {
     return null;
   }
 
-  return new Intl.DateTimeFormat(
-    "es-VE",
-    {
-      timeZone: "America/Caracas",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true
-    }
-  ).format(
-    new Date(fecha)
+  const texto = String(fecha);
+
+  /*
+    Aceptamos tanto:
+
+    2026-08-26T08:00:00
+
+    como:
+
+    2026-08-26 08:00:00
+  */
+
+  const match = texto.match(
+    /(?:T|\s)(\d{1,2}):(\d{2})/
   );
 
+  if (!match) {
+    return null;
+  }
+
+  let hora = parseInt(
+    match[1],
+    10
+  );
+
+  const minutos = match[2];
+
+  const periodo =
+    hora >= 12
+      ? "p. m."
+      : "a. m.";
+
+  if (hora === 0) {
+    hora = 12;
+  }
+
+  else if (hora > 12) {
+    hora -= 12;
+  }
+
+  return `${String(hora).padStart(2, "0")}:${minutos} ${periodo}`;
 }
 
 
@@ -371,11 +428,9 @@ export default async function handler(
         .filter(Boolean)
         .map(
           r =>
-            String(r).substring(
-              0,
-              10
-            )
+            obtenerFechaCaracas(r)
         )
+        .filter(Boolean)
         .sort();
 
 
