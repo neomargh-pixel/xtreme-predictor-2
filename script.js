@@ -1,4 +1,3 @@
-
 /*
 ==================================================
 XTREME PREDICTOR 2.0
@@ -174,12 +173,6 @@ function mostrarResultadosHoy(
   }
 
 
-  /*
-  ----------------------------------------------
-  SIN RESULTADOS
-  ----------------------------------------------
-  */
-
   if (
     !resultadosHoy ||
     typeof resultadosHoy !== "object"
@@ -197,12 +190,6 @@ function mostrarResultadosHoy(
 
   }
 
-
-  /*
-  ----------------------------------------------
-  CONSTRUIR LISTA
-  ----------------------------------------------
-  */
 
   const lista = [];
 
@@ -249,12 +236,6 @@ function mostrarResultadosHoy(
   );
 
 
-  /*
-  ----------------------------------------------
-  ORDENAR POR HORA
-  ----------------------------------------------
-  */
-
   lista.sort(
     (a, b) => {
 
@@ -269,12 +250,6 @@ function mostrarResultadosHoy(
     }
   );
 
-
-  /*
-  ----------------------------------------------
-  SIN RESULTADOS
-  ----------------------------------------------
-  */
 
   if (
     lista.length === 0
@@ -292,12 +267,6 @@ function mostrarResultadosHoy(
 
   }
 
-
-  /*
-  ----------------------------------------------
-  MOSTRAR RESULTADOS
-  ----------------------------------------------
-  */
 
   contenedor.innerHTML = `
 
@@ -483,6 +452,84 @@ async function cargarAnalisis() {
                         : "🥉";
 
 
+                  const nombrePronostico =
+                    String(
+                      animal.animal
+                    )
+                      .trim()
+                      .toUpperCase();
+
+
+                  const resultadosPronosticado =
+
+                    datos.resultadosHoy &&
+                    datos.resultadosHoy[
+                      nombrePronostico
+                    ]
+
+                      ?
+
+                      datos.resultadosHoy[
+                        nombrePronostico
+                      ]
+
+                      :
+
+                      [];
+
+
+                  const esAcierto =
+                    resultadosPronosticado.length > 0;
+
+
+                  const aciertosHTML =
+
+                    esAcierto
+
+                      ?
+
+                      `
+
+                        <div class="acierto-xtreme">
+
+                          ✅ ¡ACIERTO XTREME!
+
+                          ${resultadosPronosticado
+                            .map(
+                              resultado =>
+
+                                `
+
+                                  <br>
+
+                                  🎯 Salió:
+
+                                  #${resultado.numero}
+
+                                  🕐 ${resultado.hora}
+
+                                `
+                            )
+                            .join("")
+                          }
+
+                        </div>
+
+                      `
+
+                      :
+
+                      `
+
+                        <div class="estado-pronostico">
+
+                          🎯 Pronóstico activo
+
+                        </div>
+
+                      `;
+
+
                   return `
 
                     <div class="pronostico-animal">
@@ -563,6 +610,9 @@ async function cargarAnalisis() {
                         </strong>
 
                       </p>
+
+
+                      ${aciertosHTML}
 
                     </div>
 
@@ -835,12 +885,6 @@ async function cargarAnalisis() {
                 null;
 
 
-            /*
-            --------------------------------------
-            RESULTADOS DE HOY DE ESTE ANIMAL
-            --------------------------------------
-            */
-
             const nombreAnimal =
               String(
                 a.animal
@@ -890,12 +934,6 @@ async function cargarAnalisis() {
 
             }
 
-
-            /*
-            --------------------------------------
-            TEXTO DEL RESULTADO
-            --------------------------------------
-            */
 
             let resultadoHoyHTML = `
 
@@ -1264,17 +1302,6 @@ async function cargarAnalisis() {
 ==================================================
 ACTUALIZAR TODO
 ==================================================
-
-ORDEN:
-
-1. /api/actualizar
-2. Supabase recibe resultados nuevos
-3. /api/analizar
-4. Se recalcula
-5. Se muestran los 3 pronósticos
-6. Se muestran los resultados de hoy
-
-==================================================
 */
 
 async function actualizarTodo() {
@@ -1308,13 +1335,6 @@ async function actualizarTodo() {
 
     );
 
-
-    /*
-    ----------------------------------------------
-    PASO 1
-    ACTUALIZAR HISTORIAL
-    ----------------------------------------------
-    */
 
     const respuestaActualizar =
 
@@ -1377,25 +1397,12 @@ async function actualizarTodo() {
     }
 
 
-    /*
-    ----------------------------------------------
-    PASO 2
-    VOLVER A ANALIZAR
-    ----------------------------------------------
-    */
-
     boton.textContent =
       "📊 RECALCULANDO...";
 
 
     await cargarAnalisis();
 
-
-    /*
-    ----------------------------------------------
-    LISTO
-    ----------------------------------------------
-    */
 
     boton.textContent =
       "✅ RESULTADOS ACTUALIZADOS";
