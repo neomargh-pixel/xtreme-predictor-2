@@ -110,12 +110,20 @@ NORMALIZAR TEXTO
 
 function normalizarTexto(valor) {
 
-  return String(valor ?? "")
+  return String(
+    valor ?? ""
+  )
     .trim()
     .toUpperCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ");
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    )
+    .replace(
+      /\s+/g,
+      " "
+    );
 
 }
 
@@ -124,21 +132,14 @@ function normalizarTexto(valor) {
 ==================================================
 NORMALIZAR NÚMERO
 ==================================================
-
-Permite comparar:
-
-03 = 3
-07 = 7
-71 = 71
-
-Pero 00 sigue siendo 0 de manera controlada.
-==================================================
 */
 
 function normalizarNumero(valor) {
 
   const texto =
-    String(valor ?? "")
+    String(
+      valor ?? ""
+    )
       .trim();
 
   if (!texto) {
@@ -146,10 +147,14 @@ function normalizarNumero(valor) {
   }
 
   const numero =
-    Number(texto);
+    Number(
+      texto
+    );
 
   if (
-    Number.isNaN(numero)
+    Number.isNaN(
+      numero
+    )
   ) {
 
     return texto;
@@ -172,13 +177,17 @@ OBTENER EMOJI
 function obtenerEmoji(animal) {
 
   const clave =
-    String(animal ?? "")
+    String(
+      animal ?? ""
+    )
       .trim()
       .toUpperCase();
 
-  return emojisAnimales[
-    clave
-  ] || "🐾";
+  return (
+    emojisAnimales[
+      clave
+    ] || "🐾"
+  );
 
 }
 
@@ -186,15 +195,6 @@ function obtenerEmoji(animal) {
 /*
 ==================================================
 BUSCAR RESULTADO DE UN ANIMAL
-==================================================
-
-PRIMERO COMPARA NOMBRE.
-
-SI NO COINCIDE, COMPARA NÚMERO.
-
-ESTO EVITA QUE MONO U OTRO ANIMAL
-QUEDE SIN MARCAR POR UNA DIFERENCIA
-DE FORMATO.
 ==================================================
 */
 
@@ -228,8 +228,7 @@ function buscarResultadoAnimal(
 
   /*
   ----------------------------------------------
-  PRIMERA PASADA:
-  COMPARAR POR NOMBRE
+  BUSCAR POR NOMBRE
   ----------------------------------------------
   */
 
@@ -254,14 +253,10 @@ function buscarResultadoAnimal(
     }
 
 
-    const nombreAPINormalizado =
+    if (
       normalizarTexto(
         nombreAPI
-      );
-
-
-    if (
-      nombreAPINormalizado ===
+      ) ===
       nombreBuscado
     ) {
 
@@ -280,8 +275,7 @@ function buscarResultadoAnimal(
 
   /*
   ----------------------------------------------
-  SEGUNDA PASADA:
-  COMPARAR POR NÚMERO
+  BUSCAR POR NÚMERO
   ----------------------------------------------
   */
 
@@ -344,9 +338,6 @@ function buscarResultadoAnimal(
 ==================================================
 BUSCAR TODOS LOS RESULTADOS DE UN ANIMAL
 ==================================================
-
-SE USA PARA LAS TARJETAS DE LOS 77 ANIMALITOS.
-==================================================
 */
 
 function buscarResultadosAnimal(
@@ -354,8 +345,7 @@ function buscarResultadosAnimal(
   resultadosHoy
 ) {
 
-  const resultadosEncontrados =
-    [];
+  const encontrados = [];
 
 
   if (
@@ -364,7 +354,7 @@ function buscarResultadosAnimal(
     typeof resultadosHoy !== "object"
   ) {
 
-    return resultadosEncontrados;
+    return encontrados;
 
   }
 
@@ -381,13 +371,9 @@ function buscarResultadosAnimal(
     );
 
 
-  const clavesProcesadas =
-    new Set();
-
-
   /*
   ----------------------------------------------
-  PRIMERA PASADA POR NOMBRE
+  BUSCAR POR NOMBRE
   ----------------------------------------------
   */
 
@@ -407,30 +393,15 @@ function buscarResultadosAnimal(
       }
 
 
-      const nombreAPINormalizado =
+      if (
         normalizarTexto(
           nombreAPI
-        );
-
-
-      if (
-        nombreAPINormalizado ===
+        ) ===
         nombreBuscado
       ) {
 
-        resultados.forEach(
-          resultado => {
-
-            resultadosEncontrados.push(
-              resultado
-            );
-
-          }
-        );
-
-
-        clavesProcesadas.add(
-          nombreAPINormalizado
+        encontrados.push(
+          ...resultados
         );
 
       }
@@ -441,44 +412,23 @@ function buscarResultadosAnimal(
 
   /*
   ----------------------------------------------
-  SEGUNDA PASADA POR NÚMERO
+  BUSCAR POR NÚMERO
   ----------------------------------------------
   */
 
   if (
-    numeroBuscado
+    numeroBuscado &&
+    encontrados.length === 0
   ) {
 
-    Object.entries(
+    Object.values(
       resultadosHoy
     ).forEach(
-      ([nombreAPI, resultados]) => {
+      resultados => {
 
         if (
           !Array.isArray(
             resultados
-          )
-        ) {
-
-          return;
-
-        }
-
-
-        const nombreAPINormalizado =
-          normalizarTexto(
-            nombreAPI
-          );
-
-
-        /*
-          Si ya fue encontrado por nombre,
-          no volvemos a añadirlo.
-        */
-
-        if (
-          clavesProcesadas.has(
-            nombreAPINormalizado
           )
         ) {
 
@@ -502,7 +452,7 @@ function buscarResultadosAnimal(
               numeroBuscado
             ) {
 
-              resultadosEncontrados.push(
+              encontrados.push(
                 resultado
               );
 
@@ -517,44 +467,134 @@ function buscarResultadosAnimal(
   }
 
 
-  return resultadosEncontrados;
+  return encontrados;
 
 }
 
 
 /*
 ==================================================
-MOSTRAR MENSAJE DE PRONÓSTICO
+OBTENER NOMBRES DE LOS PRONÓSTICOS
 ==================================================
 */
 
-function mostrarMensajePronostico(
-  titulo,
-  mensaje
+function obtenerMapaPronosticos(
+  pronosticos
 ) {
 
-  const elemento =
-    document.getElementById(
-      "pronostico"
-    );
+  const mapa =
+    new Map();
 
 
-  if (!elemento) {
-    return;
+  if (
+    !Array.isArray(
+      pronosticos
+    )
+  ) {
+
+    return mapa;
+
   }
 
 
-  elemento.innerHTML = `
+  pronosticos.forEach(
+    animal => {
 
-    <h2>
-      ${titulo}
-    </h2>
+      mapa.set(
+        normalizarTexto(
+          animal.animal
+        ),
+        animal
+      );
 
-    <p>
-      ${mensaje}
-    </p>
+      mapa.set(
+        `NUMERO:${normalizarNumero(
+          animal.numero
+        )}`,
+        animal
+      );
 
-  `;
+    }
+  );
+
+
+  return mapa;
+
+}
+
+
+/*
+==================================================
+BUSCAR PRONÓSTICO PARA UN RESULTADO
+==================================================
+*/
+
+function buscarPronosticoParaResultado(
+  resultado,
+  mapaPronosticos
+) {
+
+  if (
+    !resultado ||
+    !mapaPronosticos
+  ) {
+
+    return null;
+
+  }
+
+
+  const nombre =
+    normalizarTexto(
+      resultado.animal
+    );
+
+
+  /*
+  ----------------------------------------------
+  PRIMERO POR NOMBRE
+  ----------------------------------------------
+  */
+
+  const porNombre =
+    mapaPronosticos.get(
+      nombre
+    );
+
+
+  if (
+    porNombre
+  ) {
+
+    return porNombre;
+
+  }
+
+
+  /*
+  ----------------------------------------------
+  DESPUÉS POR NÚMERO
+  ----------------------------------------------
+  */
+
+  const numero =
+    normalizarNumero(
+      resultado.numero
+    );
+
+
+  if (
+    numero
+  ) {
+
+    return mapaPronosticos.get(
+      `NUMERO:${numero}`
+    ) || null;
+
+  }
+
+
+  return null;
 
 }
 
@@ -566,7 +606,8 @@ MOSTRAR RESULTADOS DE HOY
 */
 
 function mostrarResultadosHoy(
-  resultadosHoy
+  resultadosHoy,
+  pronosticos = []
 ) {
 
   const contenedor =
@@ -596,6 +637,12 @@ function mostrarResultadosHoy(
     return;
 
   }
+
+
+  const mapaPronosticos =
+    obtenerMapaPronosticos(
+      pronosticos
+    );
 
 
   const lista = [];
@@ -645,6 +692,12 @@ function mostrarResultadosHoy(
   );
 
 
+  /*
+  ----------------------------------------------
+  ORDEN CRONOLÓGICO
+  ----------------------------------------------
+  */
+
   lista.sort(
     (a, b) => {
 
@@ -677,6 +730,12 @@ function mostrarResultadosHoy(
   }
 
 
+  /*
+  ----------------------------------------------
+  MOSTRAR
+  ----------------------------------------------
+  */
+
   contenedor.innerHTML = `
 
     <div class="resultados-hoy-lista">
@@ -684,9 +743,42 @@ function mostrarResultadosHoy(
       ${lista.map(
         (resultado, index) => {
 
+          const pronostico =
+            buscarPronosticoParaResultado(
+              resultado,
+              mapaPronosticos
+            );
+
+
+          const esAcierto =
+            Boolean(
+              pronostico
+            );
+
+
+          const nombreMostrar =
+            String(
+              resultado.animal
+            )
+              .trim()
+              .toUpperCase();
+
+
           return `
 
-            <div class="resultado-hoy">
+            <div
+              class="resultado-hoy"
+              ${
+                esAcierto
+                  ? `
+                    style="
+                      border-left:4px solid #22c55e;
+                      padding-left:8px;
+                    "
+                  `
+                  : ""
+              }
+            >
 
               <strong>
 
@@ -696,9 +788,10 @@ function mostrarResultadosHoy(
                   resultado.animal
                 )}
 
-                ${resultado.animal}
+                ${nombreMostrar}
 
               </strong>
+
 
               <span>
 
@@ -706,11 +799,48 @@ function mostrarResultadosHoy(
 
               </span>
 
+
               <small>
 
                 🕐 ${resultado.hora}
 
               </small>
+
+
+              ${
+                esAcierto
+
+                  ?
+
+                  `
+
+                    <div
+                      class="acierto-resultado"
+                      style="
+                        margin-top:5px;
+                        font-size:1.02em;
+                        font-weight:900;
+                        line-height:1.3;
+                      "
+                    >
+
+                      🚀💥➡️ 🏁
+
+                      ${nombreMostrar}
+
+                      ACIERTO XTREME
+
+                      🏁 ⬅️💥🚀
+
+                    </div>
+
+                  `
+
+                  :
+
+                  ""
+
+              }
 
             </div>
 
@@ -744,7 +874,8 @@ async function cargarAnalisis() {
 
         {
 
-          cache: "no-store",
+          cache:
+            "no-store",
 
           headers: {
 
@@ -791,17 +922,6 @@ async function cargarAnalisis() {
 
     /*
     ==============================================
-    RESULTADOS DE HOY
-    ==============================================
-    */
-
-    mostrarResultadosHoy(
-      datos.resultadosHoy
-    );
-
-
-    /*
-    ==============================================
     PRONÓSTICOS
     ==============================================
     */
@@ -823,6 +943,24 @@ async function cargarAnalisis() {
 
         [];
 
+
+    /*
+    ==============================================
+    RESULTADOS DE HOY
+    ==============================================
+    */
+
+    mostrarResultadosHoy(
+      datos.resultadosHoy,
+      pronosticos
+    );
+
+
+    /*
+    ==============================================
+    CONTENEDOR PRONÓSTICO
+    ==============================================
+    */
 
     const contenedorPronostico =
       document.getElementById(
@@ -846,7 +984,9 @@ async function cargarAnalisis() {
         <div class="pronosticos-dia">
 
           <h1>
+
             🎯 POSIBILIDADES DEL DÍA
+
           </h1>
 
 
@@ -870,29 +1010,13 @@ async function cargarAnalisis() {
                   const posicion =
 
                     index === 0
+                      ? "🥇"
 
-                      ?
+                      : index === 1
+                        ? "🥈"
 
-                      "🥇"
+                        : "🥉";
 
-                      :
-
-                      index === 1
-
-                        ?
-
-                        "🥈"
-
-                        :
-
-                        "🥉";
-
-
-                  /*
-                  --------------------------------
-                  BUSCAR RESULTADO DEL PRONÓSTICO
-                  --------------------------------
-                  */
 
                   const resultado =
                     buscarResultadoAnimal(
@@ -906,12 +1030,6 @@ async function cargarAnalisis() {
                       resultado
                     );
 
-
-                  /*
-                  --------------------------------
-                  MENSAJE DE ESTADO
-                  --------------------------------
-                  */
 
                   const aciertosHTML =
 
@@ -957,6 +1075,7 @@ async function cargarAnalisis() {
                                 ? " · " +
                                   resultado.hora
                                 : ""
+
                             }
 
                           </strong>
@@ -1331,12 +1450,6 @@ async function cargarAnalisis() {
 
         a => {
 
-          /*
-          --------------------------------------
-          DATO DEL TOP 10
-          --------------------------------------
-          */
-
           const dato =
 
             Array.isArray(
@@ -1379,12 +1492,6 @@ async function cargarAnalisis() {
             );
 
 
-          /*
-          --------------------------------------
-          CLASE
-          --------------------------------------
-          */
-
           let clase =
             "frio";
 
@@ -1415,12 +1522,6 @@ async function cargarAnalisis() {
 
           }
 
-
-          /*
-          --------------------------------------
-          TEXTO RESULTADO
-          --------------------------------------
-          */
 
           let resultadoHoyHTML = `
 
@@ -1456,18 +1557,12 @@ async function cargarAnalisis() {
                   )
                   .join("")}
 
-              </small>
+            </small>
 
             `;
 
           }
 
-
-          /*
-          --------------------------------------
-          TARJETA
-          --------------------------------------
-          */
 
           contenedorAnimales.innerHTML += `
 
@@ -1546,6 +1641,7 @@ async function cargarAnalisis() {
             :
 
             77
+
         );
 
 
@@ -1841,12 +1937,6 @@ async function actualizarTodo() {
     );
 
 
-    /*
-    ----------------------------------------------
-    ACTUALIZAR HISTORIAL
-    ----------------------------------------------
-    */
-
     const respuestaActualizar =
       await fetch(
 
@@ -1855,9 +1945,11 @@ async function actualizarTodo() {
 
         {
 
-          method: "GET",
+          method:
+            "GET",
 
-          cache: "no-store",
+          cache:
+            "no-store",
 
           headers: {
 
@@ -1906,24 +1998,12 @@ async function actualizarTodo() {
     }
 
 
-    /*
-    ----------------------------------------------
-    RECALCULAR
-    ----------------------------------------------
-    */
-
     boton.textContent =
       "📊 RECALCULANDO...";
 
 
     await cargarAnalisis();
 
-
-    /*
-    ----------------------------------------------
-    LISTO
-    ----------------------------------------------
-    */
 
     boton.textContent =
       "✅ RESULTADOS ACTUALIZADOS";
