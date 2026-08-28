@@ -104,17 +104,420 @@ const emojisAnimales = {
 
 /*
 ==================================================
+NORMALIZAR TEXTO
+==================================================
+*/
+
+function normalizarTexto(valor) {
+
+  return String(valor ?? "")
+    .trim()
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+
+}
+
+
+/*
+==================================================
+NORMALIZAR NÚMERO
+==================================================
+
+Permite comparar:
+
+03 = 3
+07 = 7
+71 = 71
+
+Pero 00 sigue siendo 0 de manera controlada.
+==================================================
+*/
+
+function normalizarNumero(valor) {
+
+  const texto =
+    String(valor ?? "")
+      .trim();
+
+  if (!texto) {
+    return "";
+  }
+
+  const numero =
+    Number(texto);
+
+  if (
+    Number.isNaN(numero)
+  ) {
+
+    return texto;
+
+  }
+
+  return String(
+    numero
+  );
+
+}
+
+
+/*
+==================================================
 OBTENER EMOJI
 ==================================================
 */
 
 function obtenerEmoji(animal) {
 
-  return emojisAnimales[
-    String(animal)
+  const clave =
+    String(animal ?? "")
       .trim()
-      .toUpperCase()
+      .toUpperCase();
+
+  return emojisAnimales[
+    clave
   ] || "🐾";
+
+}
+
+
+/*
+==================================================
+BUSCAR RESULTADO DE UN ANIMAL
+==================================================
+
+PRIMERO COMPARA NOMBRE.
+
+SI NO COINCIDE, COMPARA NÚMERO.
+
+ESTO EVITA QUE MONO U OTRO ANIMAL
+QUEDE SIN MARCAR POR UNA DIFERENCIA
+DE FORMATO.
+==================================================
+*/
+
+function buscarResultadoAnimal(
+  animal,
+  resultadosHoy
+) {
+
+  if (
+    !animal ||
+    !resultadosHoy ||
+    typeof resultadosHoy !== "object"
+  ) {
+
+    return null;
+
+  }
+
+
+  const nombreBuscado =
+    normalizarTexto(
+      animal.animal
+    );
+
+
+  const numeroBuscado =
+    normalizarNumero(
+      animal.numero
+    );
+
+
+  /*
+  ----------------------------------------------
+  PRIMERA PASADA:
+  COMPARAR POR NOMBRE
+  ----------------------------------------------
+  */
+
+  for (
+    const [
+      nombreAPI,
+      resultados
+    ]
+    of Object.entries(
+      resultadosHoy
+    )
+  ) {
+
+    if (
+      !Array.isArray(
+        resultados
+      )
+    ) {
+
+      continue;
+
+    }
+
+
+    const nombreAPINormalizado =
+      normalizarTexto(
+        nombreAPI
+      );
+
+
+    if (
+      nombreAPINormalizado ===
+      nombreBuscado
+    ) {
+
+      if (
+        resultados.length > 0
+      ) {
+
+        return resultados[0];
+
+      }
+
+    }
+
+  }
+
+
+  /*
+  ----------------------------------------------
+  SEGUNDA PASADA:
+  COMPARAR POR NÚMERO
+  ----------------------------------------------
+  */
+
+  if (
+    numeroBuscado
+  ) {
+
+    for (
+      const resultados
+      of Object.values(
+        resultadosHoy
+      )
+    ) {
+
+      if (
+        !Array.isArray(
+          resultados
+        )
+      ) {
+
+        continue;
+
+      }
+
+
+      for (
+        const resultado
+        of resultados
+      ) {
+
+        const numeroResultado =
+          normalizarNumero(
+            resultado?.numero
+          );
+
+
+        if (
+          numeroResultado &&
+          numeroResultado ===
+          numeroBuscado
+        ) {
+
+          return resultado;
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+/*
+==================================================
+BUSCAR TODOS LOS RESULTADOS DE UN ANIMAL
+==================================================
+
+SE USA PARA LAS TARJETAS DE LOS 77 ANIMALITOS.
+==================================================
+*/
+
+function buscarResultadosAnimal(
+  animal,
+  resultadosHoy
+) {
+
+  const resultadosEncontrados =
+    [];
+
+
+  if (
+    !animal ||
+    !resultadosHoy ||
+    typeof resultadosHoy !== "object"
+  ) {
+
+    return resultadosEncontrados;
+
+  }
+
+
+  const nombreBuscado =
+    normalizarTexto(
+      animal.animal
+    );
+
+
+  const numeroBuscado =
+    normalizarNumero(
+      animal.numero
+    );
+
+
+  const clavesProcesadas =
+    new Set();
+
+
+  /*
+  ----------------------------------------------
+  PRIMERA PASADA POR NOMBRE
+  ----------------------------------------------
+  */
+
+  Object.entries(
+    resultadosHoy
+  ).forEach(
+    ([nombreAPI, resultados]) => {
+
+      if (
+        !Array.isArray(
+          resultados
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      const nombreAPINormalizado =
+        normalizarTexto(
+          nombreAPI
+        );
+
+
+      if (
+        nombreAPINormalizado ===
+        nombreBuscado
+      ) {
+
+        resultados.forEach(
+          resultado => {
+
+            resultadosEncontrados.push(
+              resultado
+            );
+
+          }
+        );
+
+
+        clavesProcesadas.add(
+          nombreAPINormalizado
+        );
+
+      }
+
+    }
+  );
+
+
+  /*
+  ----------------------------------------------
+  SEGUNDA PASADA POR NÚMERO
+  ----------------------------------------------
+  */
+
+  if (
+    numeroBuscado
+  ) {
+
+    Object.entries(
+      resultadosHoy
+    ).forEach(
+      ([nombreAPI, resultados]) => {
+
+        if (
+          !Array.isArray(
+            resultados
+          )
+        ) {
+
+          return;
+
+        }
+
+
+        const nombreAPINormalizado =
+          normalizarTexto(
+            nombreAPI
+          );
+
+
+        /*
+          Si ya fue encontrado por nombre,
+          no volvemos a añadirlo.
+        */
+
+        if (
+          clavesProcesadas.has(
+            nombreAPINormalizado
+          )
+        ) {
+
+          return;
+
+        }
+
+
+        resultados.forEach(
+          resultado => {
+
+            const numeroResultado =
+              normalizarNumero(
+                resultado?.numero
+              );
+
+
+            if (
+              numeroResultado &&
+              numeroResultado ===
+              numeroBuscado
+            ) {
+
+              resultadosEncontrados.push(
+                resultado
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+  }
+
+
+  return resultadosEncontrados;
 
 }
 
@@ -131,11 +534,15 @@ function mostrarMensajePronostico(
 ) {
 
   const elemento =
-    document.getElementById("pronostico");
+    document.getElementById(
+      "pronostico"
+    );
+
 
   if (!elemento) {
     return;
   }
+
 
   elemento.innerHTML = `
 
@@ -200,7 +607,9 @@ function mostrarResultadosHoy(
     ([animal, resultados]) => {
 
       if (
-        !Array.isArray(resultados)
+        !Array.isArray(
+          resultados
+        )
       ) {
 
         return;
@@ -216,15 +625,15 @@ function mostrarResultadosHoy(
             animal,
 
             numero:
-              resultado.numero ??
+              resultado?.numero ??
               "",
 
             hora:
-              resultado.hora ??
+              resultado?.hora ??
               "",
 
             fecha:
-              resultado.fecha ??
+              resultado?.fecha ??
               ""
 
           });
@@ -327,23 +736,31 @@ async function cargarAnalisis() {
 
   try {
 
-    const respuesta = await fetch(
+    const respuesta =
+      await fetch(
 
-      "/api/analizar?_=" +
-      Date.now(),
+        "/api/analizar?_=" +
+        Date.now(),
 
-      {
-        cache: "no-store",
+        {
 
-        headers: {
-          "Cache-Control": "no-cache"
+          cache: "no-store",
+
+          headers: {
+
+            "Cache-Control":
+              "no-cache, no-store, must-revalidate"
+
+          }
+
         }
-      }
 
-    );
+      );
 
 
-    if (!respuesta.ok) {
+    if (
+      !respuesta.ok
+    ) {
 
       throw new Error(
 
@@ -358,7 +775,9 @@ async function cargarAnalisis() {
       await respuesta.json();
 
 
-    if (!datos.ok) {
+    if (
+      !datos.ok
+    ) {
 
       throw new Error(
 
@@ -395,7 +814,10 @@ async function cargarAnalisis() {
 
         ?
 
-        datos.pronosticos.slice(0, 3)
+        datos.pronosticos.slice(
+          0,
+          3
+        )
 
         :
 
@@ -403,7 +825,6 @@ async function cargarAnalisis() {
 
 
     const contenedorPronostico =
-
       document.getElementById(
         "pronostico"
       );
@@ -416,7 +837,8 @@ async function cargarAnalisis() {
     */
 
     if (
-      pronosticos.length > 0
+      pronosticos.length > 0 &&
+      contenedorPronostico
     ) {
 
       contenedorPronostico.innerHTML = `
@@ -427,11 +849,15 @@ async function cargarAnalisis() {
             🎯 POSIBILIDADES DEL DÍA
           </h1>
 
+
           <p>
+
             Estos son los 3 animalitos que el análisis
             XTREME considera con mejores posibilidades
             según el historial actualizado.
+
           </p>
+
 
           <div class="lista-pronosticos">
 
@@ -444,43 +870,48 @@ async function cargarAnalisis() {
                   const posicion =
 
                     index === 0
-                      ? "🥇"
-
-                      : index === 1
-                        ? "🥈"
-
-                        : "🥉";
-
-
-                  const nombrePronostico =
-                    String(
-                      animal.animal
-                    )
-                      .trim()
-                      .toUpperCase();
-
-
-                  const resultadosPronosticado =
-
-                    datos.resultadosHoy &&
-                    datos.resultadosHoy[
-                      nombrePronostico
-                    ]
 
                       ?
 
-                      datos.resultadosHoy[
-                        nombrePronostico
-                      ]
+                      "🥇"
 
                       :
 
-                      [];
+                      index === 1
+
+                        ?
+
+                        "🥈"
+
+                        :
+
+                        "🥉";
+
+
+                  /*
+                  --------------------------------
+                  BUSCAR RESULTADO DEL PRONÓSTICO
+                  --------------------------------
+                  */
+
+                  const resultado =
+                    buscarResultadoAnimal(
+                      animal,
+                      datos.resultadosHoy
+                    );
 
 
                   const esAcierto =
-                    resultadosPronosticado.length > 0;
+                    Boolean(
+                      resultado
+                    );
 
+
+                  /*
+                  --------------------------------
+                  MENSAJE DE ESTADO
+                  --------------------------------
+                  */
 
                   const aciertosHTML =
 
@@ -490,30 +921,47 @@ async function cargarAnalisis() {
 
                       `
 
-                        <div class="acierto-xtreme">
+                        <div
+                          class="acierto-xtreme"
+                          style="
+                            text-align:center;
+                            font-size:1.12em;
+                            font-weight:900;
+                            line-height:1.35;
+                            margin:10px 0 12px;
+                            padding:8px 5px;
+                          "
+                        >
 
-                          ✅ ¡ACIERTO XTREME!
+                          🚀💥➡️ 🏁
 
-                          ${resultadosPronosticado
-                            .map(
-                              resultado =>
+                          ${animal.animal}
 
-                                `
+                          ACIERTO XTREME
 
-                                  <br>
-
-                                  🎯 Salió:
-
-                                  #${resultado.numero}
-
-                                  🕐 ${resultado.hora}
-
-                                `
-                            )
-                            .join("")
-                          }
+                          🏁 ⬅️💥🚀
 
                         </div>
+
+
+                        <p>
+
+                          🎯 Resultado:
+
+                          <strong>
+
+                            #${resultado.numero ?? animal.numero}
+
+                            ${
+                              resultado.hora
+                                ? " · " +
+                                  resultado.hora
+                                : ""
+                            }
+
+                          </strong>
+
+                        </p>
 
                       `
 
@@ -521,7 +969,13 @@ async function cargarAnalisis() {
 
                       `
 
-                        <div class="estado-pronostico">
+                        <div
+                          class="estado-pronostico"
+                          style="
+                            font-weight:700;
+                            margin:8px 0 10px;
+                          "
+                        >
 
                           🎯 Pronóstico activo
 
@@ -545,6 +999,9 @@ async function cargarAnalisis() {
                         ${animal.animal}
 
                       </h2>
+
+
+                      ${aciertosHTML}
 
 
                       <p>
@@ -610,9 +1067,6 @@ async function cargarAnalisis() {
                         </strong>
 
                       </p>
-
-
-                      ${aciertosHTML}
 
                     </div>
 
@@ -686,8 +1140,11 @@ async function cargarAnalisis() {
               <tr>
 
                 <td>
+
                   ${index + 1}
+
                 </td>
+
 
                 <td>
 
@@ -703,16 +1160,25 @@ async function cargarAnalisis() {
 
                 </td>
 
+
                 <td>
+
                   ${animal.salidas ?? 0}
+
                 </td>
 
+
                 <td>
+
                   ${animal.diasSinSalir ?? 0}
+
                 </td>
 
+
                 <td>
+
                   ${animal.indice ?? 0}%
+
                 </td>
 
               </tr>
@@ -766,8 +1232,11 @@ async function cargarAnalisis() {
               <tr>
 
                 <td>
+
                   ${index + 1}
+
                 </td>
+
 
                 <td>
 
@@ -783,16 +1252,25 @@ async function cargarAnalisis() {
 
                 </td>
 
+
                 <td>
+
                   ${animal.salidas ?? 0}
+
                 </td>
 
+
                 <td>
+
                   ${animal.diasSinSalir ?? 0}
+
                 </td>
 
+
                 <td>
+
                   ${animal.indice ?? 0}%
+
                 </td>
 
               </tr>
@@ -839,171 +1317,187 @@ async function cargarAnalisis() {
       );
 
 
-    if (contenedorAnimales) {
+    if (
+      contenedorAnimales &&
+      Array.isArray(
+        animales
+      )
+    ) {
 
       contenedorAnimales.innerHTML = "";
 
 
-      if (
-        Array.isArray(animales)
-      ) {
+      animales.forEach(
 
-        animales.forEach(
+        a => {
 
-          a => {
+          /*
+          --------------------------------------
+          DATO DEL TOP 10
+          --------------------------------------
+          */
 
-            const dato =
+          const dato =
 
-              Array.isArray(
-                datos.top10
+            Array.isArray(
+              datos.top10
+            )
+
+              ?
+
+              datos.top10.find(
+
+                x =>
+
+                  normalizarTexto(
+                    x.animal
+                  )
+
+                  ===
+
+                  normalizarTexto(
+                    a.animal
+                  )
+
               )
 
-                ?
+              :
 
-                datos.top10.find(
-
-                  x =>
-
-                    String(
-                      x.animal
-                    )
-                      .trim()
-                      .toUpperCase()
-
-                    ===
-
-                    String(
-                      a.animal
-                    )
-                      .trim()
-                      .toUpperCase()
-
-                )
-
-                :
-
-                null;
+              null;
 
 
-            const nombreAnimal =
-              String(
-                a.animal
-              )
-                .trim()
-                .toUpperCase();
+          /*
+          --------------------------------------
+          RESULTADOS DE HOY
+          --------------------------------------
+          */
+
+          const resultadosAnimal =
+            buscarResultadosAnimal(
+              a,
+              datos.resultadosHoy
+            );
 
 
-            const resultadosAnimal =
-              datos.resultadosHoy &&
-              datos.resultadosHoy[
-                nombreAnimal
-              ]
-                ? datos.resultadosHoy[
-                    nombreAnimal
-                  ]
-                : [];
+          /*
+          --------------------------------------
+          CLASE
+          --------------------------------------
+          */
+
+          let clase =
+            "frio";
 
 
-            let clase =
-              "frio";
+          if (dato) {
 
+            if (
+              Number(
+                dato.indice
+              ) >= 80
+            ) {
 
-            if (dato) {
-
-              if (
-                Number(
-                  dato.indice
-                ) >= 80
-              ) {
-
-                clase =
-                  "caliente";
-
-              }
-
-              else if (
-                Number(
-                  dato.indice
-                ) >= 50
-              ) {
-
-                clase =
-                  "medio";
-
-              }
+              clase =
+                "caliente";
 
             }
 
+            else if (
+              Number(
+                dato.indice
+              ) >= 50
+            ) {
 
-            let resultadoHoyHTML = `
+              clase =
+                "medio";
+
+            }
+
+          }
+
+
+          /*
+          --------------------------------------
+          TEXTO RESULTADO
+          --------------------------------------
+          */
+
+          let resultadoHoyHTML = `
+
+            <small>
+
+              ⏳ No salió hoy
+
+            </small>
+
+          `;
+
+
+          if (
+            resultadosAnimal.length > 0
+          ) {
+
+            resultadoHoyHTML = `
 
               <small>
 
-                ⏳ No salió hoy
+                ✅ Salió hoy
+
+                ${resultadosAnimal
+                  .map(
+                    resultado =>
+                      `
+
+                        <br>
+
+                        🕐 ${resultado.hora ?? ""}
+
+                      `
+                  )
+                  .join("")}
 
               </small>
 
             `;
 
-
-            if (
-              resultadosAnimal.length > 0
-            ) {
-
-              resultadoHoyHTML = `
-
-                <small>
-
-                  ✅ Salió hoy
-
-                  ${resultadosAnimal
-                    .map(
-                      resultado =>
-                        `
-                          <br>
-                          🕐 ${resultado.hora}
-                        `
-                    )
-                    .join("")}
-
-                </small>
-
-              `;
-
-            }
-
-
-            contenedorAnimales.innerHTML += `
-
-              <div class="animal ${clase}">
-
-                <strong>
-
-                  ${a.numero}
-
-                </strong>
-
-                <br>
-
-                ${obtenerEmoji(
-                  a.animal
-                )}
-
-                ${a.animal}
-
-                <br>
-
-                ${resultadoHoyHTML}
-
-              </div>
-
-            `;
-
           }
 
-        );
 
-      }
+          /*
+          --------------------------------------
+          TARJETA
+          --------------------------------------
+          */
+
+          contenedorAnimales.innerHTML += `
+
+            <div class="animal ${clase}">
+
+              <strong>
+
+                ${a.numero}
+
+              </strong>
+
+              <br>
+
+              ${obtenerEmoji(
+                a.animal
+              )}
+
+              ${a.animal}
+
+              <br>
+
+              ${resultadoHoyHTML}
+
+            </div>
+
+          `;
+
+        }
+
+      );
 
     }
 
@@ -1023,7 +1517,8 @@ async function cargarAnalisis() {
     if (estadistica) {
 
       const estadisticasAPI =
-        datos.estadisticas || {};
+        datos.estadisticas ||
+        {};
 
 
       const totalHistorial =
@@ -1040,7 +1535,9 @@ async function cargarAnalisis() {
         ||
 
         (
-          Array.isArray(animales)
+          Array.isArray(
+            animales
+          )
 
             ?
 
@@ -1076,6 +1573,7 @@ async function cargarAnalisis() {
             :
 
             "N/A"
+
         );
 
 
@@ -1115,13 +1613,15 @@ async function cargarAnalisis() {
 
             pronosticos
               .map(
-                a => a.animal
+                a =>
+                  a.animal
               )
               .join(" • ")
 
             :
 
             "N/A"
+
         );
 
 
@@ -1259,11 +1759,16 @@ async function cargarAnalisis() {
       pronostico.innerHTML = `
 
         <h2>
+
           ❌ Error
+
         </h2>
 
+
         <p>
+
           ${error.message}
+
         </p>
 
       `;
@@ -1336,8 +1841,13 @@ async function actualizarTodo() {
     );
 
 
-    const respuestaActualizar =
+    /*
+    ----------------------------------------------
+    ACTUALIZAR HISTORIAL
+    ----------------------------------------------
+    */
 
+    const respuestaActualizar =
       await fetch(
 
         "/api/actualizar?_=" +
@@ -1378,7 +1888,6 @@ async function actualizarTodo() {
 
 
     const datosActualizar =
-
       await respuestaActualizar.json();
 
 
@@ -1397,12 +1906,24 @@ async function actualizarTodo() {
     }
 
 
+    /*
+    ----------------------------------------------
+    RECALCULAR
+    ----------------------------------------------
+    */
+
     boton.textContent =
       "📊 RECALCULANDO...";
 
 
     await cargarAnalisis();
 
+
+    /*
+    ----------------------------------------------
+    LISTO
+    ----------------------------------------------
+    */
 
     boton.textContent =
       "✅ RESULTADOS ACTUALIZADOS";
@@ -1445,11 +1966,16 @@ async function actualizarTodo() {
       pronostico.innerHTML = `
 
         <h2>
+
           ❌ Error al actualizar
+
         </h2>
 
+
         <p>
+
           ${error.message}
+
         </p>
 
       `;
