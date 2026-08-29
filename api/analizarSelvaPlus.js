@@ -1,114 +1,168 @@
+import supabase from "../lib/supabase.js";
+
 
 /*
 ==================================================
 XTREME PREDICTOR 2.0
-ANÁLISIS SELVA PLUS
+ANÁLISIS — SELVA PLUS
 ==================================================
 */
-
-const { supabase } =
-  require("../lib/supabase");
 
 
 /*
 ==================================================
-ANIMALES SELVA PLUS
-38 ANIMALITOS
-00 + 0 AL 36
+FECHA ACTUAL DE CARACAS
 ==================================================
 */
 
-const ANIMALES = [
+function obtenerHoyCaracas() {
 
-  { numero: "00", animal: "BALLENA" },
-
-  { numero: "0", animal: "DELFÍN" },
-
-  { numero: "1", animal: "CARNERO" },
-  { numero: "2", animal: "TORO" },
-  { numero: "3", animal: "CIEMPIÉS" },
-  { numero: "4", animal: "ALACRÁN" },
-  { numero: "5", animal: "LEÓN" },
-  { numero: "6", animal: "RANA" },
-  { numero: "7", animal: "PERICO" },
-  { numero: "8", animal: "RATÓN" },
-  { numero: "9", animal: "ÁGUILA" },
-  { numero: "10", animal: "TIGRE" },
-  { numero: "11", animal: "GATO" },
-  { numero: "12", animal: "CABALLO" },
-  { numero: "13", animal: "MONO" },
-  { numero: "14", animal: "PALOMA" },
-  { numero: "15", animal: "ZORRO" },
-  { numero: "16", animal: "OSO" },
-  { numero: "17", animal: "PAVO" },
-  { numero: "18", animal: "BURRO" },
-  { numero: "19", animal: "CHIVO" },
-  { numero: "20", animal: "COCHINO" },
-  { numero: "21", animal: "GALLO" },
-  { numero: "22", animal: "CAMELLO" },
-  { numero: "23", animal: "CEBRA" },
-  { numero: "24", animal: "IGUANA" },
-  { numero: "25", animal: "GALLINA" },
-  { numero: "26", animal: "VACA" },
-  { numero: "27", animal: "PERRO" },
-  { numero: "28", animal: "ZAMURO" },
-  { numero: "29", animal: "ELEFANTE" },
-  { numero: "30", animal: "CAIMÁN" },
-  { numero: "31", animal: "LAPA" },
-  { numero: "32", animal: "ARDILLA" },
-  { numero: "33", animal: "PESCADO" },
-  { numero: "34", animal: "VENADO" },
-  { numero: "35", animal: "JIRAFA" },
-  { numero: "36", animal: "CULEBRA" },
-  { numero: "37", animal: "TORTUGA" }
-
-];
-
-
-/*
-==================================================
-NORMALIZAR
-==================================================
-*/
-
-function normalizar(
-  valor
-) {
-
-  return String(
-    valor ?? ""
-  )
-    .trim()
-    .toUpperCase()
-    .normalize("NFD")
-    .replace(
-      /[\u0300-\u036f]/g,
-      ""
-    )
-    .replace(
-      /\s+/g,
-      " "
-    );
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "America/Caracas",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(
+    new Date()
+  );
 
 }
 
 
 /*
 ==================================================
-CARGAR HISTORIAL
+FECHA DEL RESULTADO
 ==================================================
 */
 
-async function cargarHistorial() {
+function obtenerFechaResultado(
+  fecha
+) {
 
-  let todos = [];
+  if (!fecha) {
+    return null;
+  }
+
+  const texto =
+    String(fecha).trim();
+
+  const match =
+    texto.match(
+      /^(\d{4}-\d{2}-\d{2})/
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  return match[1];
+
+}
+
+
+/*
+==================================================
+HORA DEL RESULTADO
+==================================================
+*/
+
+function obtenerHoraCaracas(
+  fecha
+) {
+
+  if (!fecha) {
+    return null;
+  }
+
+  const texto =
+    String(fecha).trim();
+
+
+  const match =
+    texto.match(
+      /(?:T|\s)(\d{1,2}):(\d{2})(?::\d{2})?/
+    );
+
+
+  if (!match) {
+    return null;
+  }
+
+
+  let hora =
+    parseInt(
+      match[1],
+      10
+    );
+
+
+  const minutos =
+    match[2];
+
+
+  let periodo;
+
+
+  if (hora >= 12) {
+
+    periodo =
+      "p. m.";
+
+  }
+
+  else {
+
+    periodo =
+      "a. m.";
+
+  }
+
+
+  if (hora === 0) {
+
+    hora = 12;
+
+  }
+
+  else if (hora > 12) {
+
+    hora -= 12;
+
+  }
+
+
+  return (
+    `${String(hora).padStart(2, "0")}:${minutos} ${periodo}`
+  );
+
+}
+
+
+/*
+==================================================
+OBTENER TODO EL HISTORIAL
+==================================================
+*/
+
+async function obtenerTodoHistorial() {
+
+  const resultados = [];
+
+  const bloque = 1000;
 
   let desde = 0;
 
-  const limite = 1000;
-
 
   while (true) {
+
+    const hasta =
+      desde +
+      bloque -
+      1;
+
 
     const {
       data,
@@ -118,32 +172,26 @@ async function cargarHistorial() {
         .from(
           "historial_selvaplus"
         )
-        .select(
-          "*"
-        )
+        .select("*")
         .order(
           "fecha",
           {
-            ascending: true
+            ascending: false
           }
         )
         .range(
           desde,
-          desde + limite - 1
+          hasta
         );
 
 
     if (error) {
-
-      throw new Error(
-        error.message
-      );
-
+      throw error;
     }
 
 
     if (
-      !data ||
+      !Array.isArray(data) ||
       data.length === 0
     ) {
 
@@ -152,13 +200,13 @@ async function cargarHistorial() {
     }
 
 
-    todos.push(
+    resultados.push(
       ...data
     );
 
 
     if (
-      data.length < limite
+      data.length < bloque
     ) {
 
       break;
@@ -166,468 +214,49 @@ async function cargarHistorial() {
     }
 
 
-    desde += limite;
+    desde += bloque;
 
   }
 
 
-  return todos;
+  return resultados;
 
 }
 
 
 /*
 ==================================================
-FECHA ACTUAL
+HANDLER
 ==================================================
 */
 
-function fechaHoy() {
-
-  const ahora =
-    new Date();
-
-  return (
-    ahora
-      .toISOString()
-      .slice(0, 10)
-  );
-
-}
-
-
-/*
-==================================================
-DÍAS SIN SALIR
-==================================================
-*/
-
-function diasEntre(
-  fecha1,
-  fecha2
+export default async function handler(
+  req,
+  res
 ) {
 
-  const a =
-    new Date(
-      fecha1 +
-      "T00:00:00"
-    );
-
-  const b =
-    new Date(
-      fecha2 +
-      "T00:00:00"
-    );
-
-  return Math.max(
-    0,
-    Math.floor(
-      (
-        b - a
-      ) /
-      86400000
-    )
-  );
-
-}
-
-
-/*
-==================================================
-ÍNDICE XTREME
-==================================================
-*/
-
-function calcularIndice(
-  salidas7,
-  salidas14,
-  salidas30,
-  diasSinSalir
-) {
-
-  let indice = 0;
-
-
-  indice +=
-    salidas7 * 8;
-
-
-  indice +=
-    salidas14 * 3;
-
-
-  indice +=
-    salidas30 * 1;
-
-
-  indice +=
-    Math.min(
-      diasSinSalir * 2,
-      20
-    );
-
-
-  return Math.min(
-    100,
-    Math.round(
-      indice
-    )
-  );
-
-}
-
-
-/*
-==================================================
-TENDENCIA
-==================================================
-*/
-
-function obtenerTendencia(
-  indice
-) {
-
-  if (
-    indice >= 80
-  ) {
-
-    return "MUY ALTA";
-
-  }
-
-  if (
-    indice >= 60
-  ) {
-
-    return "ALTA";
-
-  }
-
-  if (
-    indice >= 40
-  ) {
-
-    return "MEDIA";
-
-  }
-
-  if (
-    indice >= 20
-  ) {
-
-    return "NORMAL";
-
-  }
-
-  return "BAJA";
-
-}
-
-
-/*
-==================================================
-ANALIZAR
-==================================================
-*/
-
-module.exports =
-  async function handler(
-    req,
-    res
-  ) {
-
-    try {
-
-      const historial =
-        await cargarHistorial();
-
-
-      const hoy =
-        fechaHoy();
-
-
-      const animales =
-        ANIMALES.map(
-          base => {
-
-            const nombre =
-              normalizar(
-                base.animal
-              );
-
-
-            const registros =
-              historial
-                .filter(
-                  r =>
-                    normalizar(
-                      r.animal
-                    ) === nombre
-                );
-
-
-            const fechas =
-              [
-                ...new Set(
-                  registros
-                    .map(
-                      r =>
-                        String(
-                          r.fecha
-                        )
-                          .slice(
-                            0,
-                            10
-                          )
-                    )
-                )
-              ]
-              .sort();
-
-
-            const ultimaFecha =
-              fechas.length
-                ? fechas[
-                    fechas.length - 1
-                  ]
-                : null;
-
-
-            const diasSinSalir =
-              ultimaFecha
-                ? diasEntre(
-                    ultimaFecha,
-                    hoy
-                  )
-                : 999;
-
-
-            const salidas7 =
-              fechas.filter(
-                f =>
-                  diasEntre(
-                    f,
-                    hoy
-                  ) <= 7
-              ).length;
-
-
-            const salidas14 =
-              fechas.filter(
-                f =>
-                  diasEntre(
-                    f,
-                    hoy
-                  ) <= 14
-              ).length;
-
-
-            const salidas30 =
-              fechas.filter(
-                f =>
-                  diasEntre(
-                    f,
-                    hoy
-                  ) <= 30
-              ).length;
-
-
-            const salidas =
-              fechas.length;
-
-
-            const indice =
-              calcularIndice(
-                salidas7,
-                salidas14,
-                salidas30,
-                diasSinSalir
-              );
-
-
-            return {
-
-              animal:
-                base.animal,
-
-              numero:
-                base.numero,
-
-              salidas,
-
-              fechas,
-
-              ultimaFecha,
-
-              diasSinSalir,
-
-              salidas7,
-
-              salidas14,
-
-              salidas30,
-
-              indice,
-
-              porcentaje:
-                Math.max(
-                  50,
-                  Math.min(
-                    95,
-                    indice + 20
-                  )
-                ),
-
-              tendencia:
-                obtenerTendencia(
-                  indice
-                )
-
-            };
-
-          }
-        );
-
-
-      /*
-      ==============================================
-      TOP 10
-      ==============================================
-      */
-
-      const top10 =
-        [...animales]
-          .sort(
-            (a, b) =>
-              b.indice -
-              a.indice
-          )
-          .slice(
-            0,
-            10
-          );
-
-
-      /*
-      ==============================================
-      ATRASADOS
-      ==============================================
-      */
-
-      const atrasados =
-        [...animales]
-          .filter(
-            a =>
-              a.diasSinSalir >= 7
-          )
-          .sort(
-            (a, b) =>
-              b.diasSinSalir -
-              a.diasSinSalir
-          )
-          .slice(
-            0,
-            5
-          );
-
-
-      /*
-      ==============================================
-      PRONÓSTICOS
-      ==============================================
-      */
-
-      const pronosticos =
-        [...animales]
-          .filter(
-            a =>
-              a.diasSinSalir > 0
-          )
-          .sort(
-            (a, b) =>
-              b.indice -
-              a.indice
-          )
-          .slice(
-            0,
-            3
-          )
-          .map(
-            a => ({
-              ...a,
-
-              pronostico:
-                true,
-
-              categoria:
-                "PRONÓSTICO"
-            })
-          );
-
-
-      /*
-      ==============================================
-      RESULTADOS DE HOY
-      ==============================================
-      */
-
-      const resultadosHoy = {};
-
-
-      historial
-        .filter(
-          r =>
-            String(
-              r.fecha
-            ).slice(
-              0,
-              10
-            ) === hoy
-        )
-        .forEach(
-          r => {
-
-            const nombre =
-              r.animal;
-
-
-            if (
-              !resultadosHoy[
-                nombre
-              ]
-            ) {
-
-              resultadosHoy[
-                nombre
-              ] = [];
-
-            }
-
-
-            resultadosHoy[
-              nombre
-            ].push({
-
-              numero:
-                r.numero,
-
-              hora:
-                r.hora,
-
-              fecha:
-                r.fecha
-
-            });
-
-          }
-        );
-
-
-      /*
-      ==============================================
-      RESPUESTA
-      ==============================================
-      */
+  try {
+
+    /*
+    ==========================================
+    HISTORIAL
+    ==========================================
+    */
+
+    const historial =
+      await obtenerTodoHistorial();
+
+
+    /*
+    ==========================================
+    SIN HISTORIAL
+    ==========================================
+    */
+
+    if (
+      !Array.isArray(historial) ||
+      historial.length === 0
+    ) {
 
       return res.status(
         200
@@ -638,66 +267,50 @@ module.exports =
         loteria:
           "Selva Plus",
 
-        fuente:
-          "LotoVen",
-
         historial:
-          historial.length,
+          0,
 
-        hoy,
+        hoy:
+          obtenerHoyCaracas(),
 
-        pronosticos,
+        pronosticos: [],
 
         pronostico:
-          pronosticos[0] ||
           null,
 
-        top10,
+        top10: [],
 
-        atrasados,
+        atrasados: [],
 
-        resultadosHoy,
+        resultadosHoy: {},
 
         estadisticas: {
 
           totalAnimales:
-            ANIMALES.length,
+            38,
 
           totalHistorial:
-            historial.length,
+            0,
 
           totalAtrasados:
-            atrasados.length,
+            0,
 
           mayorAtraso:
-            atrasados[0]
-              ?.animal ||
-            "N/A",
+            null,
 
           diasMayorAtraso:
-            atrasados[0]
-              ?.diasSinSalir ||
             0,
 
           candidatosPronostico:
-            animales.length,
+            0,
 
           pronosticosHoy:
-            pronosticos.length,
+            0,
 
           pronosticoActual:
-            pronosticos
-              .map(
-                a =>
-                  a.animal
-              )
-              .join(
-                " • "
-              ),
+            null,
 
           diasPronostico:
-            pronosticos[0]
-              ?.diasSinSalir ||
             0
 
         }
@@ -706,25 +319,932 @@ module.exports =
 
     }
 
-    catch (error) {
 
-      console.error(
-        "ERROR ANALIZANDO SELVA PLUS:",
-        error
+    /*
+    ==========================================
+    HOY
+    ==========================================
+    */
+
+    const hoyCaracas =
+      obtenerHoyCaracas();
+
+
+    /*
+    ==========================================
+    AGRUPAR POR ANIMAL
+    ==========================================
+    */
+
+    const porAnimal = {};
+
+
+    historial.forEach(
+      resultado => {
+
+        if (
+          !resultado ||
+          !resultado.animal
+        ) {
+
+          return;
+
+        }
+
+
+        const nombre =
+          String(
+            resultado.animal
+          )
+            .trim()
+            .toUpperCase();
+
+
+        if (
+          !porAnimal[nombre]
+        ) {
+
+          porAnimal[nombre] =
+            [];
+
+        }
+
+
+        porAnimal[nombre].push(
+          resultado
+        );
+
+      }
+    );
+
+
+    /*
+    ==========================================
+    FECHAS DEL HISTORIAL
+    ==========================================
+    */
+
+    const fechas =
+      historial
+        .map(
+          resultado =>
+            obtenerFechaResultado(
+              resultado.fecha
+            )
+        )
+        .filter(Boolean);
+
+
+    /*
+    ==========================================
+    ANÁLISIS POR ANIMAL
+    ==========================================
+    */
+
+    const analisis = [];
+
+
+    Object.entries(
+      porAnimal
+    ).forEach(
+      ([
+        animal,
+        registros
+      ]) => {
+
+        const fechasAnimal =
+          [
+            ...new Set(
+              registros
+                .map(
+                  resultado =>
+                    obtenerFechaResultado(
+                      resultado.fecha
+                    )
+                )
+                .filter(Boolean)
+            )
+          ]
+          .sort();
+
+
+        const ultimaFecha =
+          fechasAnimal.length > 0
+            ? fechasAnimal[
+                fechasAnimal.length - 1
+              ]
+            : null;
+
+
+        let diasSinSalir = 0;
+
+
+        if (
+          ultimaFecha
+        ) {
+
+          const ultima =
+            new Date(
+              `${ultimaFecha}T00:00:00`
+            );
+
+
+          const hoy =
+            new Date(
+              `${hoyCaracas}T00:00:00`
+            );
+
+
+          diasSinSalir =
+            Math.max(
+              0,
+              Math.floor(
+                (
+                  hoy -
+                  ultima
+                ) /
+                86400000
+              )
+            );
+
+        }
+
+
+        const salidas7 =
+          fechasAnimal.filter(
+            fecha => {
+
+              const d =
+                new Date(
+                  `${fecha}T00:00:00`
+                );
+
+
+              const hoy =
+                new Date(
+                  `${hoyCaracas}T00:00:00`
+                );
+
+
+              const diferencia =
+                Math.floor(
+                  (
+                    hoy -
+                    d
+                  ) /
+                  86400000
+                );
+
+
+              return (
+                diferencia >= 0 &&
+                diferencia <= 7
+              );
+
+            }
+          ).length;
+
+
+        const salidas14 =
+          fechasAnimal.filter(
+            fecha => {
+
+              const d =
+                new Date(
+                  `${fecha}T00:00:00`
+                );
+
+
+              const hoy =
+                new Date(
+                  `${hoyCaracas}T00:00:00`
+                );
+
+
+              const diferencia =
+                Math.floor(
+                  (
+                    hoy -
+                    d
+                  ) /
+                  86400000
+                );
+
+
+              return (
+                diferencia >= 0 &&
+                diferencia <= 14
+              );
+
+            }
+          ).length;
+
+
+        const salidas30 =
+          fechasAnimal.filter(
+            fecha => {
+
+              const d =
+                new Date(
+                  `${fecha}T00:00:00`
+                );
+
+
+              const hoy =
+                new Date(
+                  `${hoyCaracas}T00:00:00`
+                );
+
+
+              const diferencia =
+                Math.floor(
+                  (
+                    hoy -
+                    d
+                  ) /
+                  86400000
+                );
+
+
+              return (
+                diferencia >= 0 &&
+                diferencia <= 30
+              );
+
+            }
+          ).length;
+
+
+        const salidas =
+          fechasAnimal.length;
+
+
+        /*
+        ========================================
+        ÍNDICE XTREME
+        ========================================
+        */
+
+        const indice =
+          Math.min(
+            100,
+            Math.round(
+
+              (
+                salidas7 * 8
+              ) +
+
+              (
+                salidas14 * 3
+              ) +
+
+              (
+                salidas30
+              ) +
+
+              (
+                Math.min(
+                  diasSinSalir * 2,
+                  20
+                )
+              )
+
+            )
+          );
+
+
+        const porcentaje =
+          Math.min(
+            95,
+            Math.max(
+              50,
+              indice + 15
+            )
+          );
+
+
+        let tendencia =
+          "BAJA";
+
+
+        if (
+          indice >= 80
+        ) {
+
+          tendencia =
+            "MUY ALTA";
+
+        }
+
+        else if (
+          indice >= 60
+        ) {
+
+          tendencia =
+            "ALTA";
+
+        }
+
+        else if (
+          indice >= 40
+        ) {
+
+          tendencia =
+            "MEDIA";
+
+        }
+
+        else if (
+          indice >= 20
+        ) {
+
+          tendencia =
+            "NORMAL";
+
+        }
+
+
+        const ultimoRegistro =
+          registros
+            .slice()
+            .sort(
+              (a, b) =>
+                String(
+                  b.fecha
+                ).localeCompare(
+                  String(
+                    a.fecha
+                  )
+                )
+            )[0];
+
+
+        const numero =
+          ultimoRegistro?.numero ??
+          null;
+
+
+        analisis.push({
+
+          animal,
+
+          numero,
+
+          salidas,
+
+          fechas:
+            fechasAnimal,
+
+          ultimaFecha,
+
+          diasSinSalir,
+
+          salidas7,
+
+          salidas14,
+
+          salidas30,
+
+          indice,
+
+          porcentaje,
+
+          tendencia,
+
+          salioHoy:
+            false,
+
+          resultadosHoy:
+            [],
+
+          horariosHoy:
+            [],
+
+          resultadoHoy:
+            "NO SALIO",
+
+          pronostico:
+            false,
+
+          categoria:
+            "OBSERVACION"
+
+        });
+
+      }
+    );
+
+
+    /*
+    ==========================================
+    RESULTADOS DE HOY
+    ==========================================
+    */
+
+    const resultadosHoy =
+      {};
+
+
+    historial.forEach(
+      resultado => {
+
+        const fecha =
+          obtenerFechaResultado(
+            resultado.fecha
+          );
+
+
+        if (
+          fecha !==
+          hoyCaracas
+        ) {
+
+          return;
+
+        }
+
+
+        const nombre =
+          String(
+            resultado.animal
+          )
+            .trim()
+            .toUpperCase();
+
+
+        if (
+          !resultadosHoy[
+            nombre
+          ]
+        ) {
+
+          resultadosHoy[
+            nombre
+          ] = [];
+
+        }
+
+
+        resultadosHoy[
+          nombre
+        ].push({
+
+          numero:
+            resultado.numero,
+
+          fecha:
+            resultado.fecha,
+
+          hora:
+            obtenerHoraCaracas(
+              resultado.fecha
+            )
+
+        });
+
+      }
+    );
+
+
+    /*
+    ==========================================
+    MARCAR RESULTADOS DE HOY
+    ==========================================
+    */
+
+    analisis.forEach(
+      animal => {
+
+        const nombre =
+          String(
+            animal.animal
+          )
+            .trim()
+            .toUpperCase();
+
+
+        const resultados =
+          resultadosHoy[
+            nombre
+          ] || [];
+
+
+        animal.salioHoy =
+          resultados.length > 0;
+
+
+        animal.resultadosHoy =
+          resultados;
+
+
+        animal.horariosHoy =
+          resultados.map(
+            resultado =>
+              resultado.hora
+          );
+
+
+        animal.resultadoHoy =
+          resultados.length > 0
+            ? "SALIO"
+            : "NO SALIO";
+
+      }
+    );
+
+
+    /*
+    ==========================================
+    TOP 10
+    ==========================================
+    */
+
+    const top10 =
+      analisis
+        .slice()
+        .sort(
+          (a, b) => {
+
+            if (
+              b.indice !==
+              a.indice
+            ) {
+
+              return (
+                b.indice -
+                a.indice
+              );
+
+            }
+
+
+            if (
+              b.diasSinSalir !==
+              a.diasSinSalir
+            ) {
+
+              return (
+                b.diasSinSalir -
+                a.diasSinSalir
+              );
+
+            }
+
+
+            if (
+              b.salidas7 !==
+              a.salidas7
+            ) {
+
+              return (
+                b.salidas7 -
+                a.salidas7
+              );
+
+            }
+
+
+            if (
+              b.salidas14 !==
+              a.salidas14
+            ) {
+
+              return (
+                b.salidas14 -
+                a.salidas14
+              );
+
+            }
+
+
+            return (
+              b.salidas30 -
+              a.salidas30
+            );
+
+          }
+        )
+        .slice(
+          0,
+          10
+        );
+
+
+    /*
+    ==========================================
+    ATRASADOS
+    ==========================================
+    */
+
+    const todosAtrasados =
+      analisis
+        .filter(
+          animal =>
+            animal.diasSinSalir >= 7
+        )
+        .sort(
+          (a, b) => {
+
+            if (
+              b.diasSinSalir !==
+              a.diasSinSalir
+            ) {
+
+              return (
+                b.diasSinSalir -
+                a.diasSinSalir
+              );
+
+            }
+
+
+            return (
+              b.indice -
+              a.indice
+            );
+
+          }
+        );
+
+
+    const atrasados =
+      todosAtrasados.slice(
+        0,
+        10
       );
 
 
-      return res.status(
-        500
-      ).json({
+    /*
+    ==========================================
+    PRONÓSTICOS
+    ==========================================
+    */
 
-        ok: false,
+    const pronosticos =
+      analisis
+        .slice()
+        .sort(
+          (a, b) => {
 
-        error:
-          error.message
+            if (
+              b.indice !==
+              a.indice
+            ) {
 
-      });
+              return (
+                b.indice -
+                a.indice
+              );
 
-    }
+            }
 
-  };
+
+            if (
+              b.salidas7 !==
+              a.salidas7
+            ) {
+
+              return (
+                b.salidas7 -
+                a.salidas7
+              );
+
+            }
+
+
+            if (
+              b.salidas14 !==
+              a.salidas14
+            ) {
+
+              return (
+                b.salidas14 -
+                a.salidas14
+              );
+
+            }
+
+
+            return (
+              b.salidas30 -
+              a.salidas30
+            );
+
+          }
+        )
+        .slice(
+          0,
+          3
+        );
+
+
+    /*
+    ==========================================
+    MARCAR PRONÓSTICOS
+    ==========================================
+    */
+
+    analisis.forEach(
+      animal => {
+
+        animal.pronostico =
+          false;
+
+      }
+    );
+
+
+    pronosticos.forEach(
+      animal => {
+
+        animal.pronostico =
+          true;
+
+        animal.categoria =
+          "PRONÓSTICO";
+
+      }
+    );
+
+
+    /*
+    ==========================================
+    PRONÓSTICO PRINCIPAL
+    ==========================================
+    */
+
+    const pronostico =
+      pronosticos[0] ||
+      null;
+
+
+    /*
+    ==========================================
+    ESTADÍSTICAS
+    ==========================================
+    */
+
+    const mayorAtraso =
+      todosAtrasados[0] ||
+      null;
+
+
+    const estadisticas = {
+
+      totalAnimales:
+        38,
+
+      totalHistorial:
+        historial.length,
+
+      totalAtrasados:
+        todosAtrasados.length,
+
+      mayorAtraso:
+        mayorAtraso
+          ? mayorAtraso.animal
+          : null,
+
+      diasMayorAtraso:
+        mayorAtraso
+          ? mayorAtraso.diasSinSalir
+          : 0,
+
+      candidatosPronostico:
+        analisis.length,
+
+      pronosticosHoy:
+        pronosticos.length,
+
+      pronosticoActual:
+        pronosticos.length > 0
+
+          ?
+
+          pronosticos
+            .map(
+              animal =>
+                animal.animal
+            )
+            .join(
+              " • "
+            )
+
+          :
+
+          null,
+
+      diasPronostico:
+        pronostico
+          ? pronostico.diasSinSalir
+          : 0
+
+    };
+
+
+    /*
+    ==========================================
+    DIAGNÓSTICO
+    ==========================================
+    */
+
+    const fechasUnicas =
+      [
+        ...new Set(
+          fechas
+        )
+      ]
+      .sort();
+
+
+    console.log(
+      "XTREME SELVA PLUS:",
+      {
+
+        hoy:
+          hoyCaracas,
+
+        historial:
+          historial.length,
+
+        fechas:
+          fechasUnicas.length,
+
+        pronosticos:
+          pronosticos.map(
+            animal =>
+              animal.animal
+          ),
+
+        resultadosHoy:
+          Object.keys(
+            resultadosHoy
+          )
+
+      }
+    );
+
+
+    /*
+    ==========================================
+    RESPUESTA
+    ==========================================
+    */
+
+    return res.status(
+      200
+    ).json({
+
+      ok: true,
+
+      loteria:
+        "Selva Plus",
+
+      fuente:
+        "LotoVen",
+
+      historial:
+        historial.length,
+
+      hoy:
+        hoyCaracas,
+
+      pronosticos,
+
+      pronostico,
+
+      top10,
+
+      atrasados,
+
+      resultadosHoy,
+
+      estadisticas
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "ERROR EN /api/analizarSelvaPlus:",
+      error
+    );
+
+
+    return res.status(
+      500
+    ).json({
+
+      ok: false,
+
+      error:
+        error.message ||
+        "Error interno analizando Selva Plus."
+
+    });
+
+  }
+
+}
