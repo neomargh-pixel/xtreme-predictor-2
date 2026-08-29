@@ -5,6 +5,7 @@ ANIMALES POR LOTERÍA
 ==================================================
 */
 
+
 /*
 ==================================================
 GUÁCHARO ACTIVO — 77 ANIMALITOS
@@ -15,6 +16,7 @@ const animalesGuacharo = [
 
   { numero:"0", animal:"DELFÍN", emoji:"🐬" },
   { numero:"00", animal:"BALLENA", emoji:"🐋" },
+
   { numero:"01", animal:"CARNERO", emoji:"🐏" },
   { numero:"02", animal:"TORO", emoji:"🐂" },
   { numero:"03", animal:"CIEMPIÉS", emoji:"🐛" },
@@ -110,6 +112,7 @@ LA GRANJITA — 38 ANIMALITOS
 const animalesGranjita = [
 
   { numero:"00", animal:"BALLENA", emoji:"🐋" },
+
   { numero:"01", animal:"CARNERO", emoji:"🐏" },
   { numero:"02", animal:"TORO", emoji:"🐂" },
   { numero:"03", animal:"CIEMPIÉS", emoji:"🐛" },
@@ -156,82 +159,12 @@ const animalesGranjita = [
 
 /*
 ==================================================
-LOTERÍA ACTIVA
-==================================================
-*/
-
-let loteriaActual =
-  localStorage.getItem("xtremeLoteria") ||
-  "guacharoactivo";
-
-
-function obtenerAnimalesActuales() {
-
-  if (
-    loteriaActual ===
-    "lagranjita"
-  ) {
-
-    return animalesGranjita;
-
-  }
-
-  return animalesGuacharo;
-
-}
-
-
-/*
-==================================================
 VARIABLE GLOBAL
 ==================================================
-*/
 
-let animales =
-  obtenerAnimalesActuales();
-
-
-/*
-==================================================
-SELECTOR DE LOTERÍA
+EL SCRIPT PRINCIPAL ES QUIEN DECIDE
+CUÁL LOTERÍA ESTÁ ACTIVA.
 ==================================================
 */
 
-const selector =
-  document.getElementById(
-    "selectorLoteria"
-  );
-
-
-if (selector) {
-
-  selector.value =
-    loteriaActual;
-
-
-  selector.addEventListener(
-    "change",
-    function () {
-
-      loteriaActual =
-        this.value;
-
-
-      localStorage.setItem(
-        "xtremeLoteria",
-        loteriaActual
-      );
-
-
-      /*
-      Recarga la página para que
-      API, estadísticas y animales
-      trabajen con la nueva lotería.
-      */
-
-      location.reload();
-
-    }
-  );
-
-}
+let animales = animalesGuacharo;
