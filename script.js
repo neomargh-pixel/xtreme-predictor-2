@@ -133,7 +133,10 @@ const configuracionLoterias = {
       "/api/actualizar",
 
     analizar:
-      "/api/analizar"
+      "/api/analizar",
+
+    animales:
+      animalesGuacharo
 
   },
 
@@ -147,7 +150,10 @@ const configuracionLoterias = {
       "/api/actualizarGranjita",
 
     analizar:
-      "/api/analizarGranjita"
+      "/api/analizarGranjita",
+
+    animales:
+      animalesGranjita
 
   }
 
@@ -156,7 +162,7 @@ const configuracionLoterias = {
 
 /*
 ==================================================
-OBTENER CONFIGURACIÓN ACTUAL
+OBTENER CONFIGURACIÓN
 ==================================================
 */
 
@@ -175,6 +181,32 @@ function obtenerConfiguracionLoteria() {
     ]
 
   );
+
+}
+
+
+/*
+==================================================
+ACTUALIZAR LISTA DE ANIMALITOS
+==================================================
+*/
+
+function actualizarListaAnimales() {
+
+  const configuracion =
+    obtenerConfiguracionLoteria();
+
+
+  /*
+  IMPORTANTE:
+
+  Cambiamos la variable global
+  "animales" que utiliza toda
+  la interfaz.
+  */
+
+  animales =
+    configuracion.animales;
 
 }
 
@@ -314,12 +346,6 @@ function buscarResultadoAnimal(
     );
 
 
-  /*
-  ----------------------------------------------
-  POR NOMBRE
-  ----------------------------------------------
-  */
-
   for (
     const [
       nombreAPI,
@@ -360,12 +386,6 @@ function buscarResultadoAnimal(
 
   }
 
-
-  /*
-  ----------------------------------------------
-  POR NÚMERO
-  ----------------------------------------------
-  */
 
   if (
     numeroBuscado
@@ -460,12 +480,6 @@ function buscarResultadosAnimal(
     );
 
 
-  /*
-  ----------------------------------------------
-  POR NOMBRE
-  ----------------------------------------------
-  */
-
   Object.entries(
     resultadosHoy
   ).forEach(
@@ -498,12 +512,6 @@ function buscarResultadosAnimal(
     }
   );
 
-
-  /*
-  ----------------------------------------------
-  POR NÚMERO SI NO HUBO COINCIDENCIA
-  ----------------------------------------------
-  */
 
   if (
     numeroBuscado &&
@@ -816,18 +824,18 @@ function mostrarResultadosHoy(
             );
 
 
-          const esAcierto =
-            Boolean(
-              pronostico
-            );
-
-
           const nombreMostrar =
             String(
               resultado.animal
             )
               .trim()
               .toUpperCase();
+
+
+          const esAcierto =
+            Boolean(
+              pronostico
+            );
 
 
           return `
@@ -932,6 +940,14 @@ async function cargarAnalisis() {
 
   try {
 
+    /*
+    ACTUALIZAR LA LISTA DE ANIMALITOS
+    SEGÚN LA LOTERÍA SELECCIONADA.
+    */
+
+    actualizarListaAnimales();
+
+
     const configuracion =
       obtenerConfiguracionLoteria();
 
@@ -991,12 +1007,6 @@ async function cargarAnalisis() {
     }
 
 
-    /*
-    ==============================================
-    PRONÓSTICOS
-    ==============================================
-    */
-
     const pronosticos =
 
       Array.isArray(
@@ -1015,12 +1025,6 @@ async function cargarAnalisis() {
         [];
 
 
-    /*
-    ==============================================
-    RESULTADOS HOY
-    ==============================================
-    */
-
     mostrarResultadosHoy(
       datos.resultadosHoy,
       pronosticos
@@ -1029,44 +1033,33 @@ async function cargarAnalisis() {
 
     /*
     ==============================================
-    TÍTULO DE LOTERÍA
+    PRONÓSTICO
     ==============================================
     */
 
-    const encabezadoPronostico =
-      document.querySelector(
-        "#pronostico"
+    const contenedorPronostico =
+      document.getElementById(
+        "pronostico"
       );
 
 
-    /*
-    ==============================================
-    PRONÓSTICOS
-    ==============================================
-    */
-
     if (
       pronosticos.length > 0 &&
-      encabezadoPronostico
+      contenedorPronostico
     ) {
 
-      encabezadoPronostico.innerHTML = `
+      contenedorPronostico.innerHTML = `
 
         <div class="pronosticos-dia">
 
           <h1>
-
             🎯 POSIBILIDADES DEL DÍA
-
           </h1>
 
 
           <p>
-
             ${configuracion.nombre}
-
             — análisis XTREME actualizado.
-
           </p>
 
 
@@ -1249,7 +1242,7 @@ async function cargarAnalisis() {
 
                       <strong>
 
-                        ${animal.categoria ?? "N/A"}
+                        ${animal.categoria ?? "PRONÓSTICO"}
 
                       </strong>
 
@@ -1305,7 +1298,9 @@ async function cargarAnalisis() {
       );
 
 
-    if (tablaTop) {
+    if (
+      tablaTop
+    ) {
 
       tablaTop.innerHTML = "";
 
@@ -1389,7 +1384,9 @@ async function cargarAnalisis() {
       );
 
 
-    if (tablaAtrasados) {
+    if (
+      tablaAtrasados
+    ) {
 
       tablaAtrasados.innerHTML = "";
 
@@ -1494,10 +1491,7 @@ async function cargarAnalisis() {
 
 
     if (
-      contenedorAnimales &&
-      Array.isArray(
-        animales
-      )
+      contenedorAnimales
     ) {
 
       contenedorAnimales.innerHTML = "";
@@ -1597,7 +1591,6 @@ async function cargarAnalisis() {
                 ${resultadosAnimal
                   .map(
                     resultado =>
-
                       `
 
                         <br>
@@ -1659,7 +1652,9 @@ async function cargarAnalisis() {
       );
 
 
-    if (estadistica) {
+    if (
+      estadistica
+    ) {
 
       const estadisticasAPI =
         datos.estadisticas ||
@@ -1675,23 +1670,9 @@ async function cargarAnalisis() {
       const totalAnimales =
         Number(
           estadisticasAPI.totalAnimales
-        )
+        ) ||
 
-        ||
-
-        (
-          Array.isArray(
-            animales
-          )
-
-            ?
-
-            animales.length
-
-            :
-
-            0
-        );
+        animales.length;
 
 
       const totalAtrasados =
@@ -1734,12 +1715,9 @@ async function cargarAnalisis() {
 
 
       const pronosticosHoy =
-
         Number(
           estadisticasAPI.pronosticosHoy
-        )
-
-        ||
+        ) ||
 
         pronosticos.length;
 
@@ -2007,12 +1985,6 @@ async function actualizarTodo() {
     );
 
 
-    /*
-    ==========================================
-    ACTUALIZAR LA LOTERÍA SELECCIONADA
-    ==========================================
-    */
-
     const respuestaActualizar =
       await fetch(
 
@@ -2075,24 +2047,12 @@ async function actualizarTodo() {
     }
 
 
-    /*
-    ==========================================
-    RECALCULAR
-    ==========================================
-    */
-
     boton.textContent =
       "📊 RECALCULANDO...";
 
 
     await cargarAnalisis();
 
-
-    /*
-    ==========================================
-    LISTO
-    ==========================================
-    */
 
     boton.textContent =
       "✅ " +
@@ -2101,16 +2061,13 @@ async function actualizarTodo() {
 
 
     setTimeout(
-
       () => {
 
         boton.textContent =
           "🔄 ACTUALIZAR RESULTADOS";
 
       },
-
       2000
-
     );
 
   }
@@ -2118,10 +2075,8 @@ async function actualizarTodo() {
   catch (error) {
 
     console.error(
-
       "ERROR EN ACTUALIZAR TODO:",
       error
-
     );
 
 
@@ -2158,16 +2113,13 @@ async function actualizarTodo() {
 
 
     setTimeout(
-
       () => {
 
         boton.textContent =
           "🔄 ACTUALIZAR RESULTADOS";
 
       },
-
       2500
-
     );
 
   }
@@ -2206,8 +2158,27 @@ if (
     "change",
     () => {
 
-      loteriaActual =
+      const nuevaLoteria =
         selectorLoteria.value;
+
+
+      /*
+      VALIDAR LA LOTERÍA
+      */
+
+      if (
+        !configuracionLoterias[
+          nuevaLoteria
+        ]
+      ) {
+
+        return;
+
+      }
+
+
+      loteriaActual =
+        nuevaLoteria;
 
 
       localStorage.setItem(
@@ -2217,9 +2188,15 @@ if (
 
 
       /*
-      Recargar para que
-      animales.js y el backend
-      utilicen la nueva lotería.
+      CAMBIAR ANIMALITOS
+      */
+
+      actualizarListaAnimales();
+
+
+      /*
+      RECARGAR PARA CAMBIAR
+      API + DATOS
       */
 
       location.reload();
@@ -2259,5 +2236,7 @@ if (
 CARGA INICIAL
 ==================================================
 */
+
+actualizarListaAnimales();
 
 cargarAnalisis();
