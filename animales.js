@@ -6,12 +6,6 @@ ANIMALES POR LOTERÍA
 */
 
 
-/*
-==================================================
-GUÁCHARO ACTIVO — 77 ANIMALITOS
-==================================================
-*/
-
 const animalesGuacharo = [
 
   { numero:"0", animal:"DELFÍN", emoji:"🐬" },
@@ -65,14 +59,14 @@ const animalesGuacharo = [
   { numero:"42", animal:"TUCÁN", emoji:"🦜" },
   { numero:"43", animal:"MARIPOSA", emoji:"🦋" },
   { numero:"44", animal:"CHIGÜIRE", emoji:"🦫" },
-  { numero:"45", animal:"GARZA", emoji:"🦢" },
+  { numero:"45", animal:"GARZA", emoji:"🪿" },
   { numero:"46", animal:"PUMA", emoji:"🐆" },
   { numero:"47", animal:"PAVO REAL", emoji:"🦚" },
   { numero:"48", animal:"PUERCOESPÍN", emoji:"🦔" },
   { numero:"49", animal:"PEREZA", emoji:"🦥" },
 
-  { numero:"50", animal:"CANARIO", emoji:"🐦" },
-  { numero:"51", animal:"PELÍCANO", emoji:"🐦" },
+  { numero:"50", animal:"CANARIO", emoji:"🐤" },
+  { numero:"51", animal:"PELÍCANO", emoji:"🦩" },
   { numero:"52", animal:"PULPO", emoji:"🐙" },
   { numero:"53", animal:"CARACOL", emoji:"🐌" },
   { numero:"54", animal:"GRILLO", emoji:"🦗" },
@@ -103,16 +97,9 @@ const animalesGuacharo = [
 ];
 
 
-/*
-==================================================
-LA GRANJITA — 38 ANIMALITOS
-==================================================
-*/
-
 const animalesGranjita = [
 
   { numero:"00", animal:"BALLENA", emoji:"🐋" },
-
   { numero:"01", animal:"CARNERO", emoji:"🐏" },
   { numero:"02", animal:"TORO", emoji:"🐂" },
   { numero:"03", animal:"CIEMPIÉS", emoji:"🐛" },
@@ -160,10 +147,6 @@ const animalesGranjita = [
 /*
 ==================================================
 VARIABLE GLOBAL
-==================================================
-
-EL SCRIPT PRINCIPAL ES QUIEN DECIDE
-CUÁL LOTERÍA ESTÁ ACTIVA.
 ==================================================
 */
 
