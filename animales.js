@@ -6,6 +6,12 @@ ANIMALES POR LOTERÍA
 */
 
 
+/*
+==================================================
+GUÁCHARO ACTIVO — 77 ANIMALITOS
+==================================================
+*/
+
 const animalesGuacharo = [
 
   { numero:"0", animal:"DELFÍN", emoji:"🐬" },
@@ -97,6 +103,12 @@ const animalesGuacharo = [
 ];
 
 
+/*
+==================================================
+LA GRANJITA — 38 ANIMALITOS
+==================================================
+*/
+
 const animalesGranjita = [
 
   { numero:"00", animal:"BALLENA", emoji:"🐋" },
@@ -146,8 +158,124 @@ const animalesGranjita = [
 
 /*
 ==================================================
-VARIABLE GLOBAL
+SELVA PLUS — 38 ANIMALITOS
+NUMERACIÓN OFICIAL
 ==================================================
 */
 
-let animales = animalesGuacharo;
+const animalesSelvaPlus = [
+
+  { numero:"0",  animal:"DELFÍN",   emoji:"🐬" },
+  { numero:"00", animal:"BALLENA",   emoji:"🐋" },
+
+  { numero:"01", animal:"CARNERO",   emoji:"🐏" },
+  { numero:"02", animal:"TORO",      emoji:"🐂" },
+  { numero:"03", animal:"CIEMPIÉS",  emoji:"🐛" },
+  { numero:"04", animal:"ALACRÁN",   emoji:"🦂" },
+  { numero:"05", animal:"LEÓN",      emoji:"🦁" },
+  { numero:"06", animal:"RANA",      emoji:"🐸" },
+  { numero:"07", animal:"PERICO",    emoji:"🦜" },
+  { numero:"08", animal:"RATÓN",     emoji:"🐭" },
+  { numero:"09", animal:"ÁGUILA",    emoji:"🦅" },
+
+  { numero:"10", animal:"TIGRE",     emoji:"🐯" },
+  { numero:"11", animal:"GATO",      emoji:"🐱" },
+  { numero:"12", animal:"CABALLO",   emoji:"🐴" },
+  { numero:"13", animal:"MONO",      emoji:"🐒" },
+  { numero:"14", animal:"PALOMA",    emoji:"🕊️" },
+  { numero:"15", animal:"ZORRO",     emoji:"🦊" },
+  { numero:"16", animal:"OSO",       emoji:"🐻" },
+  { numero:"17", animal:"PAVO",      emoji:"🦃" },
+  { numero:"18", animal:"BURRO",     emoji:"🫏" },
+  { numero:"19", animal:"CHIVO",     emoji:"🐐" },
+
+  { numero:"20", animal:"COCHINO",   emoji:"🐷" },
+  { numero:"21", animal:"GALLO",     emoji:"🐓" },
+  { numero:"22", animal:"CAMELLO",   emoji:"🐫" },
+  { numero:"23", animal:"CEBRA",     emoji:"🦓" },
+  { numero:"24", animal:"IGUANA",    emoji:"🦎" },
+  { numero:"25", animal:"GALLINA",   emoji:"🐔" },
+  { numero:"26", animal:"VACA",      emoji:"🐄" },
+  { numero:"27", animal:"PERRO",     emoji:"🐶" },
+  { numero:"28", animal:"ZAMURO",    emoji:"🦅" },
+  { numero:"29", animal:"ELEFANTE",  emoji:"🐘" },
+
+  { numero:"30", animal:"CAIMÁN",    emoji:"🐊" },
+  { numero:"31", animal:"LAPA",      emoji:"🐹" },
+  { numero:"32", animal:"ARDILLA",   emoji:"🐿️" },
+  { numero:"33", animal:"PESCADO",   emoji:"🐟" },
+  { numero:"34", animal:"VENADO",    emoji:"🦌" },
+  { numero:"35", animal:"JIRAFA",    emoji:"🦒" },
+  { numero:"36", animal:"CULEBRA",   emoji:"🐍" },
+  { numero:"37", animal:"TORTUGA",   emoji:"🐢" }
+
+];
+
+
+/*
+==================================================
+LOTERÍA ACTUAL
+==================================================
+*/
+
+let loteriaActual =
+  localStorage.getItem(
+    "xtremeLoteria"
+  ) ||
+  "guacharoactivo";
+
+
+/*
+==================================================
+ANIMALITOS ACTUALES
+==================================================
+*/
+
+let animales =
+  animalesGuacharo;
+
+
+/*
+==================================================
+SELECCIONAR LISTA SEGÚN LOTERÍA
+==================================================
+*/
+
+if (
+  loteriaActual ===
+  "lagranjita"
+) {
+
+  animales =
+    animalesGranjita;
+
+}
+
+else if (
+  loteriaActual ===
+  "selvaplus"
+) {
+
+  animales =
+    animalesSelvaPlus;
+
+}
+
+
+/*
+==================================================
+EXPORTAR AL CÓDIGO DE LA PÁGINA
+==================================================
+*/
+
+window.animalesGuacharo =
+  animalesGuacharo;
+
+window.animalesGranjita =
+  animalesGranjita;
+
+window.animalesSelvaPlus =
+  animalesSelvaPlus;
+
+window.animales =
+  animales;
