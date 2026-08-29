@@ -10,7 +10,7 @@ VERSIÓN ESTABLE
 
 /*
 ==================================================
-EMOJIS DE LOS ANIMALITOS
+EMOJIS
 ==================================================
 */
 
@@ -119,6 +119,91 @@ let loteriaActual =
 
 /*
 ==================================================
+OBTENER LISTAS DE ANIMALES DE FORMA SEGURA
+==================================================
+*/
+
+function obtenerListaAnimales(
+  nombre
+) {
+
+  if (
+    nombre ===
+    "guacharoactivo"
+  ) {
+
+    return (
+      typeof animalesGuacharo !== "undefined"
+        ? animalesGuacharo
+        : []
+    );
+
+  }
+
+
+  if (
+    nombre ===
+    "lagranjita"
+  ) {
+
+    return (
+      typeof animalesGranjita !== "undefined"
+        ? animalesGranjita
+        : []
+    );
+
+  }
+
+
+  if (
+    nombre ===
+    "selvaplus"
+  ) {
+
+    if (
+      typeof animalesSelvaPlus !==
+        "undefined"
+    ) {
+
+      return animalesSelvaPlus;
+
+    }
+
+
+    if (
+      typeof animalesGranjita !==
+        "undefined"
+    ) {
+
+      return animalesGranjita;
+
+    }
+
+
+    return [];
+
+  }
+
+
+  return [];
+
+}
+
+
+/*
+==================================================
+ANIMALES ACTUALES
+==================================================
+*/
+
+let animales =
+  obtenerListaAnimales(
+    loteriaActual
+  );
+
+
+/*
+==================================================
 CONFIGURACIÓN DE LOTERÍAS
 ==================================================
 */
@@ -134,10 +219,7 @@ const configuracionLoterias = {
       "/api/actualizar",
 
     analizar:
-      "/api/analizar",
-
-    animales:
-      animalesGuacharo
+      "/api/analizar"
 
   },
 
@@ -151,10 +233,7 @@ const configuracionLoterias = {
       "/api/actualizarGranjita",
 
     analizar:
-      "/api/analizarGranjita",
-
-    animales:
-      animalesGranjita
+      "/api/analizarGranjita"
 
   },
 
@@ -168,10 +247,7 @@ const configuracionLoterias = {
       "/api/actualizarSelvaPlus",
 
     analizar:
-      "/api/analizarSelvaPlus",
-
-    animales:
-      animalesSelvaPlus
+      "/api/analizarSelvaPlus"
 
   }
 
@@ -187,7 +263,6 @@ OBTENER CONFIGURACIÓN
 function obtenerConfiguracionLoteria() {
 
   return (
-
     configuracionLoterias[
       loteriaActual
     ] ||
@@ -203,24 +278,25 @@ function obtenerConfiguracionLoteria() {
 
 /*
 ==================================================
-ACTUALIZAR ANIMALITOS SEGÚN LOTERÍA
+ACTUALIZAR ANIMALES
 ==================================================
 */
 
 function actualizarListaAnimales() {
 
-  const configuracion =
-    obtenerConfiguracionLoteria();
+  const lista =
+    obtenerListaAnimales(
+      loteriaActual
+    );
 
 
   if (
-    Array.isArray(
-      configuracion.animales
-    )
+    Array.isArray(lista) &&
+    lista.length > 0
   ) {
 
     animales =
-      configuracion.animales;
+      lista;
 
   }
 
@@ -244,8 +320,12 @@ function mostrarMensajePronostico(
     );
 
 
-  if (!contenedor) {
+  if (
+    !contenedor
+  ) {
+
     return;
+
   }
 
 
@@ -317,8 +397,12 @@ function normalizarNumero(
     ).trim();
 
 
-  if (!texto) {
+  if (
+    !texto
+  ) {
+
     return "";
+
   }
 
 
@@ -348,7 +432,7 @@ function normalizarNumero(
 
 /*
 ==================================================
-OBTENER EMOJI
+EMOJI
 ==================================================
 */
 
@@ -376,6 +460,7 @@ function obtenerEmoji(
     ] ||
 
     "🐾"
+
   );
 
 }
@@ -390,7 +475,7 @@ FETCH SEGURO
 async function fetchSeguro(
   url,
   opciones = {},
-  tiempoMaximo = 30000
+  tiempoMaximo = 15000
 ) {
 
   const controlador =
@@ -399,8 +484,11 @@ async function fetchSeguro(
 
   const temporizador =
     setTimeout(
-      () =>
-        controlador.abort(),
+      () => {
+
+        controlador.abort();
+
+      },
       tiempoMaximo
     );
 
@@ -418,7 +506,9 @@ async function fetchSeguro(
 
   }
 
-  catch (error) {
+  catch (
+    error
+  ) {
 
     if (
       error.name ===
@@ -449,7 +539,7 @@ async function fetchSeguro(
 
 /*
 ==================================================
-BUSCAR RESULTADO DE UN ANIMAL
+BUSCAR UN RESULTADO
 ==================================================
 */
 
@@ -481,12 +571,6 @@ function buscarResultadoAnimal(
       animal.numero
     );
 
-
-  /*
-  ----------------------------------------------
-  BUSCAR POR NOMBRE
-  ----------------------------------------------
-  */
 
   for (
     const [
@@ -529,12 +613,6 @@ function buscarResultadoAnimal(
   }
 
 
-  /*
-  ----------------------------------------------
-  BUSCAR POR NÚMERO
-  ----------------------------------------------
-  */
-
   if (
     numeroBuscado
   ) {
@@ -562,15 +640,10 @@ function buscarResultadoAnimal(
         of resultados
       ) {
 
-        const numeroResultado =
+        if (
           normalizarNumero(
             resultado?.numero
-          );
-
-
-        if (
-          numeroResultado &&
-          numeroResultado ===
+          ) ===
           numeroBuscado
         ) {
 
@@ -629,12 +702,6 @@ function buscarResultadosAnimal(
     );
 
 
-  /*
-  ----------------------------------------------
-  POR NOMBRE
-  ----------------------------------------------
-  */
-
   Object.entries(
     resultadosHoy
   ).forEach(
@@ -654,11 +721,15 @@ function buscarResultadosAnimal(
       }
 
 
-      if (
+      const mismoNombre =
         normalizarTexto(
           nombreAPI
         ) ===
-        nombreBuscado
+        nombreBuscado;
+
+
+      if (
+        mismoNombre
       ) {
 
         encontrados.push(
@@ -670,12 +741,6 @@ function buscarResultadosAnimal(
     }
   );
 
-
-  /*
-  ----------------------------------------------
-  POR NÚMERO
-  ----------------------------------------------
-  */
 
   if (
     numeroBuscado &&
@@ -702,15 +767,10 @@ function buscarResultadosAnimal(
         resultados.forEach(
           resultado => {
 
-            const numeroResultado =
+            if (
               normalizarNumero(
                 resultado?.numero
-              );
-
-
-            if (
-              numeroResultado &&
-              numeroResultado ===
+              ) ===
               numeroBuscado
             ) {
 
@@ -870,95 +930,79 @@ function mostrarResultadosHoy(
     );
 
 
-  if (!contenedor) {
-    return;
-  }
-
-
   if (
-    !resultadosHoy ||
-    typeof resultadosHoy !==
-      "object"
+    !contenedor
   ) {
 
-    contenedor.innerHTML = `
-
-      <p>
-        ⏳ Todavía no hay resultados de hoy.
-      </p>
-
-    `;
-
     return;
 
   }
-
-
-  const mapaPronosticos =
-    obtenerMapaPronosticos(
-      pronosticos
-    );
 
 
   const lista =
     [];
 
 
-  Object.entries(
-    resultadosHoy
-  ).forEach(
-    ([
-      animal,
-      resultados
-    ]) => {
+  if (
+    resultadosHoy &&
+    typeof resultadosHoy ===
+      "object"
+  ) {
 
-      if (
-        !Array.isArray(
-          resultados
-        )
-      ) {
+    Object.entries(
+      resultadosHoy
+    ).forEach(
+      ([
+        animal,
+        resultados
+      ]) => {
 
-        return;
+        if (
+          !Array.isArray(
+            resultados
+          )
+        ) {
 
-      }
-
-
-      resultados.forEach(
-        resultado => {
-
-          lista.push({
-
-            animal,
-
-            numero:
-              resultado?.numero ??
-              "",
-
-            hora:
-              resultado?.hora ??
-              "",
-
-            fecha:
-              resultado?.fecha ??
-              ""
-
-          });
+          return;
 
         }
-      );
-
-    }
-  );
 
 
-  /*
-  ----------------------------------------------
-  ORDENAR POR FECHA/HORA
-  ----------------------------------------------
-  */
+        resultados.forEach(
+          resultado => {
+
+            lista.push({
+
+              animal,
+
+              numero:
+                resultado?.numero ??
+                "",
+
+              hora:
+                resultado?.hora ??
+                "",
+
+              fecha:
+                resultado?.fecha ??
+                ""
+
+            });
+
+          }
+        );
+
+      }
+    );
+
+  }
+
 
   lista.sort(
-    (a, b) =>
+    (
+      a,
+      b
+    ) =>
       String(
         a.fecha
       ).localeCompare(
@@ -987,11 +1031,11 @@ function mostrarResultadosHoy(
   }
 
 
-  /*
-  ----------------------------------------------
-  MOSTRAR RESULTADOS
-  ----------------------------------------------
-  */
+  const mapaPronosticos =
+    obtenerMapaPronosticos(
+      pronosticos
+    );
+
 
   contenedor.innerHTML = `
 
@@ -1003,16 +1047,12 @@ function mostrarResultadosHoy(
           index
         ) => {
 
-          const pronostico =
-            buscarPronosticoParaResultado(
-              resultado,
-              mapaPronosticos
-            );
-
-
           const esAcierto =
             Boolean(
-              pronostico
+              buscarPronosticoParaResultado(
+                resultado,
+                mapaPronosticos
+              )
             );
 
 
@@ -1069,11 +1109,7 @@ function mostrarResultadosHoy(
 
               ${
                 esAcierto
-
-                  ?
-
-                  `
-
+                  ? `
                     <div
                       class="acierto-resultado"
                       style="
@@ -1085,21 +1121,13 @@ function mostrarResultadosHoy(
                     >
 
                       🚀💥➡️ 🏁
-
                       ${nombreMostrar}
-
                       ACIERTO XTREME
-
                       🏁 ⬅️💥🚀
 
                     </div>
-
                   `
-
-                  :
-
-                  ""
-
+                  : ""
               }
 
             </div>
@@ -1118,574 +1146,473 @@ function mostrarResultadosHoy(
 
 /*
 ==================================================
-CARGAR ANÁLISIS
+PINTAR PRONÓSTICOS
 ==================================================
 */
 
-async function cargarAnalisis() {
+function pintarPronosticos(
+  datos,
+  configuracion
+) {
 
-  const configuracion =
-    obtenerConfiguracionLoteria();
-
-
-  /*
-  ----------------------------------------------
-  CAMBIAR LISTA DE ANIMALITOS
-  ----------------------------------------------
-  */
-
-  actualizarListaAnimales();
+  const contenedor =
+    document.getElementById(
+      "pronostico"
+    );
 
 
-  try {
+  if (
+    !contenedor
+  ) {
+
+    return;
+
+  }
+
+
+  const pronosticos =
+    Array.isArray(
+      datos.pronosticos
+    )
+
+      ? datos.pronosticos.slice(
+          0,
+          3
+        )
+
+      : [];
+
+
+  if (
+    pronosticos.length ===
+      0
+  ) {
 
     mostrarMensajePronostico(
-      "⏳ Analizando...",
-      `Calculando posibilidades de ${configuracion.nombre}...`
+      "⚠️ Sin pronóstico disponible",
+      "No hay suficientes datos para generar las posibilidades del día."
     );
 
+    return;
 
-    const respuesta =
-      await fetchSeguro(
-
-        configuracion.analizar +
-        "?_=" +
-        Date.now(),
-
-        {
-
-          method:
-            "GET",
-
-          cache:
-            "no-store",
-
-          headers: {
-
-            "Cache-Control":
-              "no-cache, no-store, must-revalidate",
-
-            "Pragma":
-              "no-cache"
-
-          }
-
-        },
-
-        30000
-
-      );
+  }
 
 
-    if (
-      !respuesta.ok
-    ) {
+  contenedor.innerHTML = `
 
-      throw new Error(
-        `Error HTTP: ${respuesta.status}`
-      );
+    <div class="pronosticos-dia">
 
-    }
+      <h1>
+        🎯 POSIBILIDADES DEL DÍA
+      </h1>
 
 
-    const datos =
-      await respuesta.json();
+      <p>
+
+        ${configuracion.nombre}
+
+        — análisis XTREME actualizado.
+
+      </p>
 
 
-    if (
-      !datos.ok
-    ) {
+      <div class="lista-pronosticos">
 
-      throw new Error(
-        datos.error ||
-        "Error en el análisis."
-      );
+        ${pronosticos.map(
+          (
+            animal,
+            index
+          ) => {
 
-    }
-
-
-    /*
-    ==============================================
-    PRONÓSTICOS
-    ==============================================
-    */
-
-    const pronosticos =
-      Array.isArray(
-        datos.pronosticos
-      )
-
-        ? datos.pronosticos.slice(
-            0,
-            3
-          )
-
-        : [];
+            const posicion =
+              index === 0
+                ? "🥇"
+                : index === 1
+                  ? "🥈"
+                  : "🥉";
 
 
-    /*
-    ==============================================
-    RESULTADOS DE HOY
-    ==============================================
-    */
-
-    mostrarResultadosHoy(
-      datos.resultadosHoy,
-      pronosticos
-    );
-
-
-    /*
-    ==============================================
-    PRONÓSTICO
-    ==============================================
-    */
-
-    const contenedorPronostico =
-      document.getElementById(
-        "pronostico"
-      );
-
-
-    if (
-      contenedorPronostico &&
-      pronosticos.length > 0
-    ) {
-
-      contenedorPronostico.innerHTML = `
-
-        <div class="pronosticos-dia">
-
-          <h1>
-
-            🎯 POSIBILIDADES DEL DÍA
-
-          </h1>
-
-
-          <p>
-
-            ${configuracion.nombre}
-
-            — análisis XTREME actualizado.
-
-          </p>
-
-
-          <div class="lista-pronosticos">
-
-            ${pronosticos.map(
-
-              (
+            const resultado =
+              buscarResultadoAnimal(
                 animal,
-                index
-              ) => {
-
-                const posicion =
-                  index === 0
-                    ? "🥇"
-                    : index === 1
-                      ? "🥈"
-                      : "🥉";
+                datos.resultadosHoy
+              );
 
 
-                const resultado =
-                  buscarResultadoAnimal(
-                    animal,
-                    datos.resultadosHoy
-                  );
+            const esAcierto =
+              Boolean(
+                resultado
+              );
 
 
-                const esAcierto =
-                  Boolean(
-                    resultado
-                  );
+            const estado =
+              esAcierto
+
+                ?
+
+                `
+
+                  <div
+                    class="acierto-xtreme"
+                    style="
+                      text-align:center;
+                      font-size:1.12em;
+                      font-weight:900;
+                      line-height:1.35;
+                      margin:10px 0 12px;
+                      padding:8px 5px;
+                    "
+                  >
+
+                    🚀💥➡️ 🏁
+
+                    ${animal.animal}
+
+                    ACIERTO XTREME
+
+                    🏁 ⬅️💥🚀
+
+                  </div>
 
 
-                const estado =
+                  <p>
 
-                  esAcierto
+                    🎯 Resultado:
 
-                    ?
+                    <strong>
 
-                    `
+                      #${
+                        resultado.numero ??
+                        animal.numero
+                      }
 
-                      <div
-                        class="acierto-xtreme"
-                        style="
-                          text-align:center;
-                          font-size:1.12em;
-                          font-weight:900;
-                          line-height:1.35;
-                          margin:10px 0 12px;
-                          padding:8px 5px;
-                        "
-                      >
-
-                        🚀💥➡️ 🏁
-
-                        ${animal.animal}
-
-                        ACIERTO XTREME
-
-                        🏁 ⬅️💥🚀
-
-                      </div>
-
-
-                      <p>
-
-                        🎯 Resultado:
-
-                        <strong>
-
-                          #${
-                            resultado.numero ??
-                            animal.numero
-                          }
-
-                          ${
+                      ${
+                        resultado.hora
+                          ? " · " +
                             resultado.hora
-                              ? " · " +
-                                resultado.hora
-                              : ""
-                          }
+                          : ""
+                      }
 
-                        </strong>
+                    </strong>
 
-                      </p>
+                  </p>
 
-                    `
+                `
 
-                    :
+                :
 
-                    `
+                `
 
-                      <div
-                        class="estado-pronostico"
-                        style="
-                          font-weight:700;
-                          margin:8px 0 10px;
-                        "
-                      >
+                  <div
+                    class="estado-pronostico"
+                    style="
+                      font-weight:700;
+                      margin:8px 0 10px;
+                    "
+                  >
 
-                        🎯 Pronóstico activo
-
-                      </div>
-
-                    `;
-
-
-                return `
-
-                  <div class="pronostico-animal">
-
-                    <h2>
-
-                      ${posicion}
-
-                      ${obtenerEmoji(
-                        animal.animal
-                      )}
-
-                      ${animal.animal}
-
-                    </h2>
-
-
-                    ${estado}
-
-
-                    <p>
-
-                      🔥 Confianza XTREME:
-
-                      <strong>
-
-                        ${animal.porcentaje ?? 0}%
-
-                      </strong>
-
-                    </p>
-
-
-                    <p>
-
-                      📊 Salidas:
-
-                      <strong>
-
-                        ${animal.salidas ?? 0}
-
-                      </strong>
-
-                    </p>
-
-
-                    <p>
-
-                      ⏳ Días sin salir:
-
-                      <strong>
-
-                        ${animal.diasSinSalir ?? 0}
-
-                      </strong>
-
-                    </p>
-
-
-                    <p>
-
-                      📈 Tendencia:
-
-                      <strong>
-
-                        ${animal.tendencia ?? "N/A"}
-
-                      </strong>
-
-                    </p>
-
-
-                    <p>
-
-                      🏷️ Categoría:
-
-                      <strong>
-
-                        ${animal.categoria ?? "N/A"}
-
-                      </strong>
-
-                    </p>
+                    🎯 Pronóstico activo
 
                   </div>
 
                 `;
 
-              }
 
-            ).join("")}
+            return `
 
-          </div>
+              <div class="pronostico-animal">
+
+                <h2>
+
+                  ${posicion}
+
+                  ${obtenerEmoji(
+                    animal.animal
+                  )}
+
+                  ${animal.animal}
+
+                </h2>
 
 
-          <p class="nota-pronostico">
+                ${estado}
 
-            👀 👉🏼 Son posibilidades estadísticas
-            de XTREME proyecto.
 
-          </p>
+                <p>
 
-        </div>
+                  🔥 Confianza XTREME:
+
+                  <strong>
+
+                    ${animal.porcentaje ?? 0}%
+
+                  </strong>
+
+                </p>
+
+
+                <p>
+
+                  📊 Salidas:
+
+                  <strong>
+
+                    ${animal.salidas ?? 0}
+
+                  </strong>
+
+                </p>
+
+
+                <p>
+
+                  ⏳ Días sin salir:
+
+                  <strong>
+
+                    ${animal.diasSinSalir ?? 0}
+
+                  </strong>
+
+                </p>
+
+
+                <p>
+
+                  📈 Tendencia:
+
+                  <strong>
+
+                    ${animal.tendencia ?? "N/A"}
+
+                  </strong>
+
+                </p>
+
+
+                <p>
+
+                  🏷️ Categoría:
+
+                  <strong>
+
+                    ${animal.categoria ?? "N/A"}
+
+                  </strong>
+
+                </p>
+
+              </div>
+
+            `;
+
+          }
+        ).join("")}
+
+      </div>
+
+
+      <p class="nota-pronostico">
+
+        👀 👉🏼 Son posibilidades estadísticas
+        de XTREME proyecto.
+
+      </p>
+
+    </div>
+
+  `;
+
+}
+
+
+/*
+==================================================
+PINTAR TOP 10
+==================================================
+*/
+
+function pintarTop10(
+  datos
+) {
+
+  const tablaTop =
+    document.getElementById(
+      "top10"
+    );
+
+
+  if (
+    !tablaTop
+  ) {
+
+    return;
+
+  }
+
+
+  tablaTop.innerHTML =
+    "";
+
+
+  if (
+    !Array.isArray(
+      datos.top10
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  datos.top10.forEach(
+    (
+      animal,
+      index
+    ) => {
+
+      tablaTop.innerHTML += `
+
+        <tr>
+
+          <td>
+
+            ${index + 1}
+
+          </td>
+
+
+          <td>
+
+            <strong>
+
+              ${obtenerEmoji(
+                animal.animal
+              )}
+
+              ${animal.animal}
+
+            </strong>
+
+          </td>
+
+
+          <td>
+
+            ${animal.salidas ?? 0}
+
+          </td>
+
+
+          <td>
+
+            ${animal.diasSinSalir ?? 0}
+
+          </td>
+
+
+          <td>
+
+            ${animal.indice ?? 0}%
+
+          </td>
+
+        </tr>
 
       `;
 
     }
+  );
 
-    else {
+}
 
-      mostrarMensajePronostico(
 
-        "⚠️ Sin pronóstico disponible",
+/*
+==================================================
+PINTAR ATRASADOS
+==================================================
+*/
 
-        "No hay suficientes datos para generar " +
-        "las posibilidades del día."
+function pintarAtrasados(
+  datos
+) {
 
-      );
+  const tablaAtrasados =
+    document.getElementById(
+      "atrasados"
+    );
 
-    }
 
+  if (
+    !tablaAtrasados
+  ) {
 
-    /*
-    ==============================================
-    TOP 10
-    ==============================================
-    */
+    return;
 
-    const tablaTop =
-      document.getElementById(
-        "top10"
-      );
+  }
 
 
-    if (
-      tablaTop
-    ) {
+  tablaAtrasados.innerHTML =
+    "";
 
-      tablaTop.innerHTML =
-        "";
 
+  if (
+    Array.isArray(
+      datos.atrasados
+    ) &&
+    datos.atrasados.length > 0
+  ) {
 
-      if (
-        Array.isArray(
-          datos.top10
-        )
-      ) {
+    datos.atrasados.forEach(
+      (
+        animal,
+        index
+      ) => {
 
-        datos.top10.forEach(
-          (
-            animal,
-            index
-          ) => {
-
-            tablaTop.innerHTML += `
-
-              <tr>
-
-                <td>
-
-                  ${index + 1}
-
-                </td>
-
-
-                <td>
-
-                  <strong>
-
-                    ${obtenerEmoji(
-                      animal.animal
-                    )}
-
-                    ${animal.animal}
-
-                  </strong>
-
-                </td>
-
-
-                <td>
-
-                  ${animal.salidas ?? 0}
-
-                </td>
-
-
-                <td>
-
-                  ${animal.diasSinSalir ?? 0}
-
-                </td>
-
-
-                <td>
-
-                  ${animal.indice ?? 0}%
-
-                </td>
-
-              </tr>
-
-            `;
-
-          }
-        );
-
-      }
-
-    }
-
-
-    /*
-    ==============================================
-    ANIMALES ATRASADOS
-    ==============================================
-    */
-
-    const tablaAtrasados =
-      document.getElementById(
-        "atrasados"
-      );
-
-
-    if (
-      tablaAtrasados
-    ) {
-
-      tablaAtrasados.innerHTML =
-        "";
-
-
-      if (
-        Array.isArray(
-          datos.atrasados
-        ) &&
-        datos.atrasados.length > 0
-      ) {
-
-        datos.atrasados.forEach(
-          (
-            animal,
-            index
-          ) => {
-
-            tablaAtrasados.innerHTML += `
-
-              <tr>
-
-                <td>
-
-                  ${index + 1}
-
-                </td>
-
-
-                <td>
-
-                  <strong>
-
-                    ${obtenerEmoji(
-                      animal.animal
-                    )}
-
-                    ${animal.animal}
-
-                  </strong>
-
-                </td>
-
-
-                <td>
-
-                  ${animal.salidas ?? 0}
-
-                </td>
-
-
-                <td>
-
-                  ${animal.diasSinSalir ?? 0}
-
-                </td>
-
-
-                <td>
-
-                  ${animal.indice ?? 0}%
-
-                </td>
-
-              </tr>
-
-            `;
-
-          }
-        );
-
-      }
-
-      else {
-
-        tablaAtrasados.innerHTML = `
+        tablaAtrasados.innerHTML += `
 
           <tr>
 
-            <td colspan="5">
+            <td>
 
-              No hay animales con
-              7 o más días de atraso.
+              ${index + 1}
+
+            </td>
+
+
+            <td>
+
+              <strong>
+
+                ${obtenerEmoji(
+                  animal.animal
+                )}
+
+                ${animal.animal}
+
+              </strong>
+
+            </td>
+
+
+            <td>
+
+              ${animal.salidas ?? 0}
+
+            </td>
+
+
+            <td>
+
+              ${animal.diasSinSalir ?? 0}
+
+            </td>
+
+
+            <td>
+
+              ${animal.indice ?? 0}%
 
             </td>
 
@@ -1694,34 +1621,333 @@ async function cargarAnalisis() {
         `;
 
       }
+    );
+
+  }
+
+  else {
+
+    tablaAtrasados.innerHTML = `
+
+      <tr>
+
+        <td colspan="5">
+
+          No hay animales con
+          7 o más días de atraso.
+
+        </td>
+
+      </tr>
+
+    `;
+
+  }
+
+}
+
+
+/*
+==================================================
+PINTAR ANIMALITOS
+==================================================
+*/
+
+function pintarAnimales(
+  datos
+) {
+
+  const contenedor =
+    document.getElementById(
+      "animales"
+    );
+
+
+  if (
+    !contenedor
+  ) {
+
+    return;
+
+  }
+
+
+  contenedor.innerHTML =
+    "";
+
+
+  if (
+    !Array.isArray(animales)
+  ) {
+
+    return;
+
+  }
+
+
+  animales.forEach(
+    a => {
+
+      const dato =
+        Array.isArray(
+          datos.top10
+        )
+
+          ?
+
+          datos.top10.find(
+            x =>
+              normalizarTexto(
+                x.animal
+              ) ===
+              normalizarTexto(
+                a.animal
+              )
+          )
+
+          :
+
+          null;
+
+
+      const resultadosAnimal =
+        buscarResultadosAnimal(
+          a,
+          datos.resultadosHoy
+        );
+
+
+      let clase =
+        "frio";
+
+
+      if (
+        dato
+      ) {
+
+        if (
+          Number(
+            dato.indice
+          ) >= 80
+        ) {
+
+          clase =
+            "caliente";
+
+        }
+
+        else if (
+          Number(
+            dato.indice
+          ) >= 50
+        ) {
+
+          clase =
+            "medio";
+
+        }
+
+      }
+
+
+      let resultadoHoyHTML = `
+
+        <small>
+
+          ⏳ No salió hoy
+
+        </small>
+
+      `;
+
+
+      if (
+        resultadosAnimal.length > 0
+      ) {
+
+        resultadoHoyHTML = `
+
+          <small>
+
+            ✅ Salió hoy
+
+            ${resultadosAnimal.map(
+              resultado =>
+                `
+
+                  <br>
+
+                  🕐 ${
+                    resultado.hora ??
+                    ""
+                  }
+
+                `
+            ).join("")}
+
+          </small>
+
+        `;
+
+      }
+
+
+      contenedor.innerHTML += `
+
+        <div class="animal ${clase}">
+
+          <strong>
+
+            ${a.numero}
+
+          </strong>
+
+          <br>
+
+          ${obtenerEmoji(
+            a.animal
+          )}
+
+          ${a.animal}
+
+          <br>
+
+          ${resultadoHoyHTML}
+
+        </div>
+
+      `;
 
     }
+  );
+
+}
 
 
-    /*
-    ==============================================
-    ANIMALITOS
-    ==============================================
-    */
+/*
+==================================================
+PINTAR ESTADÍSTICAS
+==================================================
+*/
 
-    const contenedorAnimales =
-      document.getElementById(
-        "animales"
-      );
+function pintarEstadisticas(
+  datos,
+  configuracion
+) {
 
-
-    if (
-      contenedorAnimales
-    ) {
-
-      contenedorAnimales.innerHTML =
-        "";
+  const estadistica =
+    document.getElementById(
+      "estadistica"
+    );
 
 
-      animales.forEach(
-        a => {
+  if (
+    !estadistica
+  ) {
 
-          const dato =
-            Array.isArray(
-              datos.top10
-           
+    return;
+
+  }
+
+
+  const estadisticasAPI =
+    datos.estadisticas ||
+    {};
+
+
+  const totalHistorial =
+    Number(
+      datos.historial
+    ) ||
+    0;
+
+
+  const totalAnimales =
+    Number(
+      estadisticasAPI.totalAnimales
+    ) ||
+
+    animales.length;
+
+
+  const totalAtrasados =
+    Number(
+      estadisticasAPI.totalAtrasados
+    ) ||
+    0;
+
+
+  const mayorAtrasoAnimal =
+    estadisticasAPI.mayorAtraso ||
+
+    (
+      datos.atrasados &&
+      datos.atrasados.length > 0
+
+        ?
+
+        datos.atrasados[0].animal
+
+        :
+
+        "N/A"
+    );
+
+
+  const diasMayorAtraso =
+    Number(
+      estadisticasAPI.diasMayorAtraso
+    ) ||
+    0;
+
+
+  const candidatosPronostico =
+    Number(
+      estadisticasAPI.candidatosPronostico
+    ) ||
+    0;
+
+
+  const pronosticosHoy =
+    Number(
+      estadisticasAPI.pronosticosHoy
+    ) ||
+
+    (
+      Array.isArray(
+        datos.pronosticos
+      )
+
+        ?
+
+        datos.pronosticos.length
+
+        :
+
+        0
+    );
+
+
+  const pronosticoActual =
+    estadisticasAPI.pronosticoActual ||
+
+    (
+      Array.isArray(
+        datos.pronosticos
+      ) &&
+      datos.pronosticos.length > 0
+
+        ?
+
+        datos.pronosticos
+          .map(
+            a =>
+              a.animal
+          )
+          .join(
+            " • "
+          )
+
+        :
+
+        "N/A"
