@@ -110,10 +110,6 @@ function obtenerListaAnimales(nombre) {
 }
 
 
-let animales =
-  obtenerListaAnimales(loteriaActual);
-
-
 /*
 ==================================================
 NORMALIZAR
