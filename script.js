@@ -1255,6 +1255,7 @@ async function cargarAnalisis() {
         `${configuracion.analizar}?_=${Date.now()}`,
         {
           method: "GET",
+
           headers: {
             "Cache-Control":
               "no-cache"
@@ -1482,68 +1483,72 @@ async function actualizarTodo() {
 
 /*
 ==================================================
-SELECTOR DE LOTERÍA
+INICIALIZAR CONTROLES
 ==================================================
 */
 
-const selector =
-  document.getElementById(
-    "selectorLoteria"
-  );
+function inicializarControles() {
+
+  const selector =
+    document.getElementById(
+      "selectorLoteria"
+    );
 
 
-if (selector) {
+  if (selector) {
 
-  selector.value =
-    loteriaActual;
-
-
-  selector.addEventListener(
-    "change",
-    () => {
-
-      loteriaActual =
-        selector.value;
+    selector.value =
+      loteriaActual;
 
 
-      localStorage.setItem(
-        "xtremeLoteria",
-        loteriaActual
-      );
+    selector.addEventListener(
+      "change",
+      () => {
+
+        loteriaActual =
+          selector.value;
 
 
-      animales =
-        obtenerListaAnimales(
+        localStorage.setItem(
+          "xtremeLoteria",
           loteriaActual
         );
 
 
-      cargarAnalisis();
-
-    }
-  );
-
-}
+        animales =
+          obtenerListaAnimales(
+            loteriaActual
+          );
 
 
-/*
-==================================================
-BOTÓN ACTUALIZAR
-==================================================
-*/
+        cargarAnalisis();
 
-const botonActualizar =
-  document.getElementById(
-    "actualizar"
-  );
+      }
+    );
+
+  }
 
 
-if (botonActualizar) {
+  /*
+  ==============================================
+  BOTÓN ACTUALIZAR
+  ==============================================
+  */
 
-  botonActualizar.addEventListener(
-    "click",
-    actualizarTodo
-  );
+  const botonActualizar =
+    document.getElementById(
+      "actualizar"
+    );
+
+
+  if (botonActualizar) {
+
+    botonActualizar.addEventListener(
+      "click",
+      actualizarTodo
+    );
+
+  }
 
 }
 
@@ -1554,6 +1559,75 @@ ARRANQUE XTREME
 ==================================================
 */
 
-actualizarListaAnimales();
+function iniciarXTREME() {
 
-cargarAnalisis();
+  try {
+
+    actualizarListaAnimales();
+
+    inicializarControles();
+
+    cargarAnalisis();
+
+  } catch (error) {
+
+    console.error(
+      "ERROR AL INICIAR XTREME:",
+      error
+    );
+
+    const pronostico =
+      document.getElementById(
+        "pronostico"
+      );
+
+    if (pronostico) {
+
+      pronostico.innerHTML = `
+
+        <div
+          style="
+            text-align:center;
+            padding:20px;
+          "
+        >
+
+          <h2>
+            ⚠️ ERROR XTREME
+          </h2>
+
+          <p>
+            ${error.message}
+          </p>
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+}
+
+
+/*
+==================================================
+ESPERAR A QUE CARGUE COMPLETAMENTE EL DOM
+==================================================
+*/
+
+if (
+  document.readyState === "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    iniciarXTREME
+  );
+
+} else {
+
+  iniciarXTREME();
+
+}
