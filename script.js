@@ -72,6 +72,12 @@ const configuracionLoterias = {
     analizar: "/api/analizarRuleta"
   },
 
+  lottoactivo: {
+    nombre: "Lotto Activo",
+    actualizar: "/api/actualizarLotto",
+    analizar: "/api/analizarLotto"
+  },
+
   granamillonaria: {
     nombre: "Granja Millonaria",
     actualizar: "/api/actualizarGranjaMillonaria",
@@ -115,6 +121,13 @@ function obtenerListaAnimales(nombre) {
     typeof animalesRuleta !== "undefined"
   ) {
     return animalesRuleta;
+  }
+
+  if (
+    nombre === "lottoactivo" &&
+    typeof animalesLotto !== "undefined"
+  ) {
+    return animalesLotto;
   }
 
   if (
