@@ -49,7 +49,9 @@ const animalesRuleta = {
   "38": "BUFALO"
 };
 
+
 function normalizarTexto(texto) {
+
   return String(texto || "")
     .trim()
     .toUpperCase()
@@ -57,14 +59,16 @@ function normalizarTexto(texto) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+
 function obtenerNumeroPorAnimal(animal) {
 
   const buscado =
     normalizarTexto(animal);
 
-  for (const [numero, nombre] of Object.entries(
-    animalesRuleta
-  )) {
+  for (
+    const [numero, nombre]
+    of Object.entries(animalesRuleta)
+  ) {
 
     if (
       normalizarTexto(nombre) ===
@@ -77,7 +81,11 @@ function obtenerNumeroPorAnimal(animal) {
   return null;
 }
 
-function convertirFechaVenezuela(fecha, hora) {
+
+function convertirFechaVenezuela(
+  fecha,
+  hora
+) {
 
   const fechaLimpia =
     String(fecha || "").trim();
@@ -85,11 +93,15 @@ function convertirFechaVenezuela(fecha, hora) {
   const horaLimpia =
     String(hora || "").trim();
 
-  if (!fechaLimpia || !horaLimpia) {
+  if (
+    !fechaLimpia ||
+    !horaLimpia
+  ) {
     return null;
   }
 
-  let hora24 = horaLimpia;
+  let hora24 =
+    horaLimpia;
 
   const match =
     horaLimpia.match(
@@ -109,11 +121,17 @@ function convertirFechaVenezuela(fecha, hora) {
         ? match[3].toUpperCase()
         : null;
 
-    if (periodo === "PM" && h !== 12) {
+    if (
+      periodo === "PM" &&
+      h !== 12
+    ) {
       h += 12;
     }
 
-    if (periodo === "AM" && h === 12) {
+    if (
+      periodo === "AM" &&
+      h === 12
+    ) {
       h = 0;
     }
 
@@ -121,8 +139,11 @@ function convertirFechaVenezuela(fecha, hora) {
       `${String(h).padStart(2, "0")}:${minutos}`;
   }
 
-  return `${fechaLimpia}T${hora24}:00${TZ}`;
+  return (
+    `${fechaLimpia}T${hora24}:00${TZ}`
+  );
 }
+
 
 function extraerNumero(texto) {
 
@@ -130,14 +151,19 @@ function extraerNumero(texto) {
     normalizarTexto(texto);
 
   const match =
-    limpio.match(/\b(00|0|[1-9]|[1-2][0-9]|3[0-8])\b/);
+    limpio.match(
+      /\b(00|0|[1-9]|[1-2][0-9]|3[0-8])\b/
+    );
 
   return match
     ? match[1]
     : null;
 }
 
-function extraerAnimalDesdeCelda(celda) {
+
+function extraerAnimalDesdeCelda(
+  celda
+) {
 
   const imagen =
     celda.find("img").first();
@@ -166,6 +192,7 @@ function extraerAnimalDesdeCelda(celda) {
   return animal;
 }
 
+
 async function descargar(url) {
 
   const respuesta =
@@ -180,6 +207,7 @@ async function descargar(url) {
     });
 
   if (!respuesta.ok) {
+
     throw new Error(
       `LotoVen respondió ${respuesta.status}`
     );
@@ -187,6 +215,7 @@ async function descargar(url) {
 
   return await respuesta.text();
 }
+
 
 function obtenerFechaISO(fecha) {
 
@@ -205,6 +234,7 @@ function obtenerFechaISO(fecha) {
   return texto;
 }
 
+
 function extraerResultados(html) {
 
   const $ =
@@ -218,7 +248,9 @@ function extraerResultados(html) {
       const filas =
         $(tabla).find("tr");
 
-      if (filas.length < 2) {
+      if (
+        filas.length < 2
+      ) {
         return;
       }
 
@@ -226,122 +258,166 @@ function extraerResultados(html) {
 
       $(filas[0])
         .find("th,td")
-        .each((_, celda) => {
+        .each(
+          (_, celda) => {
 
-          encabezados.push(
-            $(celda)
-              .text()
-              .trim()
-          );
-        });
+            encabezados.push(
+              $(celda)
+                .text()
+                .trim()
+            );
+          }
+        );
 
       const fechas =
         encabezados
-          .map(
-            obtenerFechaISO
-          )
+          .map(obtenerFechaISO)
           .filter(Boolean);
 
-      if (fechas.length === 0) {
+      if (
+        fechas.length === 0
+      ) {
         return;
       }
 
-      filas.slice(1).each(
-        (_, fila) => {
+      filas
+        .slice(1)
+        .each(
+          (_, fila) => {
 
-          const celdas =
-            $(fila)
-              .find("td");
+            const celdas =
+              $(fila).find("td");
 
-          if (celdas.length < 2) {
-            return;
+            if (
+              celdas.length < 2
+            ) {
+              return;
+            }
+
+            const hora =
+              $(celdas[0])
+                .text()
+                .trim();
+
+            if (!hora) {
+              return;
+            }
+
+            for (
+              let i = 0;
+              i < fechas.length;
+              i++
+            ) {
+
+              const celda =
+                celdas[i + 1];
+
+              if (!celda) {
+                continue;
+              }
+
+              const animal =
+                extraerAnimalDesdeCelda(
+                  $(celda)
+                );
+
+              if (!animal) {
+                continue;
+              }
+
+              const numero =
+                extraerNumero(
+                  $(celda).text()
+                ) ||
+                obtenerNumeroPorAnimal(
+                  animal
+                );
+
+              if (!numero) {
+                continue;
+              }
+
+              const fecha =
+                convertirFechaVenezuela(
+                  fechas[i],
+                  hora
+                );
+
+              if (!fecha) {
+                continue;
+              }
+
+              resultados.push({
+                animal:
+                  normalizarTexto(
+                    animal
+                  ),
+                numero:
+                  Number(numero),
+                fecha
+              });
+            }
           }
-
-          const hora =
-            $(celdas[0])
-              .text()
-              .trim();
-
-          if (!hora) {
-            return;
-          }
-
-          for (
-            let i = 0;
-            i < fechas.length;
-            i++
-          ) {
-
-            const celda =
-              celdas[i + 1];
-
-            if (!celda) {
-              continue;
-            }
-
-            const animal =
-              extraerAnimalDesdeCelda(
-                $(celda)
-              );
-
-            if (!animal) {
-              continue;
-            }
-
-            const numero =
-              extraerNumero(
-                $(celda).text()
-              ) ||
-              obtenerNumeroPorAnimal(
-                animal
-              );
-
-            if (!numero) {
-              continue;
-            }
-
-            const fecha =
-              convertirFechaVenezuela(
-                fechas[i],
-                hora
-              );
-
-            if (!fecha) {
-              continue;
-            }
-
-            resultados.push({
-              animal:
-                normalizarTexto(animal),
-              numero:
-                Number(numero),
-              fecha
-            });
-          }
-        }
-      );
+        );
     }
   );
 
   return resultados;
 }
 
-function fechaHaceDias(
+
+function formatearFecha(
+  fecha
+) {
+
+  return fecha
+    .toISOString()
+    .slice(0, 10);
+}
+
+
+function restarDias(
   fecha,
   dias
 ) {
 
-  const copia =
+  const nueva =
     new Date(fecha);
 
-  copia.setUTCDate(
-    copia.getUTCDate() - dias
+  nueva.setUTCDate(
+    nueva.getUTCDate() - dias
   );
 
-  return copia
-    .toISOString()
-    .slice(0, 10);
+  return nueva;
 }
+
+
+function obtenerRangoDias() {
+
+  const ahora =
+    new Date();
+
+  const fin =
+    new Date(
+      Date.UTC(
+        ahora.getUTCFullYear(),
+        ahora.getUTCMonth(),
+        ahora.getUTCDate()
+      )
+    );
+
+  const inicio =
+    restarDias(
+      fin,
+      60
+    );
+
+  return {
+    inicio,
+    fin
+  };
+}
+
 
 export default async function handler(
   req,
@@ -350,64 +426,161 @@ export default async function handler(
 
   try {
 
-    const hoy =
-      new Date();
+    const {
+      inicio,
+      fin
+    } =
+      obtenerRangoDias();
 
-    const fin =
-      hoy
-        .toISOString()
-        .slice(0, 10);
+    const todosResultados = [];
 
-    const inicio =
-      fechaHaceDias(
-        hoy,
-        35
+    let fechaActual =
+      new Date(inicio);
+
+    while (
+      fechaActual <= fin
+    ) {
+
+      const fechaInicio =
+        formatearFecha(
+          fechaActual
+        );
+
+      const fechaFinObjeto =
+        new Date(
+          fechaActual
+        );
+
+      fechaFinObjeto.setUTCDate(
+        fechaFinObjeto.getUTCDate() + 6
       );
 
-    const url =
-      `${BASE}/historial/${inicio}/${fin}/`;
+      if (
+        fechaFinObjeto > fin
+      ) {
+        fechaFinObjeto.setTime(
+          fin.getTime()
+        );
+      }
 
-    console.log(
-      "Consultando Ruleta Activa:",
-      url
-    );
+      const fechaFin =
+        formatearFecha(
+          fechaFinObjeto
+        );
 
-    const html =
-      await descargar(url);
+      const url =
+        `${BASE}/historial/${fechaInicio}/${fechaFin}/`;
 
-    const resultados =
-      extraerResultados(html);
+      console.log(
+        "Consultando Ruleta Activa:",
+        url
+      );
+
+      try {
+
+        const html =
+          await descargar(url);
+
+        const resultados =
+          extraerResultados(html);
+
+        console.log(
+          `Resultados encontrados ${fechaInicio} al ${fechaFin}:`,
+          resultados.length
+        );
+
+        todosResultados.push(
+          ...resultados
+        );
+
+      } catch (error) {
+
+        console.error(
+          `Error consultando ${fechaInicio} al ${fechaFin}:`,
+          error.message
+        );
+      }
+
+      fechaActual =
+        new Date(
+          fechaFinObjeto
+        );
+
+      fechaActual.setUTCDate(
+        fechaActual.getUTCDate() + 1
+      );
+    }
+
+
+    const unicos =
+      new Map();
+
+    for (
+      const resultado
+      of todosResultados
+    ) {
+
+      const clave =
+        `${resultado.animal}|${resultado.numero}|${resultado.fecha}`;
+
+      unicos.set(
+        clave,
+        resultado
+      );
+    }
+
+    const resultadosFinales =
+      Array.from(
+        unicos.values()
+      );
+
 
     if (
-      resultados.length === 0
+      resultadosFinales.length === 0
     ) {
+
       throw new Error(
         "No se encontraron resultados de Ruleta Activa."
       );
     }
 
+
     await guardarResultadosRuleta(
-      resultados
+      resultadosFinales
     );
 
+
     const fechas =
-      resultados
-        .map(x => x.fecha)
+      resultadosFinales
+        .map(
+          x => x.fecha
+        )
         .sort();
 
+
     res.status(200).json({
+
       ok: true,
+
       loteria:
         "Ruleta Activa",
+
       fuente:
         "LotoVen",
+
       encontrados:
-        resultados.length,
+        resultadosFinales.length,
+
       fechaMasAntigua:
         fechas[0] || null,
+
       fechaMasReciente:
-        fechas[fechas.length - 1] || null
+        fechas[
+          fechas.length - 1
+        ] || null
+
     });
+
 
   } catch (error) {
 
@@ -417,10 +590,13 @@ export default async function handler(
     );
 
     res.status(500).json({
+
       ok: false,
+
       error:
         error.message ||
         "Error actualizando Ruleta Activa."
+
     });
   }
 }
