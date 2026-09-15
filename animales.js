@@ -332,6 +332,62 @@ const animalesGuacharito = [
 
 /*
 ==================================================
+RULETA ACTIVA — 40 ANIMALITOS
+==================================================
+*/
+
+const animalesRuleta = [
+
+  { numero:"00", animal:"BALLENA", emoji:"🐋" },
+  { numero:"0", animal:"DELFIN", emoji:"🐬" },
+
+  { numero:"01", animal:"CARNERO", emoji:"🐏" },
+  { numero:"02", animal:"TORO", emoji:"🐂" },
+  { numero:"03", animal:"CIEMPIES", emoji:"🐛" },
+  { numero:"04", animal:"ALACRAN", emoji:"🦂" },
+  { numero:"05", animal:"LEON", emoji:"🦁" },
+  { numero:"06", animal:"RANA", emoji:"🐸" },
+  { numero:"07", animal:"PERICO", emoji:"🦜" },
+  { numero:"08", animal:"RATON", emoji:"🐭" },
+  { numero:"09", animal:"AGUILA", emoji:"🦅" },
+
+  { numero:"10", animal:"TIGRE", emoji:"🐯" },
+  { numero:"11", animal:"GATO", emoji:"🐱" },
+  { numero:"12", animal:"CABALLO", emoji:"🐴" },
+  { numero:"13", animal:"MONO", emoji:"🐒" },
+  { numero:"14", animal:"PALOMA", emoji:"🕊️" },
+  { numero:"15", animal:"ZORRO", emoji:"🦊" },
+  { numero:"16", animal:"OSO", emoji:"🐻" },
+  { numero:"17", animal:"PAVO", emoji:"🦃" },
+  { numero:"18", animal:"BURRO", emoji:"🫏" },
+  { numero:"19", animal:"CHIVO", emoji:"🐐" },
+
+  { numero:"20", animal:"COCHINO", emoji:"🐷" },
+  { numero:"21", animal:"GALLO", emoji:"🐓" },
+  { numero:"22", animal:"CAMELLO", emoji:"🐫" },
+  { numero:"23", animal:"CEBRA", emoji:"🦓" },
+  { numero:"24", animal:"IGUANA", emoji:"🦎" },
+  { numero:"25", animal:"GALLINA", emoji:"🐔" },
+  { numero:"26", animal:"VACA", emoji:"🐄" },
+  { numero:"27", animal:"PERRO", emoji:"🐶" },
+  { numero:"28", animal:"ZAMURO", emoji:"🦅" },
+  { numero:"29", animal:"ELEFANTE", emoji:"🐘" },
+
+  { numero:"30", animal:"CAIMAN", emoji:"🐊" },
+  { numero:"31", animal:"LAPA", emoji:"🐹" },
+  { numero:"32", animal:"ARDILLA", emoji:"🐿️" },
+  { numero:"33", animal:"PESCADO", emoji:"🐟" },
+  { numero:"34", animal:"VENADO", emoji:"🦌" },
+  { numero:"35", animal:"JIRAFA", emoji:"🦒" },
+  { numero:"36", animal:"CULEBRA", emoji:"🐍" },
+  { numero:"37", animal:"TORTUGA", emoji:"🐢" },
+  { numero:"38", animal:"BUFALO", emoji:"🐃" }
+
+];
+
+
+/*
+==================================================
 LOTERÍA INICIAL
 ==================================================
 */
@@ -367,6 +423,11 @@ function obtenerAnimalesPorLoteria(
     case "guacharitomillonario":
 
       return animalesGuacharito;
+
+
+    case "ruletaactiva":
+
+      return animalesRuleta;
 
 
     case "guacharoactivo":
