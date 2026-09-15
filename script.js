@@ -66,6 +66,12 @@ const configuracionLoterias = {
     analizar: "/api/analizarGuacharito"
   },
 
+  ruletaactiva: {
+    nombre: "Ruleta Activa",
+    actualizar: "/api/actualizarRuleta",
+    analizar: "/api/analizarRuleta"
+  },
+
   granamillonaria: {
     nombre: "Granja Millonaria",
     actualizar: "/api/actualizarGranjaMillonaria",
@@ -102,6 +108,13 @@ function obtenerListaAnimales(nombre) {
     typeof animalesGuacharito !== "undefined"
   ) {
     return animalesGuacharito;
+  }
+
+  if (
+    nombre === "ruletaactiva" &&
+    typeof animalesRuleta !== "undefined"
+  ) {
+    return animalesRuleta;
   }
 
   if (
