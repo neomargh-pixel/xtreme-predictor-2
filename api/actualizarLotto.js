@@ -4,6 +4,9 @@ import guardarResultadosLotto from "../lib/guardarResultadosLotto.js";
 const BASE =
   "https://lotoven.com/animalito/lottoactivo";
 
+const BASE_RESULTADOS_VENEZUELA =
+  "https://resultadosvenezuela.com/lottery/lotto-activo";
+
 const TZ = "-04:00";
 
 const animalesLotto = {
@@ -207,7 +210,7 @@ async function descargar(url) {
   if (!respuesta.ok) {
 
     throw new Error(
-      `LotoVen respondió ${respuesta.status}`
+      `Fuente respondió ${respuesta.status}`
     );
   }
 
@@ -364,6 +367,258 @@ function extraerResultados(html) {
 }
 
 
+/*
+==================================================
+RESULTADOS VENEZUELA
+COMPLEMENTO PARA AYER Y HOY
+==================================================
+*/
+
+function obtenerFechaCaracas(
+  fecha = new Date()
+) {
+
+  const partes =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "America/Caracas",
+        year:
+          "numeric",
+        month:
+          "2-digit",
+        day:
+          "2-digit"
+      }
+    ).formatToParts(fecha);
+
+  const valores = {};
+
+  for (
+    const parte of partes
+  ) {
+    if (
+      parte.type !== "literal"
+    ) {
+      valores[parte.type] =
+        parte.value;
+    }
+  }
+
+  return (
+    `${valores.year}-${valores.month}-${valores.day}`
+  );
+}
+
+
+function restarDiasISO(
+  fechaISO,
+  dias
+) {
+
+  const fecha =
+    new Date(
+      `${fechaISO}T12:00:00${TZ}`
+    );
+
+  fecha.setUTCDate(
+    fecha.getUTCDate() - dias
+  );
+
+  return fecha
+    .toISOString()
+    .slice(0, 10);
+}
+
+
+function extraerResultadosVenezuela(
+  html,
+  fechaEsperada
+) {
+
+  const $ =
+    cheerio.load(html);
+
+  const resultados = [];
+
+  $("img[alt]").each(
+    (_, imagen) => {
+
+      const alt =
+        String(
+          $(imagen).attr("alt") || ""
+        ).trim();
+
+      const altNormalizado =
+        normalizarTexto(alt);
+
+      /*
+      Solo aceptamos imágenes de Lotto Activo
+      y rechazamos Lotto Activo RD / RDominicana.
+      */
+
+      if (
+        !altNormalizado.startsWith(
+          "ANIMALITO "
+        )
+      ) {
+        return;
+      }
+
+      if (
+        !altNormalizado.includes(
+          " - LOTTO ACTIVO"
+        )
+      ) {
+        return;
+      }
+
+      if (
+        altNormalizado.includes(
+          "LOTTO ACTIVO RD"
+        )
+      ) {
+        return;
+      }
+
+      const match =
+        alt.match(
+          /^Animalito\s+(.+?)\s+número\s+(00|0|[0-9]{1,2})\s+-\s+Lotto Activo\b/i
+        );
+
+      if (!match) {
+        return;
+      }
+
+      const animal =
+        match[1]
+          .trim();
+
+      const numeroTexto =
+        match[2];
+
+      const numero =
+        Number(numeroTexto);
+
+      if (
+        !Number.isInteger(numero) ||
+        numero < 0 ||
+        numero > 36
+      ) {
+        return;
+      }
+
+      let nodo =
+        $(imagen);
+
+      let hora =
+        null;
+
+      /*
+      Subimos por el DOM hasta encontrar
+      el bloque que contiene la hora.
+      */
+
+      for (
+        let nivel = 0;
+        nivel < 8;
+        nivel++
+      ) {
+
+        nodo =
+          nodo.parent();
+
+        if (
+          !nodo ||
+          nodo.length === 0
+        ) {
+          break;
+        }
+
+        const texto =
+          nodo.text()
+            .replace(/\s+/g, " ")
+            .trim();
+
+        const horaMatch =
+          texto.match(
+            /\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b/i
+          );
+
+        if (horaMatch) {
+
+          hora =
+            horaMatch[1];
+
+          break;
+        }
+      }
+
+      if (!hora) {
+        return;
+      }
+
+      const fecha =
+        convertirFechaVenezuela(
+          fechaEsperada,
+          hora
+        );
+
+      if (!fecha) {
+        return;
+      }
+
+      resultados.push({
+
+        animal:
+          normalizarTexto(
+            animal
+          ),
+
+        numero,
+
+        fecha
+
+      });
+
+    }
+  );
+
+  return resultados;
+}
+
+
+async function obtenerResultadosVenezuela(
+  fecha
+) {
+
+  const url =
+    `${BASE_RESULTADOS_VENEZUELA}?date=${fecha}`;
+
+  console.log(
+    "Consultando Resultados Venezuela:",
+    url
+  );
+
+  const html =
+    await descargar(url);
+
+  const resultados =
+    extraerResultadosVenezuela(
+      html,
+      fecha
+    );
+
+  console.log(
+    `Resultados Venezuela ${fecha}:`,
+    resultados.length
+  );
+
+  return resultados;
+}
+
+
 function formatearFecha(
   fecha
 ) {
@@ -423,6 +678,12 @@ export default async function handler(
 ) {
 
   try {
+
+    /*
+    ==================================================
+    1. HISTORIAL PRINCIPAL — LOTOVEN
+    ==================================================
+    */
 
     const {
       inicio,
@@ -510,6 +771,59 @@ export default async function handler(
     }
 
 
+    /*
+    ==================================================
+    2. COMPLEMENTO — RESULTADOS VENEZUELA
+    AYER + HOY EN HORA DE VENEZUELA
+    ==================================================
+    */
+
+    const hoyVenezuela =
+      obtenerFechaCaracas();
+
+    const ayerVenezuela =
+      restarDiasISO(
+        hoyVenezuela,
+        1
+      );
+
+    const fechasComplementarias = [
+      ayerVenezuela,
+      hoyVenezuela
+    ];
+
+    for (
+      const fecha
+      of fechasComplementarias
+    ) {
+
+      try {
+
+        const resultados =
+          await obtenerResultadosVenezuela(
+            fecha
+          );
+
+        todosResultados.push(
+          ...resultados
+        );
+
+      } catch (error) {
+
+        console.error(
+          `Error consultando Resultados Venezuela ${fecha}:`,
+          error.message
+        );
+      }
+    }
+
+
+    /*
+    ==================================================
+    3. ELIMINAR DUPLICADOS
+    ==================================================
+    */
+
     const unicos =
       new Map();
 
@@ -543,10 +857,22 @@ export default async function handler(
     }
 
 
+    /*
+    ==================================================
+    4. GUARDAR EN SUPABASE
+    ==================================================
+    */
+
     await guardarResultadosLotto(
       resultadosFinales
     );
 
+
+    /*
+    ==================================================
+    5. RESPUESTA
+    ==================================================
+    */
 
     const fechas =
       resultadosFinales
@@ -554,6 +880,22 @@ export default async function handler(
           x => x.fecha
         )
         .sort();
+
+    const tieneHoy =
+      resultadosFinales.some(
+        x =>
+          x.fecha.startsWith(
+            `${hoyVenezuela}T`
+          )
+      );
+
+    const tieneAyer =
+      resultadosFinales.some(
+        x =>
+          x.fecha.startsWith(
+            `${ayerVenezuela}T`
+          )
+      );
 
 
     res.status(200).json({
@@ -564,7 +906,7 @@ export default async function handler(
         "Lotto Activo",
 
       fuente:
-        "LotoVen",
+        "LotoVen + Resultados Venezuela",
 
       encontrados:
         resultadosFinales.length,
@@ -575,7 +917,17 @@ export default async function handler(
       fechaMasReciente:
         fechas[
           fechas.length - 1
-        ] || null
+        ] || null,
+
+      hoyVenezuela,
+
+      ayerVenezuela,
+
+      resultadosHoy:
+        tieneHoy,
+
+      resultadosAyer:
+        tieneAyer
 
     });
 
