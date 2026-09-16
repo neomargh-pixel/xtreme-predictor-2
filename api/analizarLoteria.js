@@ -1,6 +1,79 @@
+/*
+==================================================
+XTREME PREDICTOR 2.0
+ANALIZADOR CENTRAL DE LOTERÍAS
+==================================================
+
+Este archivo centraliza el análisis de:
+
+- La Granjita
+- El Guacharito Millonario
+- Selva Plus
+- Ruleta Activa
+- Lotto Activo
+- Caballos
+
+Guácharo Activo conserva su /api/analizar independiente.
+==================================================
+*/
+
 import supabase from "../lib/supabase.js";
 
-const TZ = "America/Caracas";
+
+/*
+==================================================
+CONFIGURACIÓN
+==================================================
+*/
+
+const CONFIG = {
+
+  lagranjita: {
+    nombre: "La Granjita",
+    tabla: "historial_granjita",
+    tipo: "animal"
+  },
+
+  guacharitomillonario: {
+    nombre: "El Guacharito Millonario",
+    tabla: "historial_guacharito",
+    tipo: "animal"
+  },
+
+  selvaplus: {
+    nombre: "Selva Plus",
+    tabla: "historial_selvaplus",
+    tipo: "animal"
+  },
+
+  ruletaactiva: {
+    nombre: "Ruleta Activa",
+    tabla: "historial_ruleta",
+    tipo: "animal"
+  },
+
+  lottoactivo: {
+    nombre: "Lotto Activo",
+    tabla: "historial_lotto",
+    tipo: "animal"
+  },
+
+  caballos: {
+    nombre: "Caballos",
+    tabla: "historial_caballos",
+    tipo: "caballo"
+  }
+
+};
+
+
+/*
+==================================================
+ZONA HORARIA VENEZUELA
+==================================================
+*/
+
+const TIME_ZONE = "America/Caracas";
 
 
 /*
@@ -9,128 +82,20 @@ FECHA VENEZUELA
 ==================================================
 */
 
-function hoyCaracas() {
+function fechaVenezuela(fecha) {
 
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: TZ,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }
-  ).format(new Date());
+  const d = new Date(fecha);
 
-}
-
-
-/*
-==================================================
-FECHA DEL RESULTADO
-==================================================
-*/
-
-function fechaResultado(fecha) {
-
-  if (!fecha) return null;
-
-  const texto = String(fecha).trim();
-
-  const match =
-    texto.match(/^(\d{4}-\d{2}-\d{2})/);
-
-  if (match) {
-    return match[1];
+  if (Number.isNaN(d.getTime())) {
+    return null;
   }
 
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: TZ,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }
-  ).format(new Date(fecha));
-
-}
-
-
-/*
-==================================================
-HORA VENEZUELA
-==================================================
-*/
-
-function horaCaracas(fecha) {
-
-  if (!fecha) return null;
-
-  const texto = String(fecha).trim();
-
-  const match =
-    texto.match(
-      /(?:T|\s)(\d{1,2}):(\d{2})(?::\d{2})?/
-    );
-
-  if (match) {
-
-    let hora = parseInt(match[1], 10);
-
-    const minutos = match[2];
-
-    const periodo =
-      hora >= 12
-        ? "p. m."
-        : "a. m.";
-
-    if (hora === 0) {
-      hora = 12;
-    }
-    else if (hora > 12) {
-      hora -= 12;
-    }
-
-    return `${String(hora).padStart(2, "0")}:${minutos} ${periodo}`;
-
-  }
-
-  return new Intl.DateTimeFormat(
-    "es-VE",
-    {
-      timeZone: TZ,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true
-    }
-  ).format(new Date(fecha));
-
-}
-
-
-/*
-==================================================
-DIFERENCIA DE DÍAS
-==================================================
-*/
-
-function diferenciaDias(a, b) {
-
-  if (!a || !b) return 999;
-
-  const fechaA =
-    new Date(`${a}T12:00:00-04:00`);
-
-  const fechaB =
-    new Date(`${b}T12:00:00-04:00`);
-
-  return Math.max(
-    0,
-    Math.floor(
-      (fechaB.getTime() - fechaA.getTime())
-      / 86400000
-    )
-  );
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(d);
 
 }
 
@@ -141,67 +106,75 @@ NORMALIZAR TEXTO
 ==================================================
 */
 
-function normalizarTexto(valor) {
+function normalizarTexto(texto) {
 
-  return String(valor ?? "")
+  return String(texto || "")
     .trim()
-    .toUpperCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ");
+    .toUpperCase();
 
 }
 
 
 /*
 ==================================================
-HISTORIAL COMPLETO
+NORMALIZAR NÚMERO
 ==================================================
 */
 
-async function obtenerHistorial(tabla) {
+function normalizarNumero(numero) {
 
-  const resultados = [];
+  if (numero === null || numero === undefined || numero === "") {
+    return null;
+  }
 
-  const bloque = 1000;
+  const n = Number(numero);
+
+  return Number.isFinite(n) ? n : null;
+
+}
+
+
+/*
+==================================================
+CARGAR TODO EL HISTORIAL
+==================================================
+
+Supabase puede entregar máximo 1000 registros
+por consulta.
+
+Por eso hacemos paginación.
+==================================================
+*/
+
+async function cargarHistorial(tabla) {
+
+  const todos = [];
 
   let desde = 0;
 
+  const bloque = 1000;
+
   while (true) {
 
-    const hasta =
-      desde + bloque - 1;
-
-    const {
-      data,
-      error
-    } =
-      await supabase
-        .from(tabla)
-        .select("*")
-        .order(
-          "fecha",
-          {
-            ascending: false
-          }
-        )
-        .range(
-          desde,
-          hasta
-        );
+    const { data, error } = await supabase
+      .from(tabla)
+      .select("*")
+      .order("fecha", {
+        ascending: true
+      })
+      .range(desde, desde + bloque - 1);
 
     if (error) {
-      throw error;
+      throw new Error(
+        `Error leyendo ${tabla}: ${error.message}`
+      );
     }
 
-    if (
-      !Array.isArray(data) ||
-      data.length === 0
-    ) {
+    if (!data || data.length === 0) {
       break;
     }
 
-    resultados.push(...data);
+    todos.push(...data);
 
     if (data.length < bloque) {
       break;
@@ -211,350 +184,401 @@ async function obtenerHistorial(tabla) {
 
   }
 
-  return resultados;
+  return todos;
 
 }
 
 
 /*
 ==================================================
-ANÁLISIS BASE
+OBTENER CAMPOS DEL REGISTRO
 ==================================================
 */
 
-function crearAnalisis(
-  historial,
-  opciones
-) {
+function obtenerAnimal(registro, tipo) {
 
-  const hoy = hoyCaracas();
+  if (tipo === "caballo") {
 
-  const mapa = new Map();
-
-  historial.forEach(resultado => {
-
-    if (
-      !resultado ||
-      !resultado.animal ||
-      !resultado.fecha
-    ) {
-      return;
-    }
-
-    const animal =
-      normalizarTexto(
-        resultado.animal
-      );
-
-    const fecha =
-      fechaResultado(
-        resultado.fecha
-      );
-
-    if (!fecha) return;
-
-    if (!mapa.has(animal)) {
-
-      mapa.set(
-        animal,
-        {
-          animal,
-          numero:
-            resultado.numero ?? null,
-          salidas: 0,
-          fechas: []
-        }
-      );
-
-    }
-
-    const registro =
-      mapa.get(animal);
-
-    registro.salidas++;
-
-    registro.fechas.push(fecha);
-
-  });
-
-
-  const lista =
-    Array.from(
-      mapa.values()
+    return normalizarTexto(
+      registro.caballo ||
+      registro.animal ||
+      registro.nombre
     );
 
+  }
 
-  lista.forEach(a => {
+  return normalizarTexto(
+    registro.animal ||
+    registro.caballo ||
+    registro.nombre
+  );
 
-    const fechas =
-      [
-        ...new Set(
-          a.fechas
+}
+
+
+function obtenerNumero(registro) {
+
+  return normalizarNumero(
+    registro.numero
+  );
+
+}
+
+
+/*
+==================================================
+OBTENER FECHA DEL REGISTRO
+==================================================
+*/
+
+function obtenerFecha(registro) {
+
+  return fechaVenezuela(
+    registro.fecha
+  );
+
+}
+
+
+/*
+==================================================
+DIFERENCIA DE DÍAS
+==================================================
+*/
+
+function diferenciaDias(fechaInicial, fechaFinal) {
+
+  if (!fechaInicial || !fechaFinal) {
+    return 0;
+  }
+
+  const inicio = new Date(
+    `${fechaInicial}T00:00:00-04:00`
+  );
+
+  const fin = new Date(
+    `${fechaFinal}T00:00:00-04:00`
+  );
+
+  const diferencia =
+    fin.getTime() - inicio.getTime();
+
+  return Math.max(
+    0,
+    Math.floor(
+      diferencia / 86400000
+    )
+  );
+
+}
+
+
+/*
+==================================================
+FRECUENCIA
+==================================================
+*/
+
+function contarSalidas(
+  registros,
+  fechaActual,
+  dias
+) {
+
+  const limite = new Date(
+    `${fechaActual}T00:00:00-04:00`
+  );
+
+  limite.setDate(
+    limite.getDate() - dias + 1
+  );
+
+  const limiteTexto =
+    limite.toISOString().slice(0, 10);
+
+  return registros.filter(r => {
+
+    const fecha = obtenerFecha(r);
+
+    return (
+      fecha &&
+      fecha >= limiteTexto &&
+      fecha <= fechaActual
+    );
+
+  }).length;
+
+}
+
+
+/*
+==================================================
+ÚLTIMA FECHA
+==================================================
+*/
+
+function obtenerUltimaFecha(registros) {
+
+  if (!registros.length) {
+    return null;
+  }
+
+  const fechas = registros
+    .map(obtenerFecha)
+    .filter(Boolean)
+    .sort();
+
+  return fechas.length
+    ? fechas[fechas.length - 1]
+    : null;
+
+}
+
+
+/*
+==================================================
+ÍNDICE XTREME
+==================================================
+
+Combina:
+
+- frecuencia últimos 30 días
+- frecuencia últimos 14 días
+- frecuencia últimos 7 días
+- días sin salir
+==================================================
+*/
+
+function calcularIndice(
+  salidas30,
+  salidas14,
+  salidas7,
+  diasSinSalir
+) {
+
+  const parte30 =
+    Math.min(
+      45,
+      salidas30 * 3
+    );
+
+  const parte14 =
+    Math.min(
+      25,
+      salidas14 * 2
+    );
+
+  const parte7 =
+    Math.min(
+      15,
+      salidas7 * 2
+    );
+
+  const atraso =
+    Math.min(
+      15,
+      diasSinSalir * 2
+    );
+
+  return Math.min(
+    100,
+    parte30 +
+    parte14 +
+    parte7 +
+    atraso
+  );
+
+}
+
+
+/*
+==================================================
+TENDENCIA
+==================================================
+*/
+
+function obtenerTendencia(indice) {
+
+  if (indice >= 90) {
+    return "MUY ALTA";
+  }
+
+  if (indice >= 75) {
+    return "ALTA";
+  }
+
+  if (indice >= 55) {
+    return "MEDIA";
+  }
+
+  if (indice >= 35) {
+    return "BAJA";
+  }
+
+  return "MUY BAJA";
+
+}
+
+
+/*
+==================================================
+CATEGORÍA
+==================================================
+*/
+
+function obtenerCategoria(
+  indice,
+  diasSinSalir,
+  salidas7
+) {
+
+  if (diasSinSalir >= 7) {
+    return "ATRASADO";
+  }
+
+  if (indice >= 80 || salidas7 >= 2) {
+    return "CALIENTE";
+  }
+
+  if (indice >= 50) {
+    return "MEDIO";
+  }
+
+  return "NORMAL";
+
+}
+
+
+/*
+==================================================
+ANÁLISIS DE UN ANIMAL / CABALLO
+==================================================
+*/
+
+function analizarElemento(
+  nombre,
+  numero,
+  registros,
+  historial,
+  hoy
+) {
+
+  const ultimaFecha =
+    obtenerUltimaFecha(registros);
+
+  const diasSinSalir =
+    ultimaFecha
+      ? diferenciaDias(
+          ultimaFecha,
+          hoy
         )
-      ]
-      .sort();
+      : 999;
 
+  const salidas7 =
+    contarSalidas(
+      registros,
+      hoy,
+      7
+    );
 
-    a.fechas = fechas;
+  const salidas14 =
+    contarSalidas(
+      registros,
+      hoy,
+      14
+    );
 
+  const salidas30 =
+    contarSalidas(
+      registros,
+      hoy,
+      30
+    );
 
-    a.ultimaFecha =
-      fechas.length
-        ? fechas[fechas.length - 1]
-        : null;
+  const indice =
+    analizarIndiceSeguro(
+      salidas30,
+      salidas14,
+      salidas7,
+      diasSinSalir
+    );
 
+  const resultadosHoy =
+    registros.filter(r =>
+      obtenerFecha(r) === hoy
+    );
 
-    a.diasSinSalir =
-      a.ultimaFecha
-        ? diferenciaDias(
-            a.ultimaFecha,
-            hoy
-          )
-        : 999;
+  const salioHoy =
+    resultadosHoy.length > 0;
 
+  return {
 
-    a.salidas7 =
-      fechas.filter(
-        fecha =>
-          diferenciaDias(
-            fecha,
-            hoy
-          ) <= 7
-      ).length;
+    animal: nombre,
 
+    caballo: nombre,
 
-    a.salidas14 =
-      fechas.filter(
-        fecha =>
-          diferenciaDias(
-            fecha,
-            hoy
-          ) <= 14
-      ).length;
+    numero,
 
+    salidas: registros.length,
 
-    a.salidas30 =
-      fechas.filter(
-        fecha =>
-          diferenciaDias(
-            fecha,
-            hoy
-          ) <= 30
-      ).length;
+    salidas7,
 
+    salidas14,
 
-    /*
-    ==============================================
-    FÓRMULA
-    ==============================================
-    */
+    salidas30,
 
-    if (opciones.tipo === "granjita") {
+    diasSinSalir,
 
-      a.indice =
-        a.salidas7 * 5 +
-        a.salidas14 * 3 +
-        a.salidas30 * 2 +
-        a.diasSinSalir * 2;
+    indice,
 
+    porcentaje: indice,
 
-      if (a.indice >= 80) {
+    tendencia:
+      obtenerTendencia(indice),
 
-        a.porcentaje = 95;
-        a.tendencia = "MUY ALTA";
+    categoria:
+      obtenerCategoria(
+        indice,
+        diasSinSalir,
+        salidas7
+      ),
 
-      }
-      else if (a.indice >= 60) {
+    salioHoy,
 
-        a.porcentaje = 85;
-        a.tendencia = "ALTA";
+    ultimaFecha,
 
-      }
-      else if (a.indice >= 40) {
+    historial: registros.length,
 
-        a.porcentaje = 70;
-        a.tendencia = "MEDIA";
-
-      }
-      else {
-
-        a.porcentaje = 50;
-        a.tendencia = "NORMAL";
-
-      }
-
+    frecuencia: {
+      dias7: salidas7,
+      dias14: salidas14,
+      dias30: salidas30
     }
 
+  };
 
-    else if (opciones.tipo === "selva") {
-
-      a.indice =
-        Math.min(
-          100,
-          Math.round(
-            (a.salidas7 * 8) +
-            (a.salidas14 * 3) +
-            a.salidas30 +
-            Math.min(
-              a.diasSinSalir * 2,
-              20
-            )
-          )
-        );
+}
 
 
-      a.porcentaje =
-        Math.min(
-          95,
-          Math.max(
-            50,
-            a.indice + 15
-          )
-        );
+/*
+==================================================
+SEGURIDAD DEL ÍNDICE
+==================================================
+*/
 
+function analizarIndiceSeguro(
+  salidas30,
+  salidas14,
+  salidas7,
+  diasSinSalir
+) {
 
-      if (a.indice >= 80) {
-        a.tendencia = "MUY ALTA";
-      }
-      else if (a.indice >= 60) {
-        a.tendencia = "ALTA";
-      }
-      else if (a.indice >= 40) {
-        a.tendencia = "MEDIA";
-      }
-      else if (a.indice >= 20) {
-        a.tendencia = "NORMAL";
-      }
-      else {
-        a.tendencia = "BAJA";
-      }
-
-    }
-
-
-    else if (opciones.tipo === "lotto") {
-
-      const frecuencia =
-        Math.min(
-          100,
-          a.salidas * 3
-        );
-
-      const atraso =
-        Math.min(
-          40,
-          a.diasSinSalir * 4
-        );
-
-      a.indice =
-        Math.min(
-          100,
-          Math.round(
-            frecuencia + atraso
-          )
-        );
-
-
-      if (a.indice >= 90) {
-        a.tendencia = "MUY ALTA";
-      }
-      else if (a.indice >= 75) {
-        a.tendencia = "ALTA";
-      }
-      else if (a.indice >= 50) {
-        a.tendencia = "MEDIA";
-      }
-      else if (a.indice >= 25) {
-        a.tendencia = "BAJA";
-      }
-      else {
-        a.tendencia = "MUY BAJA";
-      }
-
-
-      a.porcentaje =
-        a.indice;
-
-
-      if (a.diasSinSalir >= 7) {
-        a.categoria = "ATRASADO";
-      }
-      else if (a.indice >= 80) {
-        a.categoria = "CALIENTE";
-      }
-      else if (a.indice >= 50) {
-        a.categoria = "MEDIO";
-      }
-      else {
-        a.categoria = "FRÍO";
-      }
-
-    }
-
-
-    else if (opciones.tipo === "ruleta") {
-
-      const frecuencia =
-        Math.min(
-          100,
-          a.salidas * 3
-        );
-
-      const atraso =
-        Math.min(
-          40,
-          a.diasSinSalir * 4
-        );
-
-      a.indice =
-        Math.min(
-          100,
-          Math.round(
-            frecuencia + atraso
-          )
-        );
-
-
-      a.porcentaje =
-        a.indice;
-
-
-      if (a.indice >= 90) {
-        a.tendencia = "MUY ALTA";
-      }
-      else if (a.indice >= 75) {
-        a.tendencia = "ALTA";
-      }
-      else if (a.indice >= 50) {
-        a.tendencia = "MEDIA";
-      }
-      else if (a.indice >= 25) {
-        a.tendencia = "BAJA";
-      }
-      else {
-        a.tendencia = "MUY BAJA";
-      }
-
-
-      if (a.diasSinSalir >= 7) {
-        a.categoria = "ATRASADO";
-      }
-      else if (a.indice >= 80) {
-        a.categoria = "CALIENTE";
-      }
-      else if (a.indice >= 50) {
-        a.categoria = "MEDIO";
-      }
-      else {
-        a.categoria = "FRÍO";
-      }
-
-    }
-
-  });
-
-
-  return lista;
+  return calcularIndice(
+    salidas30,
+    salidas14,
+    salidas7,
+    diasSinSalir
+  );
 
 }
 
@@ -565,142 +589,44 @@ RESULTADOS DE HOY
 ==================================================
 */
 
-function obtenerResultadosHoy(
+function construirResultadosHoy(
   historial,
+  tipo,
   hoy
 ) {
 
-  const resultadosHoy = {};
+  return historial
+    .filter(r =>
+      obtenerFecha(r) === hoy
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.fecha) -
+        new Date(a.fecha)
+    )
+    .map(r => {
 
+      const nombre =
+        obtenerAnimal(r, tipo);
 
-  historial.forEach(resultado => {
+      return {
 
-    const fecha =
-      fechaResultado(
-        resultado.fecha
-      );
+        animal: nombre,
 
-    if (fecha !== hoy) {
-      return;
-    }
+        caballo: nombre,
 
-    const animal =
-      normalizarTexto(
-        resultado.animal
-      );
+        numero:
+          obtenerNumero(r),
 
+        fecha:
+          r.fecha,
 
-    if (!resultadosHoy[animal]) {
-      resultadosHoy[animal] = [];
-    }
+        hora:
+          r.fecha,
 
+        salioHoy: true
 
-    resultadosHoy[animal].push({
-
-      numero:
-        resultado.numero,
-
-      fecha:
-        resultado.fecha,
-
-      hora:
-        horaCaracas(
-          resultado.fecha
-        )
-
-    });
-
-  });
-
-
-  return resultadosHoy;
-
-}
-
-
-/*
-==================================================
-MARCAR HOY
-==================================================
-*/
-
-function marcarHoy(
-  analisis,
-  resultadosHoy
-) {
-
-  analisis.forEach(a => {
-
-    const resultados =
-      resultadosHoy[a.animal] || [];
-
-
-    a.salioHoy =
-      resultados.length > 0;
-
-
-    a.resultadosHoy =
-      resultados;
-
-
-    a.horariosHoy =
-      resultados.map(
-        r => r.hora
-      );
-
-
-    a.resultadoHoy =
-      resultados.length
-        ? "SALIO"
-        : "NO SALIO";
-
-  });
-
-}
-
-
-/*
-==================================================
-ORDENAMIENTO
-==================================================
-*/
-
-function ordenar(
-  lista
-) {
-
-  return lista
-    .slice()
-    .sort((a, b) => {
-
-      if (
-        Number(b.indice) !==
-        Number(a.indice)
-      ) {
-
-        return (
-          Number(b.indice) -
-          Number(a.indice)
-        );
-
-      }
-
-      if (
-        Number(b.diasSinSalir) !==
-        Number(a.diasSinSalir)
-      ) {
-
-        return (
-          Number(b.diasSinSalir) -
-          Number(a.diasSinSalir)
-        );
-
-      }
-
-      return (
-        Number(b.salidas30) -
-        Number(a.salidas30)
-      );
+      };
 
     });
 
@@ -709,274 +635,227 @@ function ordenar(
 
 /*
 ==================================================
-PROCESAR LOTERÍA
+CREAR MAPA DE ELEMENTOS
 ==================================================
 */
 
-async function procesar(
-  tabla,
-  nombre,
-  tipo,
-  totalAnimales
+function construirMapa(
+  historial,
+  tipo
 ) {
 
-  const historial =
-    await obtenerHistorial(
-      tabla
+  const mapa = new Map();
+
+  for (const registro of historial) {
+
+    const nombre =
+      obtenerAnimal(
+        registro,
+        tipo
+      );
+
+    if (!nombre) {
+      continue;
+    }
+
+    const numero =
+      obtenerNumero(
+        registro
+      );
+
+    const clave =
+      `${nombre}|${numero ?? ""}`;
+
+    if (!mapa.has(clave)) {
+
+      mapa.set(
+        clave,
+        {
+          nombre,
+          numero,
+          registros: []
+        }
+      );
+
+    }
+
+    mapa
+      .get(clave)
+      .registros
+      .push(registro);
+
+  }
+
+  return mapa;
+
+}
+
+
+/*
+==================================================
+CONSTRUIR ANÁLISIS COMPLETO
+==================================================
+*/
+
+function construirAnalisis(
+  historial,
+  config,
+  hoy
+) {
+
+  const mapa =
+    construirMapa(
+      historial,
+      config.tipo
     );
 
+  const elementos = [];
 
-  const hoy =
-    hoyCaracas();
+  for (const item of mapa.values()) {
 
+    const resultado =
+      analizarElemento(
+        item.nombre,
+        item.numero,
+        item.registros,
+        historial,
+        hoy
+      );
 
-  if (!historial.length) {
-
-    return {
-
-      ok: true,
-
-      loteria: nombre,
-
-      historial: 0,
-
-      hoy,
-
-      pronosticos: [],
-
-      pronostico: null,
-
-      top10: [],
-
-      atrasados: [],
-
-      resultadosHoy: {},
-
-      estadisticas: {
-
-        totalAnimales,
-
-        totalHistorial: 0,
-
-        totalAtrasados: 0,
-
-        mayorAtraso: null,
-
-        diasMayorAtraso: 0,
-
-        candidatosPronostico: 0,
-
-        pronosticosHoy: 0,
-
-        pronosticoActual: null,
-
-        diasPronostico: 0
-
-      }
-
-    };
+    elementos.push(
+      resultado
+    );
 
   }
 
 
-  const analisis =
-    crearAnalisis(
-      historial,
-      {
-        tipo
-      }
-    );
+  /*
+  ----------------------------------------------
+  ORDEN GENERAL
+  ----------------------------------------------
+  */
 
-
-  const resultadosHoy =
-    obtenerResultadosHoy(
-      historial,
-      hoy
-    );
-
-
-  marcarHoy(
-    analisis,
-    resultadosHoy
+  elementos.sort(
+    (a, b) =>
+      b.indice - a.indice
   );
 
 
   /*
-  ==============================================
+  ----------------------------------------------
   TOP 10
-  ==============================================
+  ----------------------------------------------
   */
 
   const top10 =
-    ordenar(
-      analisis
-    )
-    .slice(
-      0,
-      10
-    );
+    elementos
+      .slice(0, 10)
+      .map((item, index) => ({
+        ...item,
+        posicion: index + 1
+      }));
 
 
   /*
-  ==============================================
+  ----------------------------------------------
   ATRASADOS
-  ==============================================
+  ----------------------------------------------
   */
 
-  const todosAtrasados =
-    analisis
+  const atrasados =
+    elementos
       .filter(
-        a =>
-          Number(
-            a.diasSinSalir
-          ) >= 7
+        item =>
+          item.diasSinSalir >= 7
       )
       .sort(
         (a, b) =>
-          Number(
-            b.diasSinSalir
-          ) -
-          Number(
-            a.diasSinSalir
-          )
-      );
-
-
-  const atrasados =
-    todosAtrasados
-      .slice(
-        0,
-        10
+          b.diasSinSalir -
+          a.diasSinSalir
       );
 
 
   /*
-  ==============================================
+  ----------------------------------------------
   PRONÓSTICOS
-  ==============================================
+  ----------------------------------------------
   */
 
-  let candidatos;
-
-
-  if (
-    tipo === "granjita"
-  ) {
-
-    candidatos =
-      analisis
-        .filter(
-          a =>
-            !a.salioHoy
-        )
-        .sort(
-          (a, b) => {
-
-            if (
-              b.indice !==
-              a.indice
-            ) {
-
-              return (
-                b.indice -
-                a.indice
-              );
-
-            }
-
-            return (
-              b.salidas30 -
-              a.salidas30
-            );
-
-          }
-        );
-
-  }
-
-  else {
-
-    candidatos =
-      ordenar(
-        analisis
+  const candidatos =
+    elementos
+      .filter(
+        item =>
+          !item.salioHoy
+      )
+      .sort(
+        (a, b) =>
+          b.indice -
+          a.indice
       );
-
-  }
 
 
   const pronosticos =
     candidatos
-      .slice(
-        0,
-        3
-      );
+      .slice(0, 3)
+      .map(item => ({
+        ...item,
+        pronostico: true
+      }));
 
 
   /*
-  ==============================================
-  MARCAR PRONÓSTICOS
-  ==============================================
+  ----------------------------------------------
+  PRONÓSTICO PRINCIPAL
+  ----------------------------------------------
   */
-
-  analisis.forEach(
-    a => {
-
-      a.pronostico =
-        false;
-
-      if (
-        tipo !== "lotto" &&
-        tipo !== "ruleta"
-      ) {
-
-        a.categoria =
-          a.categoria ||
-          "OBSERVACION";
-
-      }
-
-    }
-  );
-
-
-  pronosticos.forEach(
-    a => {
-
-      a.pronostico =
-        true;
-
-      a.categoria =
-        "PRONÓSTICO";
-
-    }
-  );
-
 
   const pronostico =
-    pronosticos[0] ||
-    null;
-
-
-  const mayorAtraso =
-    todosAtrasados[0] ||
-    null;
+    pronosticos.length
+      ? pronosticos[0]
+      : null;
 
 
   /*
-  ==============================================
-  ESTADÍSTICAS
-  ==============================================
+  ----------------------------------------------
+  RESULTADOS DE HOY
+  ----------------------------------------------
   */
+
+  const resultadosHoy =
+    construirResultadosHoy(
+      historial,
+      config.tipo,
+      hoy
+    );
+
+
+  /*
+  ----------------------------------------------
+  ESTADÍSTICAS
+  ----------------------------------------------
+  */
+
+  const mayorAtraso =
+    atrasados.length
+      ? atrasados[0]
+      : null;
+
 
   const estadisticas = {
 
-    totalAnimales,
+    totalAnimales:
+      elementos.length,
+
+    totalCaballos:
+      config.tipo === "caballo"
+        ? elementos.length
+        : 0,
 
     totalHistorial:
       historial.length,
 
     totalAtrasados:
-      todosAtrasados.length,
+      atrasados.length,
 
     mayorAtraso:
       mayorAtraso
@@ -988,42 +867,60 @@ async function procesar(
         ? mayorAtraso.diasSinSalir
         : 0,
 
-    candidatosPronostico:
+    candidatos:
       candidatos.length,
 
     pronosticosHoy:
       pronosticos.length,
 
     pronosticoActual:
-      pronosticos
-        .map(
-          a =>
-            a.animal
-        )
-        .join(
-          " • "
-        ),
-
-    diasPronostico:
       pronostico
-        ? pronostico.diasSinSalir
-        : 0
+        ? pronostico.animal
+        : null
 
   };
+
+
+  /*
+  ----------------------------------------------
+  LISTA DE ELEMENTOS
+  ----------------------------------------------
+  */
+
+  const animales =
+    elementos.map(item => ({
+
+      animal:
+        item.animal,
+
+      caballo:
+        item.caballo,
+
+      numero:
+        item.numero
+
+    }));
 
 
   return {
 
     ok: true,
 
-    loteria: nombre,
+    loteria:
+      config.nombre,
 
-    fuente: "XTREME",
+    fuente:
+      "XTREME",
+
+    hoy,
 
     historial:
       historial.length,
 
-    hoy,
+    totalAnimales:
+      elementos.length,
+
+    animales,
 
     pronosticos,
 
@@ -1044,7 +941,7 @@ async function procesar(
 
 /*
 ==================================================
-HANDLER CENTRAL
+HANDLER PRINCIPAL
 ==================================================
 */
 
@@ -1056,159 +953,115 @@ export default async function handler(
   try {
 
     const loteria =
-      String(
-        req.query?.loteria ||
-        ""
-      )
-      .toLowerCase()
-      .trim();
+      normalizarTexto(
+        req.query?.loteria
+      ).toLowerCase();
 
 
     /*
-    ============================================
-    LA GRANJITA
-    ============================================
+    ----------------------------------------------
+    VALIDAR LOTERÍA
+    ----------------------------------------------
     */
 
-    if (
-      loteria === "lagranjita"
-    ) {
+    const config =
+      CONFIG[loteria];
 
-      return res.status(200).json(
-        await procesar(
-          "historial_granjita",
-          "La Granjita",
-          "granjita",
-          38
-        )
-      );
+
+    if (!config) {
+
+      return res
+        .status(400)
+        .json({
+
+          ok: false,
+
+          error:
+            "Lotería no válida.",
+
+          loteriasDisponibles:
+            Object.keys(CONFIG)
+
+        });
 
     }
 
 
     /*
-    ============================================
-    GUACHARITO
-    ============================================
+    ----------------------------------------------
+    CARGAR HISTORIAL
+    ----------------------------------------------
     */
 
-    if (
-      loteria ===
-      "guacharitomillonario"
-    ) {
-
-      return res.status(200).json(
-        await procesar(
-          "historial_guacharito",
-          "El Guacharito Millonario",
-          "granjita",
-          38
-        )
+    const historial =
+      await cargarHistorial(
+        config.tabla
       );
-
-    }
 
 
     /*
-    ============================================
-    SELVA PLUS
-    ============================================
+    ----------------------------------------------
+    FECHA ACTUAL VENEZUELA
+    ----------------------------------------------
     */
 
-    if (
-      loteria === "selvaplus"
-    ) {
-
-      return res.status(200).json(
-        await procesar(
-          "historial_selvaplus",
-          "Selva Plus",
-          "selva",
-          38
-        )
+    const hoy =
+      new Intl.DateTimeFormat(
+        "en-CA",
+        {
+          timeZone: TIME_ZONE,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }
+      ).format(
+        new Date()
       );
-
-    }
 
 
     /*
-    ============================================
-    LOTTO ACTIVO
-    ============================================
+    ----------------------------------------------
+    ANALIZAR
+    ----------------------------------------------
     */
 
-    if (
-      loteria === "lottoactivo"
-    ) {
-
-      return res.status(200).json(
-        await procesar(
-          "historial_lotto",
-          "Lotto Activo",
-          "lotto",
-          38
-        )
+    const resultado =
+      construirAnalisis(
+        historial,
+        config,
+        hoy
       );
-
-    }
 
 
     /*
-    ============================================
-    RULETA ACTIVA
-    ============================================
+    ----------------------------------------------
+    RESPUESTA
+    ----------------------------------------------
     */
 
-    if (
-      loteria === "ruletaactiva"
-    ) {
-
-      return res.status(200).json(
-        await procesar(
-          "historial_ruleta",
-          "Ruleta Activa",
-          "ruleta",
-          40
-        )
-      );
-
-    }
+    return res
+      .status(200)
+      .json(resultado);
 
 
-    /*
-    ============================================
-    ERROR
-    ============================================
-    */
-
-    return res.status(400).json({
-
-      ok: false,
-
-      error:
-        "Lotería no especificada o no soportada."
-
-    });
-
-  }
-
-  catch (error) {
+  } catch (error) {
 
     console.error(
-      "ERROR ANALIZADOR CENTRAL:",
+      "ERROR ANALIZAR LOTERIA:",
       error
     );
 
+    return res
+      .status(500)
+      .json({
 
-    return res.status(500).json({
+        ok: false,
 
-      ok: false,
+        error:
+          error?.message ||
+          "Error interno analizando la lotería."
 
-      error:
-        error.message ||
-        "Error analizando la lotería."
-
-    });
+      });
 
   }
 
