@@ -3,7 +3,7 @@
 XTREME PREDICTOR 2.0
 ACTUALIZADOR DE CABALLOS
 LA RINCONADA + VALENCIA
-VERSIÓN ESTRUCTURADA
+VERSIÓN CORREGIDA
 ==================================================
 */
 
@@ -22,67 +22,7 @@ const FUENTES = [
 ];
 
 
-/*
-==================================================
-CONFIGURACIÓN
-==================================================
-*/
-
 const TIME_ZONE = "America/Caracas";
-
-
-/*
-==================================================
-UTILIDADES
-==================================================
-*/
-
-function normalizarTexto(texto) {
-
-  return String(texto || "")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-}
-
-
-function limpiarNombreCaballo(nombre) {
-
-  return normalizarTexto(nombre)
-    .replace(/🥇|🥈|🥉/g, "")
-    .replace(/^\d+\s*º\s*/i, "")
-    .trim();
-
-}
-
-
-function numeroCaballo(texto) {
-
-  const match =
-    String(texto || "")
-      .match(/\((\d+)\)/);
-
-  return match
-    ? Number(match[1])
-    : null;
-
-}
-
-
-function obtenerFechaVenezuela() {
-
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: TIME_ZONE,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }
-  ).format(new Date());
-
-}
 
 
 /*
@@ -104,9 +44,53 @@ const MESES = {
   septiembre: 9,
   octubre: 10,
   noviembre: 11,
-  diciembre: 12
+  diciembre: 12,
+
+  ene: 1,
+  feb: 2,
+  mar: 3,
+  abr: 4,
+  may: 5,
+  jun: 6,
+  jul: 7,
+  ago: 8,
+  sep: 9,
+  oct: 10,
+  nov: 11,
+  dic: 12
 
 };
+
+
+/*
+==================================================
+UTILIDADES
+==================================================
+*/
+
+function normalizarTexto(texto) {
+
+  return String(texto || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+}
+
+
+function obtenerFechaVenezuela() {
+
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(new Date());
+
+}
 
 
 /*
@@ -119,34 +103,154 @@ function convertirFecha(texto) {
 
   const limpio =
     normalizarTexto(texto)
-      .toLowerCase();
-
-  const match =
-    limpio.match(
-      /(?:lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo),?\s+(\d{1,2})\s+de\s+([a-záéíóú]+)\s+de\s+(\d{4})/i
-    );
-
-  if (!match) {
-    return null;
-  }
-
-  const dia =
-    Number(match[1]);
-
-  const mesNombre =
-    match[2]
+      .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
 
+
+  /*
+  ----------------------------------------------
+  FORMATO:
+  domingo, 13 de septiembre de 2026
+  ----------------------------------------------
+  */
+
+  let match =
+    limpio.match(
+      /(?:lunes|martes|miercoles|jueves|viernes|sabado|domingo),?\s+(\d{1,2})\s+de\s+([a-z]+)\s+de\s+(\d{4})/i
+    );
+
+
+  if (match) {
+
+    const dia =
+      Number(match[1]);
+
+    const mes =
+      MESES[match[2]];
+
+    const año =
+      Number(match[3]);
+
+    if (
+      mes &&
+      dia &&
+      año
+    ) {
+
+      return [
+        año,
+        String(mes).padStart(2, "0"),
+        String(dia).padStart(2, "0")
+      ].join("-");
+
+    }
+
+  }
+
+
+  /*
+  ----------------------------------------------
+  FORMATO:
+  17/09/2026
+  ----------------------------------------------
+  */
+
+  match =
+    limpio.match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+    );
+
+
+  if (match) {
+
+    return [
+      Number(match[3]),
+      String(Number(match[2])).padStart(2, "0"),
+      String(Number(match[1])).padStart(2, "0")
+    ].join("-");
+
+  }
+
+
+  /*
+  ----------------------------------------------
+  FORMATO:
+  SEP
+  13
+  2026
+
+  SE PROCESA EN LA FUNCIÓN PRINCIPAL
+  ----------------------------------------------
+  */
+
+  return null;
+
+}
+
+
+/*
+==================================================
+FECHA POR BLOQUE SEP / 13 / 2026
+==================================================
+*/
+
+function convertirFechaSeparada(
+  lineas,
+  indice
+) {
+
+  if (
+    indice + 2 >=
+    lineas.length
+  ) {
+
+    return null;
+
+  }
+
+
+  const mesTexto =
+    normalizarTexto(
+      lineas[indice]
+    )
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+
+  const diaTexto =
+    normalizarTexto(
+      lineas[indice + 1]
+    );
+
+
+  const añoTexto =
+    normalizarTexto(
+      lineas[indice + 2]
+    );
+
+
   const mes =
-    MESES[mesNombre];
+    MESES[mesTexto];
+
+  const dia =
+    Number(diaTexto);
 
   const año =
-    Number(match[3]);
+    Number(añoTexto);
 
-  if (!mes || !dia || !año) {
+
+  if (
+    !mes ||
+    !dia ||
+    !añoTexto.match(/^\d{4}$/)
+  ) {
+
     return null;
+
   }
+
 
   return [
     año,
@@ -184,6 +288,7 @@ async function obtenerPagina(url) {
       }
     );
 
+
   if (!respuesta.ok) {
 
     throw new Error(
@@ -191,6 +296,7 @@ async function obtenerPagina(url) {
     );
 
   }
+
 
   return await respuesta.text();
 
@@ -208,11 +314,14 @@ function obtenerLineas(html) {
   const $ =
     cheerio.load(html);
 
+
   $("script, style, noscript")
     .remove();
 
+
   let contenido =
     $("body").html() || "";
+
 
   contenido =
     contenido
@@ -229,12 +338,14 @@ function obtenerLineas(html) {
         " "
       );
 
+
   const texto =
     cheerio
       .load(
         `<div>${contenido}</div>`
       )
       .text();
+
 
   return texto
     .split(/\r?\n/)
@@ -256,6 +367,7 @@ function detectarHipodromo(texto) {
     normalizarTexto(texto)
       .toUpperCase();
 
+
   if (
     limpio.includes(
       "NACIONAL DE VALENCIA"
@@ -273,6 +385,7 @@ function detectarHipodromo(texto) {
 
   }
 
+
   if (
     limpio.includes(
       "RESULTADOS LA RINCONADA"
@@ -288,6 +401,7 @@ function detectarHipodromo(texto) {
     return "La Rinconada";
 
   }
+
 
   return null;
 
@@ -305,17 +419,29 @@ function detectarCarrera(texto) {
   const limpio =
     normalizarTexto(texto);
 
-  const match =
+
+  let match =
     limpio.match(
       /^Carrera\s+(\d+)\s+(\d+)\s*m/i
-    ) ||
-    limpio.match(
-      /^Carrera\s+(\d+)/i
     );
 
+
   if (!match) {
-    return null;
+
+    match =
+      limpio.match(
+        /^Carrera\s+(\d+)/i
+      );
+
   }
+
+
+  if (!match) {
+
+    return null;
+
+  }
+
 
   return {
 
@@ -334,6 +460,26 @@ function detectarCarrera(texto) {
 
 /*
 ==================================================
+LIMPIAR NOMBRE
+==================================================
+*/
+
+function limpiarNombreCaballo(
+  nombre
+) {
+
+  return normalizarTexto(nombre)
+    .replace(
+      /🥇|🥈|🥉/g,
+      ""
+    )
+    .trim();
+
+}
+
+
+/*
+==================================================
 EXTRAER LLEGADA
 ==================================================
 */
@@ -343,27 +489,35 @@ function extraerLlegada(texto) {
   const limpio =
     normalizarTexto(texto);
 
+
   const match =
     limpio.match(
       /^(?:🥇|🥈|🥉)?\s*(\d+)\s*º\s+(.+?)\s*\((\d+)\)(?:\s*·\s*(.*))?$/i
     );
 
+
   if (!match) {
+
     return null;
+
   }
+
 
   const posicion =
     Number(match[1]);
+
 
   const nombre =
     limpiarNombreCaballo(
       match[2]
     );
 
+
   const resto =
     normalizarTexto(
       match[4] || ""
     );
+
 
   if (
     !nombre ||
@@ -374,11 +528,13 @@ function extraerLlegada(texto) {
 
   }
 
+
   const partes =
     resto
       .split("·")
       .map(normalizarTexto)
       .filter(Boolean);
+
 
   let jinete =
     null;
@@ -386,14 +542,20 @@ function extraerLlegada(texto) {
   let margen =
     null;
 
-  if (partes.length > 0) {
+
+  if (
+    partes.length > 0
+  ) {
 
     jinete =
       partes[0] || null;
 
   }
 
-  if (partes.length > 1) {
+
+  if (
+    partes.length > 1
+  ) {
 
     margen =
       partes
@@ -406,7 +568,7 @@ function extraerLlegada(texto) {
 
   /*
   ----------------------------------------------
-  INTENTAR SEPARAR MARGEN
+  MARGEN PEGADO AL JINETE
   ----------------------------------------------
   */
 
@@ -420,10 +582,12 @@ function extraerLlegada(texto) {
         /\s+(CABEZA|CUELLO|NARIZ|PESCUEZO|\d+(?:\s+\d+\/\d+)?(?:\s*(?:1\/2|1\/4|3\/4))?)$/i
       );
 
+
     if (margenMatch) {
 
       margen =
         margenMatch[1];
+
 
       jinete =
         jinete
@@ -436,6 +600,7 @@ function extraerLlegada(texto) {
     }
 
   }
+
 
   return {
 
@@ -458,7 +623,7 @@ function extraerLlegada(texto) {
 
 /*
 ==================================================
-DETECTAR RETIRADO
+EXTRAER RETIRADO
 ==================================================
 */
 
@@ -467,14 +632,19 @@ function extraerRetirado(texto) {
   const limpio =
     normalizarTexto(texto);
 
+
   const match =
     limpio.match(
       /^#\s*(\d+)\s*[–-]\s*(.+)$/i
     );
 
+
   if (!match) {
+
     return null;
+
   }
+
 
   return {
 
@@ -502,7 +672,9 @@ function extraerResultados(html) {
   const lineas =
     obtenerLineas(html);
 
+
   const resultados = [];
+
 
   let hipodromoActual =
     null;
@@ -529,7 +701,7 @@ function extraerResultados(html) {
 
     /*
     ----------------------------------------------
-    FECHA
+    FECHA COMPLETA EN UNA LÍNEA
     ----------------------------------------------
     */
 
@@ -538,10 +710,47 @@ function extraerResultados(html) {
         linea
       );
 
+
     if (nuevaFecha) {
 
       fechaActual =
         nuevaFecha;
+
+      carreraActual =
+        null;
+
+      distanciaActual =
+        null;
+
+    }
+
+
+    /*
+    ----------------------------------------------
+    FECHA SEPARADA:
+    SEP
+    13
+    2026
+    ----------------------------------------------
+    */
+
+    const fechaSeparada =
+      convertirFechaSeparada(
+        lineas,
+        i
+      );
+
+
+    if (fechaSeparada) {
+
+      fechaActual =
+        fechaSeparada;
+
+      carreraActual =
+        null;
+
+      distanciaActual =
+        null;
 
     }
 
@@ -556,6 +765,7 @@ function extraerResultados(html) {
       detectarHipodromo(
         linea
       );
+
 
     if (nuevoHipodromo) {
 
@@ -582,6 +792,7 @@ function extraerResultados(html) {
         linea
       );
 
+
     if (nuevaCarrera) {
 
       carreraActual =
@@ -605,6 +816,7 @@ function extraerResultados(html) {
       extraerLlegada(
         linea
       );
+
 
     if (
       llegada &&
@@ -673,6 +885,7 @@ function eliminarDuplicados(
   const mapa =
     new Map();
 
+
   for (
     const resultado of resultados
   ) {
@@ -702,6 +915,7 @@ function eliminarDuplicados(
     }
 
   }
+
 
   return Array.from(
     mapa.values()
@@ -784,6 +998,7 @@ function construirResumen(
       )
     ];
 
+
   const fechas =
     [
       ...new Set(
@@ -794,8 +1009,10 @@ function construirResumen(
     ]
     .sort();
 
+
   const carrerasPorHipodromo =
     {};
+
 
   for (
     const registro of registros
@@ -812,6 +1029,7 @@ function construirResumen(
       ] = [];
 
     }
+
 
     if (
       !carrerasPorHipodromo[
@@ -877,6 +1095,7 @@ export default async function handler(
     const fechaActual =
       obtenerFechaVenezuela();
 
+
     let resultados = [];
 
     let fuenteUtilizada =
@@ -885,7 +1104,7 @@ export default async function handler(
 
     /*
     ----------------------------------------------
-    CONSULTAR FUENTES
+    CONSULTAR FUENTE
     ----------------------------------------------
     */
 
@@ -899,15 +1118,18 @@ export default async function handler(
           `Consultando fuente de caballos: ${fuente}`
         );
 
+
         const html =
           await obtenerPagina(
             fuente
           );
 
+
         const encontrados =
           extraerResultados(
             html
           );
+
 
         console.log(
           `Resultados encontrados: ${encontrados.length}`
@@ -998,7 +1220,7 @@ export default async function handler(
 
     /*
     ----------------------------------------------
-    GUARDAR
+    GUARDAR SUPABASE
     ----------------------------------------------
     */
 
@@ -1088,6 +1310,7 @@ export default async function handler(
       "ERROR actualizarCaballos:",
       error
     );
+
 
     return res
       .status(500)
