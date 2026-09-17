@@ -38,17 +38,10 @@ const emojisAnimales = {
   "LORO":"🦜","COCODRILO":"🐊","GUACHARITO":"🐤"
 };
 
-
 let loteriaActual =
   localStorage.getItem("xtremeLoteria") ||
   "guacharoactivo";
 
-
-/*
-==================================================
-CONFIGURACIÓN DE LOTERÍAS
-==================================================
-*/
 
 const configuracionLoterias = {
 
@@ -102,12 +95,6 @@ const configuracionLoterias = {
 
 };
 
-
-/*
-==================================================
-LISTA DE ANIMALES
-==================================================
-*/
 
 function obtenerListaAnimales(nombre) {
 
@@ -176,12 +163,6 @@ function obtenerListaAnimales(nombre) {
 }
 
 
-/*
-==================================================
-NORMALIZAR TEXTO
-==================================================
-*/
-
 function normalizarTexto(valor) {
 
   return String(valor ?? "")
@@ -193,12 +174,6 @@ function normalizarTexto(valor) {
 
 }
 
-
-/*
-==================================================
-NORMALIZAR NÚMERO
-==================================================
-*/
 
 function normalizarNumero(valor) {
 
@@ -221,29 +196,6 @@ function normalizarNumero(valor) {
 }
 
 
-/*
-==================================================
-FORMATEAR HORA DE RESULTADO
-==================================================
-
-La API puede enviar:
-
-2026-09-16T23:00:00+00:00
-
-Eso está en UTC.
-
-Venezuela = UTC-4.
-
-Se convierte a:
-
-7:00 p. m.
-
-Si la API ya envía una hora normal,
-se conserva tal cual.
-
-==================================================
-*/
-
 function formatearHoraResultado(valor) {
 
   const texto =
@@ -253,42 +205,22 @@ function formatearHoraResultado(valor) {
     return "";
   }
 
-
-  /*
-  ----------------------------------------------
-  SI YA ES UNA HORA NORMAL
-  ----------------------------------------------
-  */
-
   if (
     !/^\d{4}-\d{2}-\d{2}T/.test(texto)
   ) {
-
     return texto;
-
   }
-
-
-  /*
-  ----------------------------------------------
-  CONVERTIR ISO → HORA VENEZUELA
-  ----------------------------------------------
-  */
 
   const fecha =
     new Date(texto);
-
 
   if (
     Number.isNaN(
       fecha.getTime()
     )
   ) {
-
     return texto;
-
   }
-
 
   return new Intl.DateTimeFormat(
     "es-VE",
@@ -309,12 +241,6 @@ function formatearHoraResultado(valor) {
 
 }
 
-
-/*
-==================================================
-EMOJI
-==================================================
-*/
 
 function obtenerEmoji(animal) {
 
@@ -340,12 +266,6 @@ function obtenerEmoji(animal) {
 }
 
 
-/*
-==================================================
-CONFIGURACIÓN ACTUAL
-==================================================
-*/
-
 function obtenerConfiguracionLoteria() {
 
   return (
@@ -358,12 +278,6 @@ function obtenerConfiguracionLoteria() {
 
 }
 
-
-/*
-==================================================
-ACTUALIZAR LISTA DE ANIMALES
-==================================================
-*/
 
 function actualizarListaAnimales() {
 
@@ -383,12 +297,6 @@ function actualizarListaAnimales() {
 
 }
 
-
-/*
-==================================================
-FETCH SEGURO
-==================================================
-*/
 
 async function fetchSeguro(
   url,
@@ -445,12 +353,6 @@ async function fetchSeguro(
 
 }
 
-
-/*
-==================================================
-BUSCAR RESULTADOS DE ANIMAL
-==================================================
-*/
 
 function buscarResultadosAnimal(
   animal,
@@ -616,12 +518,6 @@ function buscarResultadosAnimal(
 }
 
 
-/*
-==================================================
-BUSCAR RESULTADO
-==================================================
-*/
-
 function buscarResultadoAnimal(
   animal,
   resultadosHoy
@@ -639,12 +535,6 @@ function buscarResultadoAnimal(
 
 }
 
-
-/*
-==================================================
-MAPA DE PRONÓSTICOS
-==================================================
-*/
 
 function obtenerMapaPronosticos(
   pronosticos
@@ -689,12 +579,6 @@ function obtenerMapaPronosticos(
 }
 
 
-/*
-==================================================
-BUSCAR PRONÓSTICO
-==================================================
-*/
-
 function buscarPronosticoParaResultado(
   resultado,
   mapa
@@ -738,12 +622,6 @@ function buscarPronosticoParaResultado(
 }
 
 
-/*
-==================================================
-MOSTRAR RESULTADOS DE HOY
-==================================================
-*/
-
 function mostrarResultadosHoy(
   resultadosHoy,
   pronosticos
@@ -760,12 +638,6 @@ function mostrarResultadosHoy(
 
   const lista = [];
 
-
-  /*
-  ----------------------------------------------
-  FORMATO ARRAY
-  ----------------------------------------------
-  */
 
   if (
     Array.isArray(
@@ -804,12 +676,6 @@ function mostrarResultadosHoy(
 
   }
 
-
-  /*
-  ----------------------------------------------
-  FORMATO OBJETO
-  ----------------------------------------------
-  */
 
   else if (
     resultadosHoy &&
@@ -862,12 +728,6 @@ function mostrarResultadosHoy(
   }
 
 
-  /*
-  ==================================================
-  ORDENAR RESULTADOS
-  ==================================================
-  */
-
   function obtenerOrdenResultado(
     resultado
   ) {
@@ -877,18 +737,10 @@ function mostrarResultadosHoy(
         resultado?.fecha ?? ""
       ).trim();
 
-
-    /*
-    ----------------------------------------------
-    SI FECHA ES ISO
-    ----------------------------------------------
-    */
-
     const fechaISO =
       new Date(
         fechaTexto
       ).getTime();
-
 
     if (
       !Number.isNaN(
@@ -900,18 +752,10 @@ function mostrarResultadosHoy(
 
     }
 
-
-    /*
-    ----------------------------------------------
-    FECHA + HORA NORMAL
-    ----------------------------------------------
-    */
-
     const coincidenciaFecha =
       fechaTexto.match(
         /(\d{4})-(\d{2})-(\d{2})/
       );
-
 
     if (
       !coincidenciaFecha
@@ -920,7 +764,6 @@ function mostrarResultadosHoy(
       return 0;
 
     }
-
 
     const año =
       Number(
@@ -937,7 +780,6 @@ function mostrarResultadosHoy(
         coincidenciaFecha[3]
       );
 
-
     const horaTexto =
       String(
         resultado?.hora ?? ""
@@ -945,12 +787,10 @@ function mostrarResultadosHoy(
         .trim()
         .toLowerCase();
 
-
     const coincidenciaHora =
       horaTexto.match(
         /(\d{1,2}):(\d{2})\s*(a\.?\s*m\.?|p\.?\s*m\.?|am|pm)?/i
       );
-
 
     if (
       !coincidenciaHora
@@ -964,7 +804,6 @@ function mostrarResultadosHoy(
 
     }
 
-
     let hora =
       Number(
         coincidenciaHora[1]
@@ -975,14 +814,12 @@ function mostrarResultadosHoy(
         coincidenciaHora[2]
       );
 
-
     const periodo =
       String(
         coincidenciaHora[3] || ""
       )
         .replace(/\s/g, "")
         .replace(/\./g, "");
-
 
     if (
       periodo === "pm" &&
@@ -993,7 +830,6 @@ function mostrarResultadosHoy(
 
     }
 
-
     if (
       periodo === "am" &&
       hora === 12
@@ -1002,7 +838,6 @@ function mostrarResultadosHoy(
       hora = 0;
 
     }
-
 
     return new Date(
       año,
@@ -1057,14 +892,12 @@ function mostrarResultadosHoy(
               mapa
             );
 
-
           const nombre =
             String(
               resultado.animal
             )
               .trim()
               .toUpperCase();
-
 
           return `
             <div
@@ -1093,17 +926,14 @@ function mostrarResultadosHoy(
 
               </strong>
 
-
               <span>
                 #${resultado.numero}
               </span>
-
 
               <small>
                 🕐
                 ${resultado.hora || ""}
               </small>
-
 
               ${
                 acierto
@@ -1201,12 +1031,10 @@ function pintarPronosticos(
         🎯 POSIBILIDADES DEL DÍA
       </h1>
 
-
       <p>
         ${configuracion.nombre}
         — análisis XTREME actualizado.
       </p>
-
 
       <div class="lista-pronosticos">
 
@@ -1237,6 +1065,117 @@ function pintarPronosticos(
               animal.caballo ||
               "SIN NOMBRE";
 
+
+            /*
+            ==================================================
+            BLOQUE ESPECIAL CABALLOS
+            ==================================================
+            */
+
+            if (
+              loteriaActual ===
+              "caballos"
+            ) {
+
+              return `
+                <div
+                  class="pronostico-animal"
+                >
+
+                  <h2>
+
+                    ${posicion}
+
+                    🐎
+
+                    ${nombre}
+
+                  </h2>
+
+
+                  ${
+                    animal.numero !==
+                    null &&
+                    animal.numero !==
+                    undefined &&
+                    animal.numero !== ""
+                      ? `
+                        <p>
+                          🔢 Número:
+                          <strong>
+                            #${animal.numero}
+                          </strong>
+                        </p>
+                      `
+                      : ""
+                  }
+
+
+                  ${
+                    acierto
+                      ? `
+                        <div
+                          class="acierto-xtreme"
+                          style="
+                            text-align:center;
+                            font-weight:900;
+                            margin:10px 0;
+                          "
+                        >
+                          🚀💥🏁
+                          ACIERTO XTREME
+                          🏁💥🚀
+                        </div>
+
+
+                        <p>
+                          🎯 Resultado:
+                          <strong>
+                            #${resultado.numero}
+                            ${
+                              resultado.hora
+                                ? " · " +
+                                  formatearHoraResultado(
+                                    resultado.hora ||
+                                    resultado.fecha
+                                  )
+                                : ""
+                            }
+                          </strong>
+                        </p>
+                      `
+                      : `
+                        <div
+                          class="estado-pronostico"
+                          style="
+                            font-weight:700;
+                            margin:8px 0 10px;
+                          "
+                        >
+                          🎯 Pronóstico activo
+                        </div>
+                      `
+                  }
+
+
+                  <p>
+                    🔥 Confianza XTREME:
+                    <strong>
+                      ${animal.porcentaje ?? 0}%
+                    </strong>
+                  </p>
+
+                </div>
+              `;
+
+            }
+
+
+            /*
+            ==================================================
+            BLOQUE NORMAL PARA ANIMALITOS
+            ==================================================
+            */
 
             return `
               <div
@@ -1382,12 +1321,6 @@ function pintarPronosticos(
 }
 
 
-/*
-==================================================
-TOP 10
-==================================================
-*/
-
 function pintarTop10(datos) {
 
   const tabla =
@@ -1463,12 +1396,6 @@ function pintarTop10(datos) {
 
 }
 
-
-/*
-==================================================
-ATRASADOS
-==================================================
-*/
 
 function pintarAtrasados(datos) {
 
@@ -1567,12 +1494,6 @@ function pintarAtrasados(datos) {
 
 }
 
-
-/*
-==================================================
-ANIMALES / CABALLOS
-==================================================
-*/
 
 function pintarAnimales(datos) {
 
@@ -1734,12 +1655,6 @@ function pintarAnimales(datos) {
 
 }
 
-
-/*
-==================================================
-ESTADÍSTICAS
-==================================================
-*/
 
 function pintarEstadisticas(
   datos,
@@ -1903,12 +1818,6 @@ function pintarEstadisticas(
 
 }
 
-
-/*
-==================================================
-CARGAR ANÁLISIS
-==================================================
-*/
 
 async function cargarAnalisis() {
 
@@ -2119,12 +2028,6 @@ async function cargarAnalisis() {
 }
 
 
-/*
-==================================================
-ACTUALIZAR TODO
-==================================================
-*/
-
 async function actualizarTodo() {
 
   const boton =
@@ -2220,12 +2123,6 @@ async function actualizarTodo() {
 }
 
 
-/*
-==================================================
-CONTROLES
-==================================================
-*/
-
 function inicializarControles() {
 
   const selector =
@@ -2286,12 +2183,6 @@ function inicializarControles() {
 }
 
 
-/*
-==================================================
-INICIAR XTREME
-==================================================
-*/
-
 function iniciarXTREME() {
 
   try {
@@ -2343,12 +2234,6 @@ function iniciarXTREME() {
 
 }
 
-
-/*
-==================================================
-ARRANQUE
-==================================================
-*/
 
 if (
   document.readyState ===
