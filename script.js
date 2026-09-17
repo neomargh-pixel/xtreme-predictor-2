@@ -10,7 +10,7 @@ VERSIÓN ESTABLE
 
 const emojisAnimales = {
   "DELFÍN":"🐬","BALLENA":"🐋","CARNERO":"🐏","TORO":"🐂",
-  "CIEMPIÉS":"🐛","ALACRÁN":"🦂","LEÓN":"🦁","RANA":"🐸",
+  "CIEMPIÉS":"🐛","ALACRÓN":"🦂","LEÓN":"🦁","RANA":"🐸",
   "PERICO":"🦜","RATÓN":"🐭","ÁGUILA":"🦅","TIGRE":"🐯",
   "GATO":"🐱","CABALLO":"🐴","MONO":"🐒","PALOMA":"🕊️",
   "ZORRO":"🦊","OSO":"🐻","PAVO":"🦃","BURRO":"🫏",
@@ -217,6 +217,95 @@ function normalizarNumero(valor) {
   }
 
   return String(numero);
+
+}
+
+
+/*
+==================================================
+FORMATEAR HORA DE RESULTADO
+==================================================
+
+La API puede enviar:
+
+2026-09-16T23:00:00+00:00
+
+Eso está en UTC.
+
+Venezuela = UTC-4.
+
+Se convierte a:
+
+7:00 p. m.
+
+Si la API ya envía una hora normal,
+se conserva tal cual.
+
+==================================================
+*/
+
+function formatearHoraResultado(valor) {
+
+  const texto =
+    String(valor ?? "").trim();
+
+  if (!texto) {
+    return "";
+  }
+
+
+  /*
+  ----------------------------------------------
+  SI YA ES UNA HORA NORMAL
+  ----------------------------------------------
+  */
+
+  if (
+    !/^\d{4}-\d{2}-\d{2}T/.test(texto)
+  ) {
+
+    return texto;
+
+  }
+
+
+  /*
+  ----------------------------------------------
+  CONVERTIR ISO → HORA VENEZUELA
+  ----------------------------------------------
+  */
+
+  const fecha =
+    new Date(texto);
+
+
+  if (
+    Number.isNaN(
+      fecha.getTime()
+    )
+  ) {
+
+    return texto;
+
+  }
+
+
+  return new Intl.DateTimeFormat(
+    "es-VE",
+    {
+      timeZone:
+        "America/Caracas",
+
+      hour:
+        "numeric",
+
+      minute:
+        "2-digit",
+
+      hour12:
+        true
+    }
+  ).format(fecha);
 
 }
 
@@ -671,6 +760,7 @@ function mostrarResultadosHoy(
 
   const lista = [];
 
+
   /*
   ----------------------------------------------
   FORMATO ARRAY
@@ -698,8 +788,10 @@ function mostrarResultadosHoy(
             "",
 
           hora:
-            resultado?.hora ??
-            "",
+            formatearHoraResultado(
+              resultado?.hora ||
+              resultado?.fecha
+            ),
 
           fecha:
             resultado?.fecha ??
@@ -711,6 +803,7 @@ function mostrarResultadosHoy(
     );
 
   }
+
 
   /*
   ----------------------------------------------
@@ -749,8 +842,10 @@ function mostrarResultadosHoy(
                 "",
 
               hora:
-                resultado?.hora ??
-                "",
+                formatearHoraResultado(
+                  resultado?.hora ||
+                  resultado?.fecha
+                ),
 
               fecha:
                 resultado?.fecha ??
@@ -769,26 +864,79 @@ function mostrarResultadosHoy(
 
   /*
   ==================================================
-  ORDENAR RESULTADOS DE HOY
-  ==================================================
-
-  PRIMERA SALIDA → ÚLTIMA SALIDA
-
-  08:00 a. m.
-  09:00 a. m.
-  10:00 a. m.
-  ...
-  07:00 p. m.
-
+  ORDENAR RESULTADOS
   ==================================================
   */
 
-  function obtenerOrdenResultado(resultado) {
+  function obtenerOrdenResultado(
+    resultado
+  ) {
 
     const fechaTexto =
       String(
         resultado?.fecha ?? ""
       ).trim();
+
+
+    /*
+    ----------------------------------------------
+    SI FECHA ES ISO
+    ----------------------------------------------
+    */
+
+    const fechaISO =
+      new Date(
+        fechaTexto
+      ).getTime();
+
+
+    if (
+      !Number.isNaN(
+        fechaISO
+      )
+    ) {
+
+      return fechaISO;
+
+    }
+
+
+    /*
+    ----------------------------------------------
+    FECHA + HORA NORMAL
+    ----------------------------------------------
+    */
+
+    const coincidenciaFecha =
+      fechaTexto.match(
+        /(\d{4})-(\d{2})-(\d{2})/
+      );
+
+
+    if (
+      !coincidenciaFecha
+    ) {
+
+      return 0;
+
+    }
+
+
+    const año =
+      Number(
+        coincidenciaFecha[1]
+      );
+
+    const mes =
+      Number(
+        coincidenciaFecha[2]
+      ) - 1;
+
+    const dia =
+      Number(
+        coincidenciaFecha[3]
+      );
+
 
     const horaTexto =
       String(
@@ -798,49 +946,6 @@ function mostrarResultadosHoy(
         .toLowerCase();
 
 
-    /*
-    ----------------------------------------------
-    FECHA
-    ----------------------------------------------
-    */
-
-    let año;
-    let mes;
-    let dia;
-
-
-    const coincidenciaFecha =
-      fechaTexto.match(
-        /(\d{4})-(\d{2})-(\d{2})/
-      );
-
-
-    if (coincidenciaFecha) {
-
-      año =
-        Number(
-          coincidenciaFecha[1]
-        );
-
-      mes =
-        Number(
-          coincidenciaFecha[2]
-        ) - 1;
-
-      dia =
-        Number(
-          coincidenciaFecha[3]
-        );
-
-    }
-
-
-    /*
-    ----------------------------------------------
-    HORA
-    ----------------------------------------------
-    */
-
     const coincidenciaHora =
       horaTexto.match(
         /(\d{1,2}):(\d{2})\s*(a\.?\s*m\.?|p\.?\s*m\.?|am|pm)?/i
@@ -848,83 +953,66 @@ function mostrarResultadosHoy(
 
 
     if (
-      coincidenciaHora &&
-      año !== undefined
+      !coincidenciaHora
     ) {
-
-      let hora =
-        Number(
-          coincidenciaHora[1]
-        );
-
-      const minuto =
-        Number(
-          coincidenciaHora[2]
-        );
-
-
-      const periodo =
-        String(
-          coincidenciaHora[3] || ""
-        )
-          .replace(/\s/g, "")
-          .replace(/\./g, "");
-
-
-      /*
-      --------------------------------------------
-      CONVERTIR A 24 HORAS
-      --------------------------------------------
-      */
-
-      if (
-        periodo === "pm" &&
-        hora < 12
-      ) {
-
-        hora += 12;
-
-      }
-
-
-      if (
-        periodo === "am" &&
-        hora === 12
-      ) {
-
-        hora = 0;
-
-      }
-
 
       return new Date(
         año,
         mes,
-        dia,
-        hora,
-        minuto,
-        0,
-        0
+        dia
       ).getTime();
 
     }
 
 
-    /*
-    ----------------------------------------------
-    SI NO HAY HORA
-    ----------------------------------------------
-    */
+    let hora =
+      Number(
+        coincidenciaHora[1]
+      );
 
-    const fecha =
-      new Date(
-        fechaTexto
-      ).getTime();
+    const minuto =
+      Number(
+        coincidenciaHora[2]
+      );
 
 
-    return Number.isNaN(fecha)
-      ? 0
-      : fecha;
+    const periodo =
+      String(
+        coincidenciaHora[3] || ""
+      )
+        .replace(/\s/g, "")
+        .replace(/\./g, "");
+
+
+    if (
+      periodo === "pm" &&
+      hora < 12
+    ) {
+
+      hora += 12;
+
+    }
+
+
+    if (
+      periodo === "am" &&
+      hora === 12
+    ) {
+
+      hora = 0;
+
+    }
+
+
+    return new Date(
+      año,
+      mes,
+      dia,
+      hora,
+      minuto,
+      0,
+      0
+    ).getTime();
 
   }
 
@@ -1106,11 +1194,6 @@ function pintarPronosticos(
   }
 
 
-  const esCaballos =
-    loteriaActual ===
-    "caballos";
-
-
   contenedor.innerHTML = `
     <div class="pronosticos-dia">
 
@@ -1215,7 +1298,10 @@ function pintarPronosticos(
                           ${
                             resultado.hora
                               ? " · " +
-                                resultado.hora
+                                formatearHoraResultado(
+                                  resultado.hora ||
+                                  resultado.fecha
+                                )
                               : ""
                           }
                         </strong>
@@ -1593,7 +1679,10 @@ function pintarAnimales(datos) {
               resultado => `
                 <br>
                 🕐
-                ${resultado.hora ?? ""}
+                ${formatearHoraResultado(
+                  resultado?.hora ||
+                  resultado?.fecha
+                )}
               `
             ).join("")}
 
