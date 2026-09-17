@@ -138,12 +138,6 @@ function normalizarNumero(numero) {
 ==================================================
 CARGAR TODO EL HISTORIAL
 ==================================================
-
-Supabase puede entregar máximo 1000 registros
-por consulta.
-
-Por eso hacemos paginación.
-==================================================
 */
 
 async function cargarHistorial(tabla) {
@@ -338,14 +332,6 @@ function obtenerUltimaFecha(registros) {
 /*
 ==================================================
 ÍNDICE XTREME
-==================================================
-
-Combina:
-
-- frecuencia últimos 30 días
-- frecuencia últimos 14 días
-- frecuencia últimos 7 días
-- días sin salir
 ==================================================
 */
 
@@ -772,7 +758,8 @@ function construirAnalisis(
         (a, b) =>
           b.diasSinSalir -
           a.diasSinSalir
-      );
+      )
+      .slice(0, 10);
 
 
   /*
