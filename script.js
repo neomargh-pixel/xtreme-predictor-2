@@ -52,25 +52,11 @@ CONFIGURACIÓN DE LOTERÍAS
 
 const configuracionLoterias = {
 
-  /*
-  ----------------------------------------------
-  GUÁCHARO ACTIVO
-  SE MANTIENE SU ANALIZADOR ORIGINAL
-  ----------------------------------------------
-  */
-
   guacharoactivo: {
     nombre: "Guácharo Activo",
     actualizar: "/api/actualizar",
     analizar: "/api/analizar"
   },
-
-
-  /*
-  ----------------------------------------------
-  LA GRANJITA
-  ----------------------------------------------
-  */
 
   lagranjita: {
     nombre: "La Granjita",
@@ -78,25 +64,11 @@ const configuracionLoterias = {
     analizar: "/api/analizarLoteria?loteria=lagranjita"
   },
 
-
-  /*
-  ----------------------------------------------
-  SELVA PLUS
-  ----------------------------------------------
-  */
-
   selvaplus: {
     nombre: "Selva Plus",
     actualizar: "/api/actualizarSelvaPlus",
     analizar: "/api/analizarLoteria?loteria=selvaplus"
   },
-
-
-  /*
-  ----------------------------------------------
-  EL GUACHARITO MILLONARIO
-  ----------------------------------------------
-  */
 
   guacharitomillonario: {
     nombre: "El Guacharito Millonario",
@@ -104,25 +76,11 @@ const configuracionLoterias = {
     analizar: "/api/analizarLoteria?loteria=guacharitomillonario"
   },
 
-
-  /*
-  ----------------------------------------------
-  RULETA ACTIVA
-  ----------------------------------------------
-  */
-
   ruletaactiva: {
     nombre: "Ruleta Activa",
     actualizar: "/api/actualizarRuleta",
     analizar: "/api/analizarLoteria?loteria=ruletaactiva"
   },
-
-
-  /*
-  ----------------------------------------------
-  LOTTO ACTIVO
-  ----------------------------------------------
-  */
 
   lottoactivo: {
     nombre: "Lotto Activo",
@@ -130,25 +88,11 @@ const configuracionLoterias = {
     analizar: "/api/analizarLoteria?loteria=lottoactivo"
   },
 
-
-  /*
-  ----------------------------------------------
-  CABALLOS
-  ----------------------------------------------
-  */
-
   caballos: {
     nombre: "Caballos",
     actualizar: "/api/actualizarCaballos",
     analizar: "/api/analizarLoteria?loteria=caballos"
   },
-
-
-  /*
-  ----------------------------------------------
-  GRANJA MILLONARIA
-  ----------------------------------------------
-  */
 
   granamillonaria: {
     nombre: "Granja Millonaria",
@@ -174,14 +118,12 @@ function obtenerListaAnimales(nombre) {
     return animalesGuacharo;
   }
 
-
   if (
     nombre === "lagranjita" &&
     typeof animalesGranjita !== "undefined"
   ) {
     return animalesGranjita;
   }
-
 
   if (
     nombre === "selvaplus" &&
@@ -190,14 +132,12 @@ function obtenerListaAnimales(nombre) {
     return animalesSelvaPlus;
   }
 
-
   if (
     nombre === "guacharitomillonario" &&
     typeof animalesGuacharito !== "undefined"
   ) {
     return animalesGuacharito;
   }
-
 
   if (
     nombre === "ruletaactiva" &&
@@ -206,7 +146,6 @@ function obtenerListaAnimales(nombre) {
     return animalesRuleta;
   }
 
-
   if (
     nombre === "lottoactivo" &&
     typeof animalesLotto !== "undefined"
@@ -214,25 +153,12 @@ function obtenerListaAnimales(nombre) {
     return animalesLotto;
   }
 
-
   if (
     nombre === "granamillonaria" &&
     typeof animalesGranjaMillonaria !== "undefined"
   ) {
     return animalesGranjaMillonaria;
   }
-
-
-  /*
-  ----------------------------------------------
-  CABALLOS
-  ----------------------------------------------
-
-  Los caballos se cargan directamente desde
-  analizarLoteria.js porque la lista depende
-  de los resultados encontrados.
-  ----------------------------------------------
-  */
 
   if (nombre === "caballos") {
 
@@ -245,7 +171,6 @@ function obtenerListaAnimales(nombre) {
 
     return [];
   }
-
 
   return [];
 }
@@ -309,19 +234,11 @@ function obtenerEmoji(animal) {
       .trim()
       .toUpperCase();
 
-
-  /*
-  ----------------------------------------------
-  CABALLOS
-  ----------------------------------------------
-  */
-
   if (
     loteriaActual === "caballos"
   ) {
     return "🐎";
   }
-
 
   return (
     emojisAnimales[nombre] ||
@@ -366,7 +283,6 @@ function actualizarListaAnimales() {
       loteriaActual
     );
 
-
   if (
     Array.isArray(lista) &&
     lista.length > 0
@@ -394,13 +310,11 @@ async function fetchSeguro(
   const controlador =
     new AbortController();
 
-
   const temporizador =
     setTimeout(
       () => controlador.abort(),
       tiempo
     );
-
 
   try {
 
@@ -456,31 +370,19 @@ function buscarResultadosAnimal(
 
   const encontrados = [];
 
-
-  if (
-    !resultadosHoy
-  ) {
+  if (!resultadosHoy) {
     return encontrados;
   }
-
 
   const nombreBuscado =
     normalizarTexto(
       animal.animal
     );
 
-
   const numeroBuscado =
     normalizarNumero(
       animal.numero
     );
-
-
-  /*
-  ----------------------------------------------
-  FORMATO OBJETO
-  ----------------------------------------------
-  */
 
   if (
     typeof resultadosHoy ===
@@ -503,7 +405,6 @@ function buscarResultadosAnimal(
           return;
         }
 
-
         if (
           normalizarTexto(
             nombre
@@ -522,17 +423,6 @@ function buscarResultadosAnimal(
 
   }
 
-
-  /*
-  ----------------------------------------------
-  FORMATO ARRAY
-  ----------------------------------------------
-
-  Es el formato utilizado por
-  analizarLoteria.js.
-  ----------------------------------------------
-  */
-
   if (
     Array.isArray(
       resultadosHoy
@@ -548,12 +438,10 @@ function buscarResultadosAnimal(
             resultado?.caballo
           );
 
-
         const numeroResultado =
           normalizarNumero(
             resultado?.numero
           );
-
 
         if (
           nombreResultado ===
@@ -566,7 +454,6 @@ function buscarResultadosAnimal(
 
           return;
         }
-
 
         if (
           numeroBuscado &&
@@ -584,13 +471,6 @@ function buscarResultadosAnimal(
     );
 
   }
-
-
-  /*
-  ----------------------------------------------
-  SEGUNDA BÚSQUEDA POR NÚMERO
-  ----------------------------------------------
-  */
 
   if (
     encontrados.length === 0 &&
@@ -615,7 +495,6 @@ function buscarResultadosAnimal(
           ) {
             return;
           }
-
 
           resultados.forEach(
             resultado => {
@@ -643,7 +522,6 @@ function buscarResultadosAnimal(
 
   }
 
-
   return encontrados;
 
 }
@@ -666,7 +544,6 @@ function buscarResultadoAnimal(
       resultadosHoy
     );
 
-
   return resultados.length > 0
     ? resultados[0]
     : null;
@@ -687,7 +564,6 @@ function obtenerMapaPronosticos(
   const mapa =
     new Map();
 
-
   if (
     !Array.isArray(
       pronosticos
@@ -697,7 +573,6 @@ function obtenerMapaPronosticos(
     return mapa;
 
   }
-
 
   pronosticos.forEach(
     animal => {
@@ -710,7 +585,6 @@ function obtenerMapaPronosticos(
         animal
       );
 
-
       mapa.set(
         `NUMERO:${normalizarNumero(
           animal.numero
@@ -720,7 +594,6 @@ function obtenerMapaPronosticos(
 
     }
   );
-
 
   return mapa;
 
@@ -742,28 +615,23 @@ function buscarPronosticoParaResultado(
     return null;
   }
 
-
   const nombre =
     normalizarTexto(
       resultado.animal ||
       resultado.caballo
     );
 
-
   const porNombre =
     mapa.get(nombre);
-
 
   if (porNombre) {
     return porNombre;
   }
 
-
   const numero =
     normalizarNumero(
       resultado.numero
     );
-
 
   if (numero) {
 
@@ -775,7 +643,6 @@ function buscarPronosticoParaResultado(
     );
 
   }
-
 
   return null;
 
@@ -798,14 +665,11 @@ function mostrarResultadosHoy(
       "resultadosHoy"
     );
 
-
   if (!contenedor) {
     return;
   }
 
-
   const lista = [];
-
 
   /*
   ----------------------------------------------
@@ -848,7 +712,6 @@ function mostrarResultadosHoy(
 
   }
 
-
   /*
   ----------------------------------------------
   FORMATO OBJETO
@@ -873,7 +736,6 @@ function mostrarResultadosHoy(
         ) {
           return;
         }
-
 
         resultados.forEach(
           resultado => {
@@ -906,17 +768,171 @@ function mostrarResultadosHoy(
 
 
   /*
-  ----------------------------------------------
-  ORDENAR
-  ----------------------------------------------
+  ==================================================
+  ORDENAR RESULTADOS DE HOY
+  ==================================================
+
+  PRIMERA SALIDA → ÚLTIMA SALIDA
+
+  08:00 a. m.
+  09:00 a. m.
+  10:00 a. m.
+  ...
+  07:00 p. m.
+
+  ==================================================
   */
+
+  function obtenerOrdenResultado(resultado) {
+
+    const fechaTexto =
+      String(
+        resultado?.fecha ?? ""
+      ).trim();
+
+    const horaTexto =
+      String(
+        resultado?.hora ?? ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    /*
+    ----------------------------------------------
+    FECHA
+    ----------------------------------------------
+    */
+
+    let año;
+    let mes;
+    let dia;
+
+
+    const coincidenciaFecha =
+      fechaTexto.match(
+        /(\d{4})-(\d{2})-(\d{2})/
+      );
+
+
+    if (coincidenciaFecha) {
+
+      año =
+        Number(
+          coincidenciaFecha[1]
+        );
+
+      mes =
+        Number(
+          coincidenciaFecha[2]
+        ) - 1;
+
+      dia =
+        Number(
+          coincidenciaFecha[3]
+        );
+
+    }
+
+
+    /*
+    ----------------------------------------------
+    HORA
+    ----------------------------------------------
+    */
+
+    const coincidenciaHora =
+      horaTexto.match(
+        /(\d{1,2}):(\d{2})\s*(a\.?\s*m\.?|p\.?\s*m\.?|am|pm)?/i
+      );
+
+
+    if (
+      coincidenciaHora &&
+      año !== undefined
+    ) {
+
+      let hora =
+        Number(
+          coincidenciaHora[1]
+        );
+
+      const minuto =
+        Number(
+          coincidenciaHora[2]
+        );
+
+
+      const periodo =
+        String(
+          coincidenciaHora[3] || ""
+        )
+          .replace(/\s/g, "")
+          .replace(/\./g, "");
+
+
+      /*
+      --------------------------------------------
+      CONVERTIR A 24 HORAS
+      --------------------------------------------
+      */
+
+      if (
+        periodo === "pm" &&
+        hora < 12
+      ) {
+
+        hora += 12;
+
+      }
+
+
+      if (
+        periodo === "am" &&
+        hora === 12
+      ) {
+
+        hora = 0;
+
+      }
+
+
+      return new Date(
+        año,
+        mes,
+        dia,
+        hora,
+        minuto,
+        0,
+        0
+      ).getTime();
+
+    }
+
+
+    /*
+    ----------------------------------------------
+    SI NO HAY HORA
+    ----------------------------------------------
+    */
+
+    const fecha =
+      new Date(
+        fechaTexto
+      ).getTime();
+
+
+    return Number.isNaN(fecha)
+      ? 0
+      : fecha;
+
+  }
+
 
   lista.sort(
     (a, b) =>
-      String(b.fecha)
-        .localeCompare(
-          String(a.fecha)
-        )
+      obtenerOrdenResultado(a) -
+      obtenerOrdenResultado(b)
   );
 
 
@@ -1048,11 +1064,9 @@ function pintarPronosticos(
       "pronostico"
     );
 
-
   if (!contenedor) {
     return;
   }
-
 
   const pronosticos =
     Array.isArray(
@@ -1295,14 +1309,11 @@ function pintarTop10(datos) {
       "top10"
     );
 
-
   if (!tabla) {
     return;
   }
 
-
   tabla.innerHTML = "";
-
 
   if (
     !Array.isArray(
@@ -1311,7 +1322,6 @@ function pintarTop10(datos) {
   ) {
     return;
   }
-
 
   datos.top10.forEach(
     (animal, index) => {
@@ -1381,14 +1391,11 @@ function pintarAtrasados(datos) {
       "atrasados"
     );
 
-
   if (!tabla) {
     return;
   }
 
-
   tabla.innerHTML = "";
-
 
   if (
     Array.isArray(
@@ -1488,14 +1495,11 @@ function pintarAnimales(datos) {
       "animales"
     );
 
-
   if (!contenedor) {
     return;
   }
 
-
   contenedor.innerHTML = "";
-
 
   if (
     !Array.isArray(
@@ -1504,7 +1508,6 @@ function pintarAnimales(datos) {
   ) {
     return;
   }
-
 
   animales.forEach(
     animal => {
@@ -1659,11 +1662,9 @@ function pintarEstadisticas(
       "estadistica"
     );
 
-
   if (!contenedor) {
     return;
   }
-
 
   const estadisticas =
     datos.estadisticas ||
@@ -1889,16 +1890,6 @@ async function cargarAnalisis() {
 
     }
 
-
-    /*
-    ----------------------------------------------
-    CABALLOS
-    ----------------------------------------------
-
-    El servidor entrega la lista real de
-    caballos encontrados.
-    ----------------------------------------------
-    */
 
     if (
       loteriaActual ===
