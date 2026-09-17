@@ -10,9 +10,25 @@ VERSIÓN ESTRUCTURADA
 import * as cheerio from "cheerio";
 import supabase from "../lib/supabase.js";
 
+
+/*
+==================================================
+FUENTES
+==================================================
+*/
+
 const FUENTES = [
   "https://hipicasenvivo.com/la-rinconda-hinava/"
 ];
+
+
+/*
+==================================================
+CONFIGURACIÓN
+==================================================
+*/
+
+const TIME_ZONE = "America/Caracas";
 
 
 /*
@@ -22,10 +38,12 @@ UTILIDADES
 */
 
 function normalizarTexto(texto) {
+
   return String(texto || "")
     .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
 }
 
 
@@ -41,8 +59,9 @@ function limpiarNombreCaballo(nombre) {
 
 function numeroCaballo(texto) {
 
-  const match = String(texto || "")
-    .match(/\((\d+)\)/);
+  const match =
+    String(texto || "")
+      .match(/\((\d+)\)/);
 
   return match
     ? Number(match[1])
@@ -53,23 +72,27 @@ function numeroCaballo(texto) {
 
 function obtenerFechaVenezuela() {
 
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Caracas",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(new Date());
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(new Date());
 
 }
 
 
 /*
 ==================================================
-FECHAS
+MESES
 ==================================================
 */
 
 const MESES = {
+
   enero: 1,
   febrero: 2,
   marzo: 3,
@@ -82,31 +105,44 @@ const MESES = {
   octubre: 10,
   noviembre: 11,
   diciembre: 12
+
 };
 
 
+/*
+==================================================
+CONVERTIR FECHA
+==================================================
+*/
+
 function convertirFecha(texto) {
 
-  const limpio = normalizarTexto(texto)
-    .toLowerCase();
+  const limpio =
+    normalizarTexto(texto)
+      .toLowerCase();
 
-  const match = limpio.match(
-    /(?:lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo),?\s+(\d{1,2})\s+de\s+([a-záéíóú]+)\s+de\s+(\d{4})/i
-  );
+  const match =
+    limpio.match(
+      /(?:lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo),?\s+(\d{1,2})\s+de\s+([a-záéíóú]+)\s+de\s+(\d{4})/i
+    );
 
   if (!match) {
     return null;
   }
 
-  const dia = Number(match[1]);
+  const dia =
+    Number(match[1]);
 
-  const mesNombre = match[2]
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+  const mesNombre =
+    match[2]
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
 
-  const mes = MESES[mesNombre];
+  const mes =
+    MESES[mesNombre];
 
-  const año = Number(match[3]);
+  const año =
+    Number(match[3]);
 
   if (!mes || !dia || !año) {
     return null;
@@ -123,31 +159,37 @@ function convertirFecha(texto) {
 
 /*
 ==================================================
-PÁGINA
+OBTENER PÁGINA
 ==================================================
 */
 
 async function obtenerPagina(url) {
 
-  const respuesta = await fetch(url, {
+  const respuesta =
+    await fetch(
+      url,
+      {
+        headers: {
 
-    headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/140 Mobile Safari/537.36",
 
-      "User-Agent":
-        "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/140 Mobile Safari/537.36",
+          "Accept":
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 
-      "Accept":
-        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language":
+            "es-VE,es;q=0.9,en;q=0.8"
 
-      "Accept-Language":
-        "es-VE,es;q=0.9,en;q=0.8"
-
-    }
-
-  });
+        }
+      }
+    );
 
   if (!respuesta.ok) {
-    throw new Error(`HTTP ${respuesta.status}`);
+
+    throw new Error(
+      `HTTP ${respuesta.status}`
+    );
+
   }
 
   return await respuesta.text();
@@ -157,26 +199,42 @@ async function obtenerPagina(url) {
 
 /*
 ==================================================
-EXTRAER TEXTO CON SALTOS
+OBTENER LÍNEAS
 ==================================================
 */
 
 function obtenerLineas(html) {
 
-  const $ = cheerio.load(html);
+  const $ =
+    cheerio.load(html);
 
-  $("script, style, noscript").remove();
+  $("script, style, noscript")
+    .remove();
 
-  let contenido = $("body").html() || "";
+  let contenido =
+    $("body").html() || "";
 
-  contenido = contenido
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|section|article|h1|h2|h3|h4|h5|li|tr)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ");
+  contenido =
+    contenido
+      .replace(
+        /<br\s*\/?>/gi,
+        "\n"
+      )
+      .replace(
+        /<\/(p|div|section|article|h1|h2|h3|h4|h5|li|tr)>/gi,
+        "\n"
+      )
+      .replace(
+        /<[^>]+>/g,
+        " "
+      );
 
-  const texto = cheerio
-    .load(`<div>${contenido}</div>`)
-    .text();
+  const texto =
+    cheerio
+      .load(
+        `<div>${contenido}</div>`
+      )
+      .text();
 
   return texto
     .split(/\r?\n/)
@@ -188,27 +246,47 @@ function obtenerLineas(html) {
 
 /*
 ==================================================
-HIPÓDROMO
+DETECTAR HIPÓDROMO
 ==================================================
 */
 
 function detectarHipodromo(texto) {
 
-  const limpio = normalizarTexto(texto)
-    .toUpperCase();
+  const limpio =
+    normalizarTexto(texto)
+      .toUpperCase();
 
   if (
-    limpio.includes("NACIONAL DE VALENCIA") ||
-    limpio.includes("VALENCIA")
+    limpio.includes(
+      "NACIONAL DE VALENCIA"
+    ) ||
+    limpio.includes(
+      "HIPÓDROMO DE VALENCIA"
+    ) ||
+    limpio.includes(
+      "HIPODROMO DE VALENCIA"
+    ) ||
+    limpio === "VALENCIA"
   ) {
+
     return "Valencia";
+
   }
 
   if (
-    limpio.includes("RESULTADOS LA RINCONADA") ||
-    limpio.includes("LA RINCONADA")
+    limpio.includes(
+      "RESULTADOS LA RINCONADA"
+    ) ||
+    limpio.includes(
+      "LA RINCONADA"
+    ) ||
+    limpio.includes(
+      "RINCONADA"
+    )
   ) {
+
     return "La Rinconada";
+
   }
 
   return null;
@@ -218,27 +296,37 @@ function detectarHipodromo(texto) {
 
 /*
 ==================================================
-CARRERA
+DETECTAR CARRERA
 ==================================================
 */
 
 function detectarCarrera(texto) {
 
-  const limpio = normalizarTexto(texto);
+  const limpio =
+    normalizarTexto(texto);
 
   const match =
-    limpio.match(/^Carrera\s+(\d+)\s+(\d+)\s*m/i) ||
-    limpio.match(/^Carrera\s+(\d+)/i);
+    limpio.match(
+      /^Carrera\s+(\d+)\s+(\d+)\s*m/i
+    ) ||
+    limpio.match(
+      /^Carrera\s+(\d+)/i
+    );
 
   if (!match) {
     return null;
   }
 
   return {
-    carrera: Number(match[1]),
-    distancia: match[2]
-      ? Number(match[2])
-      : null
+
+    carrera:
+      Number(match[1]),
+
+    distancia:
+      match[2]
+        ? Number(match[2])
+        : null
+
   };
 
 }
@@ -246,68 +334,80 @@ function detectarCarrera(texto) {
 
 /*
 ==================================================
-LLEGADA
+EXTRAER LLEGADA
 ==================================================
 */
 
 function extraerLlegada(texto) {
 
-  const limpio = normalizarTexto(texto);
+  const limpio =
+    normalizarTexto(texto);
 
-  /*
-  Ejemplos:
-
-  1º TINTA FINA (6) · VELIZ R WINDER J
-
-  2º BULMA (4) · GONZALEZ YAMPER · 3 1/2
-
-  🥇 1º TINTA FINA (6) · VELIZ R WINDER J
-  */
-
-  const match = limpio.match(
-    /^(?:🥇|🥈|🥉)?\s*(\d+)\s*º\s+(.+?)\s*\((\d+)\)(?:\s*·\s*(.*))?$/i
-  );
+  const match =
+    limpio.match(
+      /^(?:🥇|🥈|🥉)?\s*(\d+)\s*º\s+(.+?)\s*\((\d+)\)(?:\s*·\s*(.*))?$/i
+    );
 
   if (!match) {
     return null;
   }
 
-  const posicion = Number(match[1]);
+  const posicion =
+    Number(match[1]);
 
-  const nombre = limpiarNombreCaballo(match[2]);
+  const nombre =
+    limpiarNombreCaballo(
+      match[2]
+    );
 
-  const resto = normalizarTexto(match[4] || "");
+  const resto =
+    normalizarTexto(
+      match[4] || ""
+    );
 
-  if (!nombre || !posicion) {
+  if (
+    !nombre ||
+    !posicion
+  ) {
+
     return null;
+
   }
 
-  let partes = resto
-    .split("·")
-    .map(normalizarTexto)
-    .filter(Boolean);
+  const partes =
+    resto
+      .split("·")
+      .map(normalizarTexto)
+      .filter(Boolean);
 
-  let jinete = null;
-  let margen = null;
+  let jinete =
+    null;
+
+  let margen =
+    null;
 
   if (partes.length > 0) {
 
-    jinete = partes[0] || null;
+    jinete =
+      partes[0] || null;
 
   }
 
   if (partes.length > 1) {
 
-    margen = partes
-      .slice(1)
-      .join(" · ") || null;
+    margen =
+      partes
+        .slice(1)
+        .join(" · ") ||
+      null;
 
   }
 
+
   /*
-  Si por alguna razón el margen quedó pegado
-  al jinete, intentamos reconocer los formatos
-  habituales de distancia.
+  ----------------------------------------------
+  INTENTAR SEPARAR MARGEN
+  ----------------------------------------------
   */
 
   if (
@@ -315,17 +415,23 @@ function extraerLlegada(texto) {
     !margen
   ) {
 
-    const margenMatch = jinete.match(
-      /\s+(CABEZA|CUELLO|NARIZ|PESCUEZO|\d+(?:\s+\d+\/\d+)?(?:\s*(?:1\/2|1\/4|3\/4))?)$/i
-    );
+    const margenMatch =
+      jinete.match(
+        /\s+(CABEZA|CUELLO|NARIZ|PESCUEZO|\d+(?:\s+\d+\/\d+)?(?:\s*(?:1\/2|1\/4|3\/4))?)$/i
+      );
 
     if (margenMatch) {
 
-      margen = margenMatch[1];
+      margen =
+        margenMatch[1];
 
-      jinete = jinete
-        .replace(margenMatch[0], "")
-        .trim();
+      jinete =
+        jinete
+          .replace(
+            margenMatch[0],
+            ""
+          )
+          .trim();
 
     }
 
@@ -334,9 +440,15 @@ function extraerLlegada(texto) {
   return {
 
     posicion,
-    numero: Number(match[3]),
-    caballo: nombre,
+
+    numero:
+      Number(match[3]),
+
+    caballo:
+      nombre,
+
     jinete,
+
     margen
 
   };
@@ -346,15 +458,35 @@ function extraerLlegada(texto) {
 
 /*
 ==================================================
-FECHA DE UNA SECCIÓN
+DETECTAR RETIRADO
 ==================================================
 */
 
-function detectarFecha(texto) {
+function extraerRetirado(texto) {
 
-  const fecha = convertirFecha(texto);
+  const limpio =
+    normalizarTexto(texto);
 
-  return fecha;
+  const match =
+    limpio.match(
+      /^#\s*(\d+)\s*[–-]\s*(.+)$/i
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+
+    numero:
+      Number(match[1]),
+
+    caballo:
+      limpiarNombreCaballo(
+        match[2]
+      )
+
+  };
 
 }
 
@@ -367,22 +499,32 @@ EXTRACCIÓN PRINCIPAL
 
 function extraerResultados(html) {
 
-  const lineas = obtenerLineas(html);
+  const lineas =
+    obtenerLineas(html);
 
   const resultados = [];
 
-  let hipodromoActual = null;
+  let hipodromoActual =
+    null;
 
-  let carreraActual = null;
+  let carreraActual =
+    null;
 
-  let distanciaActual = null;
+  let distanciaActual =
+    null;
 
-  let fechaActual = null;
+  let fechaActual =
+    null;
 
 
-  for (let i = 0; i < lineas.length; i++) {
+  for (
+    let i = 0;
+    i < lineas.length;
+    i++
+  ) {
 
-    const linea = lineas[i];
+    const linea =
+      lineas[i];
 
 
     /*
@@ -391,11 +533,15 @@ function extraerResultados(html) {
     ----------------------------------------------
     */
 
-    const nuevaFecha = detectarFecha(linea);
+    const nuevaFecha =
+      convertirFecha(
+        linea
+      );
 
     if (nuevaFecha) {
 
-      fechaActual = nuevaFecha;
+      fechaActual =
+        nuevaFecha;
 
     }
 
@@ -407,14 +553,20 @@ function extraerResultados(html) {
     */
 
     const nuevoHipodromo =
-      detectarHipodromo(linea);
+      detectarHipodromo(
+        linea
+      );
 
     if (nuevoHipodromo) {
 
-      hipodromoActual = nuevoHipodromo;
+      hipodromoActual =
+        nuevoHipodromo;
 
-      carreraActual = null;
-      distanciaActual = null;
+      carreraActual =
+        null;
+
+      distanciaActual =
+        null;
 
     }
 
@@ -426,7 +578,9 @@ function extraerResultados(html) {
     */
 
     const nuevaCarrera =
-      detectarCarrera(linea);
+      detectarCarrera(
+        linea
+      );
 
     if (nuevaCarrera) {
 
@@ -448,12 +602,15 @@ function extraerResultados(html) {
     */
 
     const llegada =
-      extraerLlegada(linea);
+      extraerLlegada(
+        linea
+      );
 
     if (
       llegada &&
       hipodromoActual &&
-      carreraActual
+      carreraActual &&
+      fechaActual
     ) {
 
       resultados.push({
@@ -489,8 +646,7 @@ function extraerResultados(html) {
           llegada.margen,
 
         fecha:
-          fechaActual ||
-          obtenerFechaVenezuela()
+          fechaActual
 
       });
 
@@ -506,16 +662,20 @@ function extraerResultados(html) {
 
 /*
 ==================================================
-DUPLICADOS
+ELIMINAR DUPLICADOS
 ==================================================
 */
 
-function eliminarDuplicados(resultados) {
+function eliminarDuplicados(
+  resultados
+) {
 
-  const mapa = new Map();
+  const mapa =
+    new Map();
 
-
-  for (const resultado of resultados) {
+  for (
+    const resultado of resultados
+  ) {
 
     const clave = [
 
@@ -530,12 +690,9 @@ function eliminarDuplicados(resultados) {
     ].join("|");
 
 
-    /*
-    Si existe la misma combinación,
-    conservamos la primera.
-    */
-
-    if (!mapa.has(clave)) {
+    if (
+      !mapa.has(clave)
+    ) {
 
       mapa.set(
         clave,
@@ -546,7 +703,6 @@ function eliminarDuplicados(resultados) {
 
   }
 
-
   return Array.from(
     mapa.values()
   );
@@ -556,51 +712,151 @@ function eliminarDuplicados(resultados) {
 
 /*
 ==================================================
-PREPARAR REGISTROS SUPABASE
+PREPARAR REGISTROS
 ==================================================
 */
 
-function prepararRegistros(resultados) {
+function prepararRegistros(
+  resultados
+) {
 
-  return resultados.map(resultado => ({
+  return resultados.map(
+    resultado => ({
 
-    hipodromo:
-      resultado.hipodromo,
+      hipodromo:
+        resultado.hipodromo,
 
-    carrera:
-      resultado.carrera,
+      carrera:
+        resultado.carrera,
 
-    numero:
-      resultado.numero,
+      numero:
+        resultado.numero,
 
-    caballo:
-      resultado.caballo,
+      caballo:
+        resultado.caballo,
 
-    posicion:
-      resultado.posicion,
+      posicion:
+        resultado.posicion,
 
-    distancia:
-      resultado.distancia,
+      distancia:
+        resultado.distancia,
 
-    jinete:
-      resultado.jinete,
+      jinete:
+        resultado.jinete,
 
-    entrenador:
-      resultado.entrenador,
+      entrenador:
+        resultado.entrenador,
 
-    peso:
-      resultado.peso,
+      peso:
+        resultado.peso,
 
-    margen:
-      resultado.margen,
+      margen:
+        resultado.margen,
 
-    fecha:
-      resultado.fecha,
+      fecha:
+        resultado.fecha,
 
-    fecha_carrera:
-      resultado.fecha
+      fecha_carrera:
+        resultado.fecha
 
-  }));
+    })
+  );
+
+}
+
+
+/*
+==================================================
+RESUMEN
+==================================================
+*/
+
+function construirResumen(
+  registros
+) {
+
+  const hipodromos =
+    [
+      ...new Set(
+        registros.map(
+          r => r.hipodromo
+        )
+      )
+    ];
+
+  const fechas =
+    [
+      ...new Set(
+        registros.map(
+          r => r.fecha_carrera
+        )
+      )
+    ]
+    .sort();
+
+  const carrerasPorHipodromo =
+    {};
+
+  for (
+    const registro of registros
+  ) {
+
+    if (
+      !carrerasPorHipodromo[
+        registro.hipodromo
+      ]
+    ) {
+
+      carrerasPorHipodromo[
+        registro.hipodromo
+      ] = [];
+
+    }
+
+    if (
+      !carrerasPorHipodromo[
+        registro.hipodromo
+      ].includes(
+        registro.carrera
+      )
+    ) {
+
+      carrerasPorHipodromo[
+        registro.hipodromo
+      ].push(
+        registro.carrera
+      );
+
+    }
+
+  }
+
+
+  for (
+    const hipodromo of
+    Object.keys(
+      carrerasPorHipodromo
+    )
+  ) {
+
+    carrerasPorHipodromo[
+      hipodromo
+    ].sort(
+      (a, b) => a - b
+    );
+
+  }
+
+
+  return {
+
+    hipodromos,
+
+    fechas,
+
+    carrerasPorHipodromo
+
+  };
 
 }
 
@@ -611,17 +867,20 @@ HANDLER
 ==================================================
 */
 
-export default async function handler(req, res) {
+export default async function handler(
+  req,
+  res
+) {
 
   try {
 
     const fechaActual =
       obtenerFechaVenezuela();
 
-
     let resultados = [];
 
-    let fuenteUtilizada = null;
+    let fuenteUtilizada =
+      null;
 
 
     /*
@@ -630,7 +889,9 @@ export default async function handler(req, res) {
     ----------------------------------------------
     */
 
-    for (const fuente of FUENTES) {
+    for (
+      const fuente of FUENTES
+    ) {
 
       try {
 
@@ -638,21 +899,24 @@ export default async function handler(req, res) {
           `Consultando fuente de caballos: ${fuente}`
         );
 
-
         const html =
-          await obtenerPagina(fuente);
-
+          await obtenerPagina(
+            fuente
+          );
 
         const encontrados =
-          extraerResultados(html);
-
+          extraerResultados(
+            html
+          );
 
         console.log(
           `Resultados encontrados: ${encontrados.length}`
         );
 
 
-        if (encontrados.length > 0) {
+        if (
+          encontrados.length > 0
+        ) {
 
           resultados =
             encontrados;
@@ -678,7 +942,7 @@ export default async function handler(req, res) {
 
     /*
     ----------------------------------------------
-    ELIMINAR DUPLICADOS
+    DUPLICADOS
     ----------------------------------------------
     */
 
@@ -698,28 +962,31 @@ export default async function handler(req, res) {
       resultados.length === 0
     ) {
 
-      return res.status(200).json({
+      return res
+        .status(200)
+        .json({
 
-        ok: false,
+          ok: false,
 
-        loteria: "Caballos",
+          loteria:
+            "Caballos",
 
-        fecha:
-          fechaActual,
+          fecha:
+            fechaActual,
 
-        encontrados: 0,
+          encontrados: 0,
 
-        mensaje:
-          "No se encontraron resultados estructurados de caballos."
+          mensaje:
+            "No se encontraron resultados estructurados de caballos."
 
-      });
+        });
 
     }
 
 
     /*
     ----------------------------------------------
-    REGISTROS
+    PREPARAR
     ----------------------------------------------
     */
 
@@ -731,20 +998,26 @@ export default async function handler(req, res) {
 
     /*
     ----------------------------------------------
-    GUARDAR SUPABASE
+    GUARDAR
     ----------------------------------------------
     */
 
-    const { error } =
+    const {
+      error
+    } =
       await supabase
-        .from("historial_caballos")
+        .from(
+          "historial_caballos"
+        )
         .upsert(
           registros,
           {
             onConflict:
               "hipodromo,carrera,numero,fecha_carrera",
+
             ignoreDuplicates:
               false
+
           }
         );
 
@@ -762,78 +1035,10 @@ export default async function handler(req, res) {
     ----------------------------------------------
     */
 
-    const hipodromos =
-      [
-        ...new Set(
-          registros.map(
-            r => r.hipodromo
-          )
-        )
-      ];
-
-
-    const fechas =
-      [
-        ...new Set(
-          registros.map(
-            r => r.fecha_carrera
-          )
-        )
-      ]
-      .sort();
-
-
-    const carrerasPorHipodromo = {};
-
-
-    for (const registro of registros) {
-
-      if (
-        !carrerasPorHipodromo[
-          registro.hipodromo
-        ]
-      ) {
-
-        carrerasPorHipodromo[
-          registro.hipodromo
-        ] = [];
-
-      }
-
-
-      if (
-        !carrerasPorHipodromo[
-          registro.hipodromo
-        ].includes(
-          registro.carrera
-        )
-      ) {
-
-        carrerasPorHipodromo[
-          registro.hipodromo
-        ].push(
-          registro.carrera
-        );
-
-      }
-
-    }
-
-
-    for (
-      const hipodromo of
-      Object.keys(
-        carrerasPorHipodromo
-      )
-    ) {
-
-      carrerasPorHipodromo[
-        hipodromo
-      ].sort(
-        (a, b) => a - b
+    const resumen =
+      construirResumen(
+        registros
       );
-
-    }
 
 
     /*
@@ -842,31 +1047,39 @@ export default async function handler(req, res) {
     ----------------------------------------------
     */
 
-    return res.status(200).json({
+    return res
+      .status(200)
+      .json({
 
-      ok: true,
+        ok: true,
 
-      loteria:
-        "Caballos",
+        loteria:
+          "Caballos",
 
-      fuente:
-        fuenteUtilizada,
+        fuente:
+          fuenteUtilizada,
 
-      fechaActual,
+        fechaActual,
 
-      encontrados:
-        registros.length,
+        encontrados:
+          registros.length,
 
-      hipodromos,
+        hipodromos:
+          resumen.hipodromos,
 
-      fechas,
+        fechas:
+          resumen.fechas,
 
-      carrerasPorHipodromo,
+        carrerasPorHipodromo:
+          resumen.carrerasPorHipodromo,
 
-      muestra:
-        registros.slice(0, 20)
+        muestra:
+          registros.slice(
+            0,
+            20
+          )
 
-    });
+      });
 
 
   } catch (error) {
@@ -876,18 +1089,20 @@ export default async function handler(req, res) {
       error
     );
 
+    return res
+      .status(500)
+      .json({
 
-    return res.status(500).json({
+        ok: false,
 
-      ok: false,
+        loteria:
+          "Caballos",
 
-      loteria:
-        "Caballos",
+        error:
+          error?.message ||
+          "Error actualizando caballos."
 
-      error:
-        error.message
-
-    });
+      });
 
   }
 
