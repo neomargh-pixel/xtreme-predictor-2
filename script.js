@@ -396,6 +396,12 @@ function obtenerValorCaballo(caballo, campos) {
   return "";
 }
 
+/*
+==================================================
+TARJETA INDIVIDUAL DE CABALLO
+==================================================
+*/
+
 function crearTarjetaCaballo(caballo, index) {
   const nombre =
     obtenerValorCaballo(caballo, [
@@ -421,22 +427,6 @@ function crearTarjetaCaballo(caballo, index) {
     "place"
   ]);
 
-  const llegadas = obtenerValorCaballo(caballo, [
-    "llegadas",
-    "ultimasLlegadas",
-    "ultimas_llegadas",
-    "historialLlegadas",
-    "posiciones"
-  ]);
-
-  const perdidas = obtenerValorCaballo(caballo, [
-    "perdidas",
-    "llegadasPerdidas",
-    "llegadas_perdidas",
-    "fallos",
-    "missed"
-  ]);
-
   const peso = obtenerValorCaballo(caballo, [
     "peso",
     "weight",
@@ -454,66 +444,41 @@ function crearTarjetaCaballo(caballo, index) {
     "trainer"
   ]);
 
-  const forma = obtenerValorCaballo(caballo, [
-    "forma",
-    "formaReciente",
-    "forma_reciente",
-    "form"
+  const distancia = obtenerValorCaballo(caballo, [
+    "distancia",
+    "distance"
   ]);
 
-  const indice = obtenerValorCaballo(caballo, [
-    "indice",
-    "índice",
-    "indiceXtreme",
-    "indice_xtreme",
-    "xtreme",
-    "porcentaje",
-    "confianza"
+  const margen = obtenerValorCaballo(caballo, [
+    "margen",
+    "margin"
   ]);
 
   return `
-    <div class="caballo-card"
+    <div
+      class="caballo-card"
       style="
-        padding:18px;
-        margin:12px 0;
+        padding:16px;
+        margin:10px 0;
         border-radius:12px;
         border:1px solid rgba(255,255,255,.15);
       "
     >
 
-      <h2>🐎 ${nombre}</h2>
-
-      ${
-        numero !== ""
-          ? `<p>🔢 Número: <strong>#${numero}</strong></p>`
-          : ""
-      }
+      <h3>
+        🐎 ${numero !== "" ? `#${numero} ` : ""}
+        ${nombre}
+      </h3>
 
       ${
         posicion !== ""
-          ? `<p>🏁 Última llegada: <strong>${posicion}</strong></p>`
+          ? `<p>🏁 Llegada: <strong>${posicion}</strong></p>`
           : ""
       }
 
       ${
-        llegadas !== ""
-          ? `<p>📊 Llegadas: <strong>${
-              Array.isArray(llegadas)
-                ? llegadas.join(" - ")
-                : llegadas
-            }</strong></p>`
-          : ""
-      }
-
-      ${
-        perdidas !== ""
-          ? `<p>❌ Llegadas perdidas: <strong>${perdidas}</strong></p>`
-          : ""
-      }
-
-      ${
-        peso !== ""
-          ? `<p>⚖️ Peso: <strong>${peso}</strong></p>`
+        distancia !== ""
+          ? `<p>📏 Distancia: <strong>${distancia} m</strong></p>`
           : ""
       }
 
@@ -530,20 +495,14 @@ function crearTarjetaCaballo(caballo, index) {
       }
 
       ${
-        forma !== ""
-          ? `<p>📈 Forma reciente: <strong>${
-              Array.isArray(forma)
-                ? forma.join(" - ")
-                : forma
-            }</strong></p>`
+        peso !== ""
+          ? `<p>⚖️ Peso: <strong>${peso}</strong></p>`
           : ""
       }
 
       ${
-        indice !== ""
-          ? `<p>🔥 Índice XTREME: <strong>${indice}${
-              String(indice).includes("%") ? "" : "%"
-            }</strong></p>`
+        margen !== ""
+          ? `<p>📐 Margen: <strong>${margen}</strong></p>`
           : ""
       }
 
@@ -553,7 +512,8 @@ function crearTarjetaCaballo(caballo, index) {
 
 /*
 ==================================================
-RENDER CABALLOS DESTACADOS
+CABALLOS DESTACADOS
+NO MOSTRAR LISTA GLOBAL
 ==================================================
 */
 
@@ -563,98 +523,18 @@ function pintarCaballosDestacados(datos) {
 
   if (!contenedor) return;
 
-  let lista = [];
+  /*
+  La vista nueva trabaja por carrera.
+  No mostramos un Top 10 global de caballos.
+  */
 
-  if (Array.isArray(datos.pronosticos)) {
-    lista = datos.pronosticos.slice(0, 10);
-  } else if (Array.isArray(datos.top10)) {
-    lista = datos.top10.slice(0, 10);
-  } else if (Array.isArray(datos.animales)) {
-    lista = datos.animales.slice(0, 10);
-  }
-
-  if (lista.length === 0) {
-    contenedor.innerHTML = `
-      <p>⏳ Todavía no hay caballos destacados.</p>
-    `;
-    return;
-  }
-
-  contenedor.innerHTML = lista.map(
-    (caballo, index) => {
-      const nombre =
-        obtenerValorCaballo(caballo, [
-          "caballo",
-          "animal",
-          "nombre",
-          "horse"
-        ]) || "SIN NOMBRE";
-
-      const numero = obtenerValorCaballo(caballo, [
-        "numero",
-        "número",
-        "number",
-        "num"
-      ]);
-
-      const indice = obtenerValorCaballo(caballo, [
-        "indice",
-        "índice",
-        "indiceXtreme",
-        "indice_xtreme",
-        "xtreme",
-        "porcentaje",
-        "confianza"
-      ]);
-
-      const posicion =
-        index === 0
-          ? "🥇"
-          : index === 1
-            ? "🥈"
-            : index === 2
-              ? "🥉"
-              : `#${index + 1}`;
-
-      return `
-        <div
-          style="
-            padding:14px;
-            margin:8px 0;
-            border-radius:10px;
-            border:1px solid rgba(255,255,255,.12);
-          "
-        >
-
-          <strong>
-            ${posicion} 🐎 ${nombre}
-          </strong>
-
-          ${
-            numero !== ""
-              ? `<span> — #${numero}</span>`
-              : ""
-          }
-
-          ${
-            indice !== ""
-              ? `<span> — 🔥 ${indice}${
-                  String(indice).includes("%")
-                    ? ""
-                    : "%"
-                }</span>`
-              : ""
-          }
-
-        </div>
-      `;
-    }
-  ).join("");
+  contenedor.innerHTML = "";
+  contenedor.style.display = "none";
 }
 
 /*
 ==================================================
-RENDER CARRERAS
+AGRUPAR CARRERAS
 ==================================================
 */
 
@@ -664,130 +544,338 @@ function pintarCarrerasCaballos(datos) {
 
   if (!contenedor) return;
 
-  let carreras =
-    datos.carreras ||
-    datos.carrerasHoy ||
-    datos.resultadosHoy ||
+  let filas =
+    datos?.carreras ||
+    datos?.carrerasHoy ||
+    datos?.resultadosHoy ||
     [];
 
-  if (!Array.isArray(carreras)) {
+  if (!Array.isArray(filas)) {
     if (
-      carreras &&
-      typeof carreras === "object"
+      filas &&
+      typeof filas === "object"
     ) {
-      carreras = Object.values(carreras).flat();
+      filas = Object.values(filas).flat();
     } else {
-      carreras = [];
+      filas = [];
     }
   }
 
-  if (carreras.length === 0) {
+  if (filas.length === 0) {
     contenedor.innerHTML = `
-      <p>⏳ Todavía no hay información de carreras.</p>
+      <p>
+        ⏳ Todavía no hay información de carreras.
+      </p>
     `;
     return;
   }
 
-  contenedor.innerHTML = carreras.map(
-    (carrera, index) => {
-      const hipodromo =
-        obtenerValorCaballo(carrera, [
-          "hipodromo",
-          "hipódromo",
-          "hipodromoNombre",
-          "track",
-          "pista"
-        ]);
+  /*
+  ==================================================
+  AGRUPAR:
+  HIPÓDROMO + FECHA + CARRERA
+  ==================================================
+  */
 
-      const numeroCarrera =
-        obtenerValorCaballo(carrera, [
-          "carrera",
-          "numeroCarrera",
-          "numero_carrera",
-          "race",
-          "raceNumber"
-        ]);
+  const grupos = {};
 
-      const hora =
-        obtenerValorCaballo(carrera, [
-          "hora",
-          "time",
-          "fecha"
-        ]);
+  filas.forEach(item => {
+    if (!item || typeof item !== "object") return;
 
-      const nombre =
-        obtenerValorCaballo(carrera, [
-          "caballo",
-          "animal",
-          "nombre",
-          "horse"
-        ]);
+    const hipodromo =
+      obtenerValorCaballo(item, [
+        "hipodromo",
+        "hipódromo",
+        "hipodromoNombre",
+        "track",
+        "pista"
+      ]) ||
+      "Hipódromo no identificado";
 
-      const numero =
-        obtenerValorCaballo(carrera, [
-          "numero",
-          "número",
-          "number",
-          "num"
-        ]);
+    const fecha =
+      obtenerValorCaballo(item, [
+        "fecha_carrera",
+        "fechaCarrera",
+        "fecha"
+      ]) || "";
 
-      const posicion =
-        obtenerValorCaballo(carrera, [
-          "posicion",
-          "posición",
-          "llegada",
-          "puesto",
-          "place"
-        ]);
+    const carrera =
+      obtenerValorCaballo(item, [
+        "carrera",
+        "numeroCarrera",
+        "numero_carrera",
+        "race",
+        "raceNumber"
+      ]) || "?";
 
-      return `
-        <div
-          style="
-            padding:16px;
-            margin:10px 0;
-            border-radius:12px;
-            border:1px solid rgba(255,255,255,.12);
-          "
-        >
+    const clave =
+      `${normalizarTexto(hipodromo)}|${fecha}|${carrera}`;
 
-          <h3>
-            🏇 Carrera ${numeroCarrera || index + 1}
-          </h3>
-
-          ${
-            hipodromo
-              ? `<p>🏟️ Hipódromo: <strong>${hipodromo}</strong></p>`
-              : ""
-          }
-
-          ${
-            hora
-              ? `<p>🕐 Hora: <strong>${formatearHoraResultado(hora)}</strong></p>`
-              : ""
-          }
-
-          ${
-            nombre
-              ? `<p>🐎 Caballo: <strong>${nombre}</strong></p>`
-              : ""
-          }
-
-          ${
-            numero
-              ? `<p>🔢 Número: <strong>#${numero}</strong></p>`
-              : ""
-          }
-
-          ${
-            posicion
-              ? `<p>🏁 Llegada: <strong>${posicion}</strong></p>`
-              : ""
-          }
-
-        </div>
-      `;
+    if (!grupos[clave]) {
+      grupos[clave] = {
+        hipodromo,
+        fecha,
+        carrera,
+        caballos: []
+      };
     }
-  ).join("");
+
+    grupos[clave].caballos.push(item);
+  });
+
+  const gruposArray =
+    Object.values(grupos);
+
+  /*
+  ==================================================
+  ORDENAR HIPÓDROMO / FECHA / CARRERA
+  ==================================================
+  */
+
+  gruposArray.sort((a, b) => {
+
+    const hipodromo =
+      String(a.hipodromo).localeCompare(
+        String(b.hipodromo)
+      );
+
+    if (hipodromo !== 0) {
+      return hipodromo;
+    }
+
+    const fechaA =
+      String(a.fecha || "");
+
+    const fechaB =
+      String(b.fecha || "");
+
+    if (fechaA !== fechaB) {
+      return fechaB.localeCompare(fechaA);
+    }
+
+    return (
+      Number(a.carrera) -
+      Number(b.carrera)
+    );
+  });
+
+  window.carrerasCaballosXTREME =
+    gruposArray;
+
+  /*
+  ==================================================
+  MOSTRAR SOLO LAS CARRERAS
+  ==================================================
+  */
+
+  contenedor.innerHTML =
+    gruposArray.map(
+      (grupo, index) => {
+
+        const fecha =
+          grupo.fecha
+            ? String(grupo.fecha)
+                .split("T")[0]
+            : "";
+
+        return `
+          <div
+            class="carrera-caballos"
+            onclick="mostrarCaballosCarrera(${index})"
+            style="
+              padding:16px;
+              margin:10px 0;
+              border-radius:14px;
+              border:1px solid rgba(255,255,255,.15);
+              cursor:pointer;
+            "
+          >
+
+            <h3 style="margin:0 0 8px 0;">
+              🏇 Carrera ${grupo.carrera}
+            </h3>
+
+            <p style="margin:5px 0;">
+              🏟️
+              <strong>
+                ${grupo.hipodromo}
+              </strong>
+            </p>
+
+            ${
+              fecha
+                ? `
+                  <p style="margin:5px 0;">
+                    📅
+                    <strong>
+                      ${fecha}
+                    </strong>
+                  </p>
+                `
+                : ""
+            }
+
+            <p style="margin:5px 0;">
+              🐎
+              <strong>
+                ${grupo.caballos.length}
+                caballos
+              </strong>
+            </p>
+
+            <div
+              style="
+                margin-top:10px;
+                font-weight:800;
+              "
+            >
+              👉 VER CABALLOS
+            </div>
+
+          </div>
+        `;
+      }
+    ).join("");
+}
+
+/*
+==================================================
+MOSTRAR CABALLOS DE UNA SOLA CARRERA
+==================================================
+*/
+
+function mostrarCaballosCarrera(indice) {
+
+  const carreras =
+    window.carrerasCaballosXTREME || [];
+
+  const grupo =
+    carreras[indice];
+
+  if (!grupo) return;
+
+  const contenedor =
+    document.getElementById("carrerasCaballos");
+
+  if (!contenedor) return;
+
+  const caballos =
+    [...grupo.caballos].sort(
+      (a, b) =>
+        Number(
+          a.posicion ??
+          a["posición"] ??
+          999
+        ) -
+        Number(
+          b.posicion ??
+          b["posición"] ??
+          999
+        )
+    );
+
+  const fecha =
+    grupo.fecha
+      ? String(grupo.fecha)
+          .split("T")[0]
+      : "";
+
+  contenedor.innerHTML = `
+
+    <div
+      style="
+        padding:16px;
+        margin-bottom:15px;
+        border-radius:14px;
+        border:1px solid rgba(255,255,255,.15);
+      "
+    >
+
+      <button
+        onclick="volverListaCarrerasCaballos()"
+        style="
+          padding:10px 15px;
+          border:0;
+          border-radius:9px;
+          cursor:pointer;
+          margin-bottom:14px;
+        "
+      >
+        ⬅️ VOLVER A CARRERAS
+      </button>
+
+      <h2 style="margin:5px 0;">
+        🏇 Carrera ${grupo.carrera}
+      </h2>
+
+      <p>
+        🏟️
+        <strong>
+          ${grupo.hipodromo}
+        </strong>
+      </p>
+
+      ${
+        fecha
+          ? `
+            <p>
+              📅
+              <strong>
+                ${fecha}
+              </strong>
+            </p>
+          `
+          : ""
+      }
+
+      <p>
+        🐎
+        <strong>
+          ${caballos.length}
+          caballos
+        </strong>
+      </p>
+
+    </div>
+
+    <div>
+      ${
+        caballos.length > 0
+          ? caballos.map(
+              (caballo, i) =>
+                crearTarjetaCaballo(
+                  caballo,
+                  i
+                )
+            ).join("")
+          : `
+            <p>
+              ⏳ No hay caballos registrados
+              para esta carrera.
+            </p>
+          `
+      }
+    </div>
+  `;
+}
+
+/*
+==================================================
+VOLVER A LISTA DE CARRERAS
+==================================================
+*/
+
+function volverListaCarrerasCaballos() {
+
+  const carreras =
+    window.carrerasCaballosXTREME || [];
+
+  pintarCarrerasCaballos({
+    carreras:
+      carreras.flatMap(
+        grupo => grupo.caballos
+      )
+  });
 }
 
 /*
@@ -810,11 +898,7 @@ function pintarEstadisticasCaballos(datos) {
   const total =
     estadisticas.totalCaballos ??
     datos.totalCaballos ??
-    (
-      Array.isArray(datos.animales)
-        ? datos.animales.length
-        : 0
-    );
+    0;
 
   const carreras =
     estadisticas.totalCarreras ??
@@ -860,17 +944,31 @@ function pintarEstadisticasCaballos(datos) {
 
       ${
         hipodromos
-          ? `<p>🏟️ Hipódromos: <strong>${
-              Array.isArray(hipodromos)
-                ? hipodromos.join(", ")
-                : hipodromos
-            }</strong></p>`
+          ? `
+            <p>
+              🏟️ Hipódromos:
+              <strong>
+                ${
+                  Array.isArray(hipodromos)
+                    ? hipodromos.join(", ")
+                    : hipodromos
+                }
+              </strong>
+            </p>
+          `
           : ""
       }
 
       ${
         mejorCaballo
-          ? `<p>⭐ Caballo destacado: <strong>${mejorCaballo}</strong></p>`
+          ? `
+            <p>
+              ⭐ Caballo destacado:
+              <strong>
+                ${mejorCaballo}
+              </strong>
+            </p>
+          `
           : ""
       }
 
@@ -880,7 +978,8 @@ function pintarEstadisticasCaballos(datos) {
 
 /*
 ==================================================
-PRONÓSTICO EXCLUSIVO DE CABALLOS
+PRONÓSTICO DE CABALLOS
+NO MOSTRAR TOP GLOBAL
 ==================================================
 */
 
@@ -890,102 +989,13 @@ function pintarPronosticoCaballos(datos) {
 
   if (!contenedor) return;
 
-  const pronosticos =
-    Array.isArray(datos.pronosticos)
-      ? datos.pronosticos.slice(0, 5)
-      : [];
+  /*
+  El pronóstico global se elimina de la pantalla.
+  El análisis debe quedar asociado a cada carrera.
+  */
 
-  if (pronosticos.length === 0) {
-    contenedor.innerHTML = `
-      <div style="text-align:center;padding:20px;">
-        <h2>⏳ Sin pronóstico disponible</h2>
-        <p>
-          No hay suficientes datos de carreras
-          para generar el análisis XTREME.
-        </p>
-      </div>
-    `;
-    return;
-  }
-
-  contenedor.innerHTML = `
-    <div>
-      ${pronosticos.map(
-        (caballo, index) => {
-          const nombre =
-            obtenerValorCaballo(caballo, [
-              "caballo",
-              "animal",
-              "nombre",
-              "horse"
-            ]) || "SIN NOMBRE";
-
-          const numero =
-            obtenerValorCaballo(caballo, [
-              "numero",
-              "número",
-              "number",
-              "num"
-            ]);
-
-          const indice =
-            obtenerValorCaballo(caballo, [
-              "indice",
-              "índice",
-              "indiceXtreme",
-              "indice_xtreme",
-              "xtreme",
-              "porcentaje",
-              "confianza"
-            ]);
-
-          const posicion =
-            index === 0
-              ? "🥇"
-              : index === 1
-                ? "🥈"
-                : index === 2
-                  ? "🥉"
-                  : `#${index + 1}`;
-
-          return `
-            <div
-              style="
-                padding:18px;
-                margin:10px 0;
-                border-radius:12px;
-                border:1px solid rgba(255,255,255,.15);
-              "
-            >
-
-              <h2>
-                ${posicion} 🐎 ${nombre}
-              </h2>
-
-              ${
-                numero !== ""
-                  ? `<p>🔢 Número: <strong>#${numero}</strong></p>`
-                  : ""
-              }
-
-              ${
-                indice !== ""
-                  ? `<p>🔥 Índice XTREME: <strong>${indice}${
-                      String(indice).includes("%")
-                        ? ""
-                        : "%"
-                    }</strong></p>`
-                  : ""
-              }
-
-              <p>🎯 Pronóstico XTREME activo</p>
-
-            </div>
-          `;
-        }
-      ).join("")}
-    </div>
-  `;
+  contenedor.innerHTML = "";
+  contenedor.style.display = "none";
 }
 
 /*
@@ -995,6 +1005,7 @@ CARGAR ANÁLISIS DE CABALLOS
 */
 
 async function cargarAnalisisCaballos() {
+
   const pronostico =
     document.getElementById("pronosticoCaballos");
 
@@ -1011,8 +1022,8 @@ async function cargarAnalisisCaballos() {
     document.getElementById("listaCaballos");
 
   if (pronostico) {
-    pronostico.innerHTML =
-      `<p>⏳ Analizando carreras...</p>`;
+    pronostico.innerHTML = "";
+    pronostico.style.display = "none";
   }
 
   if (carreras) {
@@ -1021,8 +1032,8 @@ async function cargarAnalisisCaballos() {
   }
 
   if (destacados) {
-    destacados.innerHTML =
-      `<p>⏳ Analizando caballos...</p>`;
+    destacados.innerHTML = "";
+    destacados.style.display = "none";
   }
 
   if (estadisticas) {
@@ -1030,12 +1041,19 @@ async function cargarAnalisisCaballos() {
       `<p>⏳ Calculando estadísticas...</p>`;
   }
 
+  /*
+  ==================================================
+  ELIMINAR LA REGUERA DE 153 CABALLOS
+  ==================================================
+  */
+
   if (lista) {
-    lista.innerHTML =
-      `<p>⏳ Cargando información...</p>`;
+    lista.innerHTML = "";
+    lista.style.display = "none";
   }
 
   try {
+
     const configuracion =
       configuracionLoterias.caballos;
 
@@ -1056,7 +1074,8 @@ async function cargarAnalisisCaballos() {
       );
     }
 
-    const datos = await respuesta.json();
+    const datos =
+      await respuesta.json();
 
     if (!datos.ok) {
       throw new Error(
@@ -1065,52 +1084,53 @@ async function cargarAnalisisCaballos() {
       );
     }
 
+    /*
+    ================================================
+    MOSTRAR SOLAMENTE:
+    HIPÓDROMO → FECHA → CARRERA
+    ================================================
+    */
+
     pintarPronosticoCaballos(datos);
+
     pintarCarrerasCaballos(datos);
+
     pintarCaballosDestacados(datos);
+
     pintarEstadisticasCaballos(datos);
 
-    let caballos =
-      datos.animales ||
-      datos.caballos ||
-      datos.horses ||
-      [];
+    /*
+    ================================================
+    ASEGURAR QUE LA LISTA ANTIGUA SIGA OCULTA
+    ================================================
+    */
 
-    if (!Array.isArray(caballos)) {
-      caballos = [];
-    }
-
-    if (lista && caballos.length > 0) {
-      lista.innerHTML =
-        caballos.map(
-          (caballo, index) =>
-            crearTarjetaCaballo(
-              caballo,
-              index
-            )
-        ).join("");
-    } else if (lista) {
-      lista.innerHTML = `
-        <p>
-          ⏳ No hay información detallada
-          de caballos disponible todavía.
-        </p>
-      `;
+    if (lista) {
+      lista.innerHTML = "";
+      lista.style.display = "none";
     }
 
   } catch (error) {
+
     console.error(
       "ERROR CABALLOS:",
       error
     );
 
-    if (pronostico) {
-      pronostico.innerHTML = `
-        <div style="text-align:center;padding:20px;">
+    if (carreras) {
+      carreras.innerHTML = `
+        <div
+          style="
+            text-align:center;
+            padding:20px;
+          "
+        >
 
           <h2>⚠️ ERROR EN CABALLOS</h2>
 
-          <p>${error.message}</p>
+          <p>
+            ${error.message}
+          </p>
 
           <button
             onclick="cargarAnalisisCaballos()"
@@ -1150,7 +1170,9 @@ function mostrarResultadosHoy(
   const lista = [];
 
   if (Array.isArray(resultadosHoy)) {
+
     resultadosHoy.forEach(resultado => {
+
       lista.push({
         animal:
           resultado?.animal ||
@@ -1168,16 +1190,21 @@ function mostrarResultadosHoy(
           resultado?.fecha ??
           ""
       });
+
     });
+
   } else if (
     resultadosHoy &&
     typeof resultadosHoy === "object"
   ) {
+
     Object.entries(resultadosHoy).forEach(
       ([animal, resultados]) => {
+
         if (!Array.isArray(resultados)) return;
 
         resultados.forEach(resultado => {
+
           lista.push({
             animal,
             numero:
@@ -1192,12 +1219,15 @@ function mostrarResultadosHoy(
               resultado?.fecha ??
               ""
           });
+
         });
+
       }
     );
   }
 
   function obtenerOrdenResultado(resultado) {
+
     const fechaTexto =
       String(resultado?.fecha ?? "").trim();
 
@@ -1218,11 +1248,13 @@ function mostrarResultadosHoy(
   );
 
   if (lista.length === 0) {
+
     contenedor.innerHTML = `
       <p>
         ⏳ Todavía no hay resultados de hoy.
       </p>
     `;
+
     return;
   }
 
@@ -1234,6 +1266,7 @@ function mostrarResultadosHoy(
 
       ${lista.map(
         (resultado, index) => {
+
           const acierto =
             buscarPronosticoParaResultado(
               resultado,
@@ -1311,6 +1344,7 @@ function pintarPronosticos(
       : [];
 
   if (pronosticos.length === 0) {
+
     contenedor.innerHTML = `
       <div style="text-align:center;padding:25px 10px;">
 
@@ -1323,6 +1357,7 @@ function pintarPronosticos(
 
       </div>
     `;
+
     return;
   }
 
@@ -1340,6 +1375,7 @@ function pintarPronosticos(
 
         ${pronosticos.map(
           (animal, index) => {
+
             const posicion =
               index === 0
                 ? "🥇"
@@ -1377,7 +1413,9 @@ function pintarPronosticos(
                     ? `
                       <p>
                         🔢 Número:
-                        <strong>#${animal.numero}</strong>
+                        <strong>
+                          #${animal.numero}
+                        </strong>
                       </p>
                     `
                     : ""
@@ -1481,10 +1519,6 @@ function pintarTop10(datos) {
     return;
   }
 
-  // ==============================================
-  // CORRECCIÓN: TOP 10 = SOLO 10 ANIMALES
-  // ==============================================
-
   const listaTop10 =
     datos.top10.slice(0, 10);
 
@@ -1524,7 +1558,6 @@ function pintarTop10(datos) {
 
         </tr>
       `;
-
     }
   );
 }
@@ -1547,6 +1580,7 @@ function pintarAtrasados(datos) {
     Array.isArray(datos.atrasados) &&
     datos.atrasados.length > 0
   ) {
+
     datos.atrasados.forEach(
       (animal, index) => {
 
@@ -1583,10 +1617,11 @@ function pintarAtrasados(datos) {
 
           </tr>
         `;
-
       }
     );
+
   } else {
+
     tabla.innerHTML = `
       <tr>
         <td colspan="5">
@@ -1641,6 +1676,7 @@ function pintarAnimales(datos) {
     let clase = "frio";
 
     if (dato) {
+
       if (Number(dato.indice) >= 80) {
         clase = "caliente";
       } else if (Number(dato.indice) >= 50) {
@@ -1655,6 +1691,7 @@ function pintarAnimales(datos) {
     `;
 
     if (resultados.length > 0) {
+
       estado = `
         <small>
 
@@ -1699,7 +1736,6 @@ function pintarAnimales(datos) {
 
       </div>
     `;
-
   });
 }
 
@@ -1808,6 +1844,7 @@ CARGAR ANÁLISIS NORMAL
 */
 
 async function cargarAnalisis() {
+
   if (loteriaActual === "caballos") {
     mostrarPaginaCaballos();
     return;
@@ -1820,8 +1857,10 @@ async function cargarAnalisis() {
     document.getElementById("pronostico");
 
   if (pronostico) {
+
     pronostico.innerHTML = `
       <h1>Analizando...</h1>
+
       <p>
         Calculando posibilidades XTREME...
       </p>
@@ -1829,6 +1868,7 @@ async function cargarAnalisis() {
   }
 
   try {
+
     const respuesta =
       await fetchSeguro(
         `${configuracion.analizar}${
@@ -1884,12 +1924,14 @@ async function cargarAnalisis() {
     );
 
   } catch (error) {
+
     console.error(
       "ERROR XTREME:",
       error
     );
 
     if (pronostico) {
+
       pronostico.innerHTML = `
         <div
           style="
@@ -1938,6 +1980,7 @@ ACTUALIZAR
 */
 
 async function actualizarTodo() {
+
   const boton =
     document.getElementById("actualizar");
 
@@ -1948,6 +1991,7 @@ async function actualizarTodo() {
   }
 
   try {
+
     const configuracion =
       obtenerConfiguracionLoteria();
 
@@ -1986,6 +2030,7 @@ async function actualizarTodo() {
     }
 
   } catch (error) {
+
     console.error(
       "ERROR ACTUALIZANDO:",
       error
@@ -1997,6 +2042,7 @@ async function actualizarTodo() {
     );
 
   } finally {
+
     if (boton) {
       boton.disabled = false;
       boton.innerText =
@@ -2012,10 +2058,12 @@ CONTROLES
 */
 
 function inicializarControles() {
+
   const selector =
     document.getElementById("selectorLoteria");
 
   if (selector) {
+
     selector.value =
       loteriaActual;
 
@@ -2032,8 +2080,11 @@ function inicializarControles() {
         );
 
         if (loteriaActual === "caballos") {
+
           mostrarPaginaCaballos();
+
         } else {
+
           mostrarPanelAnimalitos();
 
           animales =
@@ -2050,6 +2101,7 @@ function inicializarControles() {
     document.getElementById("actualizar");
 
   if (botonActualizar) {
+
     botonActualizar.addEventListener(
       "click",
       actualizarTodo
@@ -2060,6 +2112,7 @@ function inicializarControles() {
     document.getElementById("volverLoterias");
 
   if (volver) {
+
     volver.addEventListener(
       "click",
       () => {
@@ -2096,17 +2149,24 @@ INICIAR XTREME
 */
 
 function iniciarXTREME() {
+
   try {
+
     inicializarControles();
 
     if (loteriaActual === "caballos") {
+
       mostrarPaginaCaballos();
+
     } else {
+
       actualizarListaAnimales();
+
       cargarAnalisis();
     }
 
   } catch (error) {
+
     console.error(
       "ERROR AL INICIAR XTREME:",
       error
@@ -2116,6 +2176,7 @@ function iniciarXTREME() {
       document.getElementById("pronostico");
 
     if (pronostico) {
+
       pronostico.innerHTML = `
         <div
           style="
@@ -2126,7 +2187,9 @@ function iniciarXTREME() {
 
           <h2>⚠️ ERROR XTREME</h2>
 
-          <p>${error.message}</p>
+          <p>
+            ${error.message}
+          </p>
 
         </div>
       `;
@@ -2135,10 +2198,13 @@ function iniciarXTREME() {
 }
 
 if (document.readyState === "loading") {
+
   document.addEventListener(
     "DOMContentLoaded",
     iniciarXTREME
   );
+
 } else {
+
   iniciarXTREME();
 }
